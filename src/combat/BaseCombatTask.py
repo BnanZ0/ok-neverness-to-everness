@@ -405,10 +405,6 @@ class BaseCombatTask(CombatCheck):
 
         while True:
             self.check_combat()
-            if SoundCombatContext.is_in_sound_action_window():
-                logger.info("switch_next_char skipped, within sound action window")
-                self.sleep(0.1)
-                continue
             current_time = time.time()
 
             is_char_switched = self.is_char_at_index(switch_to.index)
