@@ -14,9 +14,9 @@ logger = Logger.get_logger(__name__)
 class SoundCombatContext:
     _instance = None
     _lock = threading.Lock()
-    _is_sound_action_busy = False
-    _busy_lock = threading.Lock()
     _combat_interrupt = threading.Event()
+    _action_complete = threading.Event()
+    _last_trigger_time = 0.0
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -41,40 +41,49 @@ class SoundCombatContext:
         self._pending_config = None
 
     @classmethod
-    def set_busy(cls):
-        with cls._busy_lock:
-            cls._is_sound_action_busy = True
-        logger.debug("SoundCombatContext: Sound action busy")
-
-    @classmethod
-    def clear_busy(cls):
-        with cls._busy_lock:
-            cls._is_sound_action_busy = False
-        logger.debug("SoundCombatContext: Sound action complete")
-
-    @classmethod
     def enter_priority(cls):
-        cls.set_busy()
+        cls._action_complete.clear()
         cls._combat_interrupt.set()
-        logger.info("SoundCombatContext: Combat interrupt signal sent")
+        cls._last_trigger_time = time.time()
+        logger.info("SoundCombatContext: Combat interrupt signal sent, main thread should pause")
+
+        if not hasattr(cls, '_clear_seq'):
+            cls._clear_seq = 0
+        cls._clear_seq += 1
+        current_seq = cls._clear_seq
+
+        def delayed_clear(seq):
+            time.sleep(0.8)
+            if cls._clear_seq == seq:
+                cls._combat_interrupt.clear()
+                cls._action_complete.set()
+        threading.Thread(target=delayed_clear, args=(current_seq,), daemon=True).start()
+
+    @classmethod
+    def is_in_sound_action_window(cls, window=1.5):
+        return time.time() - cls._last_trigger_time < window
 
     @classmethod
     def exit_priority(cls):
-        cls._combat_interrupt.clear()
-        cls.clear_busy()
+        cls._action_complete.set()
+        logger.info("SoundCombatContext: Action complete")
+
+    @classmethod
+    def exit_priority_no_wait(cls):
+        cls.exit_priority()
 
     @classmethod
     def should_interrupt_combat(cls):
         return cls._combat_interrupt.is_set()
 
     @classmethod
-    def wait_for_sound_action_complete(cls, timeout=1.0):
-        start = time.time()
-        while cls._is_sound_action_busy:
-            if time.time() - start > timeout:
-                return False
+    def wait_for_resume(cls):
+        if not cls._combat_interrupt.is_set():
+            return
+        logger.info("Main thread paused, waiting for sound action to complete...")
+        while cls._combat_interrupt.is_set():
             time.sleep(0.01)
-        return True
+        logger.info("Main thread resumed")
 
     def setup(
         self,
@@ -160,40 +169,22 @@ class SoundCombatContext:
                 logger.error(f"Error exiting SoundCombatContext: {e}")
 
     def _on_dodge_triggered(self):
-        if self._trigger is None:
-            logger.info("Dodge trigger ignored - trigger is None")
+        if self._trigger is None or self._trigger.task is None or self._trigger.task.paused:
             return
-        task = self._trigger.task
-        if task is None or task.paused:
-            logger.info("Dodge trigger ignored - task is None or paused")
-            return
-        logger.info("Dodge trigger callback invoked")
         if self._thread_pool is None:
-            logger.error("Thread pool is None, cannot submit task")
             return
         try:
-            logger.info(f"Submitting dodge to thread pool, pool: {self._thread_pool}")
-            future = self._thread_pool.submit(self._trigger.execute_dodge)
-            logger.info(f"Dodge task submitted, future: {future}")
+            self._thread_pool.submit(self._trigger.execute_dodge)
         except Exception as e:
             logger.error(f"Failed to submit dodge task: {e}")
 
     def _on_counter_triggered(self):
-        if self._trigger is None:
-            logger.info("Counter trigger ignored - trigger is None")
+        if self._trigger is None or self._trigger.task is None or self._trigger.task.paused:
             return
-        task = self._trigger.task
-        if task is None or task.paused:
-            logger.info("Counter trigger ignored - task is None or paused")
-            return
-        logger.info("Counter trigger callback invoked")
         if self._thread_pool is None:
-            logger.error("Thread pool is None, cannot submit task")
             return
         try:
-            logger.info(f"Submitting counter to thread pool, pool: {self._thread_pool}")
-            future = self._thread_pool.submit(self._trigger.execute_counter_attack)
-            logger.info(f"Counter task submitted, future: {future}")
+            self._thread_pool.submit(self._trigger.execute_counter_attack)
         except Exception as e:
             logger.error(f"Failed to submit counter task: {e}")
 

@@ -33,8 +33,6 @@ class DodgeCounterTrigger:
         self._min_dodge_interval = 0.5
         self._min_counter_interval = 1.0
 
-
-
     def execute_dodge(self):
         now = time.time()
         if now - self._last_dodge_time < self._min_dodge_interval:
@@ -82,7 +80,7 @@ class DodgeCounterTrigger:
         try:
             logger.info("Dodge sequence: Left Shift")
             self.task.send_key("shift")
-            time.sleep(0.1)
+            time.sleep(0.5)
             self.task.send_key("shift")
             time.sleep(0.02)
         finally:

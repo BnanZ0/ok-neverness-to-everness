@@ -8,6 +8,7 @@ import numpy as np  # noqa
 from ok import Config, Logger, Box  # noqa
 from src import text_white_color  # noqa
 from src.Labels import Labels
+from src.sound_trigger.SoundCombatContext import SoundCombatContext
 from src.utils import game_filters as gf
 
 from typing import TYPE_CHECKING
@@ -120,6 +121,7 @@ class BaseChar:
 
     def perform(self):
         """执行当前角色的主要战斗行动序列。"""
+        self._check_should_interrupt()
         self.last_perform = time.time()
         if self.need_fast_perform():
             self.do_fast_perform()
@@ -290,6 +292,7 @@ class BaseChar:
                     break
 
             self.check_combat()
+            self._check_should_interrupt()
             now = time.time()
             if not self.skill_available() and (
                 not has_animation or now - start > animation_min_duration
@@ -370,6 +373,11 @@ class BaseChar:
         """检查战斗状态 (代理到 task.check_combat)。"""
         self.task.check_combat()
 
+    def _check_should_interrupt(self):
+        if SoundCombatContext.should_interrupt_combat():
+            self.logger.info("combat loop interrupted by sound action")
+            SoundCombatContext.wait_for_resume()
+
     def reset_state(self):
         """重置角色的战斗相关状态 (如入场技标记)。"""
         self.has_intro = False
@@ -397,6 +405,7 @@ class BaseChar:
         clicked = False
         if not self.task.in_ultimate:
             while self.ultimate_available():
+                self._check_should_interrupt()
                 self.logger.debug("click_ultimate ultimate_available click")
                 if send_click:
                     self.click(interval=0.1)
@@ -433,6 +442,7 @@ class BaseChar:
                     return False
         start = time.time()
         while not self.task.is_in_team():
+            self._check_should_interrupt()
             self.task.in_ultimate = True
             if not clicked:
                 clicked = True
@@ -618,6 +628,7 @@ class BaseChar:
         """
         start = time.time()
         while time.time() - start < duration:
+            self._check_should_interrupt()
             if click_skill_if_ready_and_return and self.skill_available():
                 return self.click_skill()
             # if until_cycle_full and self.is_cycle_full():
