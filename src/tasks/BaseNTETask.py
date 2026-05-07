@@ -28,6 +28,7 @@ stamina_re = re.compile(r"(\d+)[\s/\\|!Il／-]+\d+")
 class BaseNTETask(BaseTask):
     DEFAULT_MOVE = False
     _current_move = contextvars.ContextVar("current_move", default=None)
+    MAX_LOG_LINES = 10  # 限制最多显示 10 条日志
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -42,6 +43,77 @@ class BaseNTETask(BaseTask):
         self.next_monthly_card_start = 0
         self._last_interval_action_time = {}
         self._action_interval_lock = threading.Lock()
+
+    def log_info(self, message, notify=False):
+        """覆盖 log_info 以累积保存日志"""
+        self.logger.info(message)
+        self._add_log_to_info("Log", message)
+        if notify:
+            self.notification(message, tray=True)
+
+    def _add_log_to_info(self, prefix, message):
+        """将日志添加到 info 字典，编号持续递增，只保留最新 10 条"""
+        # 加上时间戳让日志更清晰
+        import datetime
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+        new_log_line = f"[{timestamp}] {message}"
+        
+        # 1. 先找到所有旧的带数字后缀的日志键
+        old_logs = []
+        for key in list(self.info.keys()):
+            if key.startswith(prefix) and key[len(prefix):].isdigit():
+                num = int(key[len(prefix):])
+                old_logs.append((num, key))
+        
+        # 2. 计算新日志的编号
+        if old_logs:
+            max_num = max(num for num, _ in old_logs)
+            new_num = max_num + 1
+        else:
+            new_num = 1
+        
+        # 3. 添加新日志
+        self.info[f"{prefix}{new_num}"] = new_log_line
+        
+        # 4. 如果总数超过 10 条，删除编号最小的（最旧的）
+        if len(old_logs) + 1 > self.MAX_LOG_LINES:
+            # 按数字升序排序，删除前面的
+            old_logs.sort(key=lambda x: x[0])
+            # 需要删除的数量
+            to_delete = (len(old_logs) + 1) - self.MAX_LOG_LINES
+            for i in range(to_delete):
+                num, key = old_logs[i]
+                del self.info[key]
+
+    def info_clear(self):
+        """覆盖 info_clear 以正确处理所有带数字后缀的日志键"""
+        keys_to_delete = []
+        for key in list(self.info.keys()):
+            # 检查是否是 LogN, WarningN 或 ErrorN 等格式的键
+            is_log_key = False
+            for prefix in ["Log", "Warning", "Error"]:
+                if key.startswith(prefix) and key[len(prefix):].isdigit():
+                    is_log_key = True
+                    break
+            if is_log_key:
+                keys_to_delete.append(key)
+        
+        for key in keys_to_delete:
+            del self.info[key]
+
+    def info_set(self, key, value):
+        """覆盖 info_set 以避免覆盖我们的 LogN 等日志键"""
+        # 检查是否是 LogN, WarningN 或 ErrorN 等格式的键
+        is_log_key = False
+        for prefix in ["Log", "Warning", "Error"]:
+            if key.startswith(prefix) and key[len(prefix):].isdigit():
+                is_log_key = True
+                break
+        
+        if not is_log_key:
+            if key != 'Error':
+                self.logger.info(f'info_set {key} {value}')
+            self.info[key] = value
 
     def sync_config(self, config=None):
         """同步并保存配置"""
