@@ -24,7 +24,7 @@ global_config = {
         }
     },
     'windows': {
-        'exe': ['NTEGame.exe'],
+        'exe': ['NTEGame.exe'], # 启动器进程名NTEGame.exe
         'interaction': ['Pynput', 'PostMessage', 'Genshin', 'PyDirect','ForegroundPostMessage'],
         'capture_method': ['WGC', 'BitBlt_RenderFull', 'BitBlt'],
         'check_hdr': False,
