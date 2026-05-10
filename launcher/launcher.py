@@ -1,3 +1,10 @@
+import os
+import sys
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, current_dir)
+os.chdir(current_dir)
+
 from ok import OK
 
 global_config = {
