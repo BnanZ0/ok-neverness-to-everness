@@ -1,9 +1,11 @@
 from datetime import datetime
 from typing import Callable, List, Tuple
 
+import cv2
+import numpy as np
 from qfluentwidgets import FluentIcon
 
-from ok import CannotFindException, TaskDisabledException, find_color_rectangles
+from ok import TaskDisabledException, find_color_rectangles
 from src import text_white_color
 from src.Labels import Labels
 from src.tasks.AnomalyTask import AnomalyTask
@@ -23,6 +25,12 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
 
     CONF_AUTO_CYCLE_SUB_TASK = "自动循环项目"
     DAILY_STAMINA_TARGET = 180
+    MAIL_BUTTON_POSITION = (0.8707, 0.8736)
+    MAIL_PANEL_WAIT_TIMEOUT = 4.5
+    MAIL_PHONE_MENU_MAIL_ICON_REGION = (0.50, 0.83, 0.72, 0.97)
+    MAIL_PHONE_MENU_GLOBAL_MAIL_ICON_REGION = (0.82, 0.78, 0.92, 0.91)
+    MAIL_PHONE_MENU_MAIL_ICON_THRESHOLD = 135
+    MAIL_PHONE_MENU_MAIL_ICON_MIN_AREA = 160
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -149,22 +157,117 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             bool: True 表示成功，False 表示失败
         """
         self.log_info("正在打开邮件面板")
-        self.openESCpanel()
-        self.operate_click(0.8707, 0.8736)
-        self.sleep(1)
-        result = self.wait_panel(Labels.mail_panel)
+        panel = self.openESCpanel()
+        phone_click = self._click_mail_button_from_phone_menu(panel)
+        if phone_click is False:
+            self.info_set("邮件入口恢复失败", "phone_menu_mail_icon_not_found")
+            self.log_error("检测到手机菜单但无法定位邮件入口", notify=True)
+            return False
+        if phone_click is None:
+            self.operate_click(*self.MAIL_BUTTON_POSITION)
+            self.sleep(1)
+        result = self._wait_mail_panel()
         if not result:
+            self.info_set("邮件入口恢复失败", "mail_panel_not_found")
             self.log_error("无法找到邮件面板", notify=True)
-            raise CannotFindException("can't find mail panel")
+            return False
         return result
 
     def claim_mail(self):
         """领取邮件"""
         self.log_info("正在领取邮件奖励")
-        self._open_mail_panel()
+        if not self._open_mail_panel():
+            return False
         self.operate_click(0.1289, 0.9299)
         self.sleep(1)
         return True
+
+    def _wait_mail_panel(self):
+        result = self.wait_panel(Labels.mail_panel, time_out=self.MAIL_PANEL_WAIT_TIMEOUT)
+        if not result:
+            return None
+        name = str(getattr(result, "name", "") or "")
+        if name and name not in {Labels.mail_panel, Labels.mail_panel.value}:
+            self.log_info(f"邮件面板识别结果不是邮件面板: {name}")
+            return None
+        return result
+
+    def _click_mail_button_from_phone_menu(self, panel):
+        target = self._find_mail_icon_from_phone_menu(panel)
+        if target is None and self._is_mail_phone_menu_box(panel):
+            return False
+        if target is None:
+            return None
+        self.log_info("识别到手机菜单邮件入口，点击信封图标中心")
+        self.operate_click(int(target[0]), int(target[1]), down_time=0.08)
+        self.sleep(1)
+        return True
+
+    @staticmethod
+    def _is_mail_phone_menu_box(panel):
+        return getattr(panel, "name", "") in {"mail_phone_menu", "esc_phone_menu"}
+
+    def _find_mail_icon_from_phone_menu(self, panel):
+        frame = self._mail_current_frame()
+        shape = getattr(frame, "shape", None)
+        if shape is None or len(shape) < 2:
+            return None
+        height, width = shape[:2]
+        if self._is_mail_phone_menu_box(panel):
+            px, py = int(getattr(panel, "x", 0) or 0), int(getattr(panel, "y", 0) or 0)
+            pw, ph = int(getattr(panel, "width", 0) or 0), int(getattr(panel, "height", 0) or 0)
+            if pw <= 0 or ph <= 0:
+                return None
+            x1, y1, x2, y2 = self._ratio_region_bounds(pw, ph, self.MAIL_PHONE_MENU_MAIL_ICON_REGION)
+            x1, x2 = max(0, px + x1), min(width, px + x2)
+            y1, y2 = max(0, py + y1), min(height, py + y2)
+        else:
+            x1, y1, x2, y2 = self._ratio_region_bounds(
+                width,
+                height,
+                self.MAIL_PHONE_MENU_GLOBAL_MAIL_ICON_REGION,
+            )
+        if x2 <= x1 or y2 <= y1:
+            return None
+        crop = frame[y1:y2, x1:x2]
+        if getattr(crop, "size", 0) == 0:
+            return None
+        gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY) if len(crop.shape) == 3 else crop
+        mask = (gray > self.MAIL_PHONE_MENU_MAIL_ICON_THRESHOLD).astype(np.uint8)
+        count, _, stats, _ = cv2.connectedComponentsWithStats(mask, 8)
+        candidates = []
+        for label in range(1, count):
+            area = int(stats[label, cv2.CC_STAT_AREA])
+            box_width = int(stats[label, cv2.CC_STAT_WIDTH])
+            box_height = int(stats[label, cv2.CC_STAT_HEIGHT])
+            if area < self.MAIL_PHONE_MENU_MAIL_ICON_MIN_AREA or box_width < 20 or box_height < 14:
+                continue
+            x = int(stats[label, cv2.CC_STAT_LEFT])
+            y = int(stats[label, cv2.CC_STAT_TOP])
+            candidates.append((area, x1 + x + box_width / 2, y1 + y + box_height / 2))
+        if not candidates:
+            return None
+        _, center_x, center_y = max(candidates, key=lambda item: item[0])
+        return center_x, center_y
+
+    def _mail_current_frame(self):
+        next_frame = getattr(self, "next_frame", None)
+        if callable(next_frame):
+            try:
+                frame = next_frame()
+                if frame is not None:
+                    return frame
+            except Exception:
+                pass
+        try:
+            return self.frame
+        except Exception:
+            return None
+
+    @staticmethod
+    def _ratio_region_bounds(width, height, region):
+        left, top, right, bottom = region
+        return int(width * left), int(height * top), int(width * right), int(height * bottom)
 
     def complete_daily_activities(self):
         """执行操作完成每日活跃度""" 
