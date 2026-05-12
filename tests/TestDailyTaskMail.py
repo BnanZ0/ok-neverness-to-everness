@@ -81,6 +81,33 @@ class TestDailyTaskMail(unittest.TestCase):
 
         self.assertIs(result, mail_panel)
         task.operate_click.assert_called_once_with(1670, 920, down_time=0.08)
+        self.assertNotEqual(
+            task.operate_click.call_args.args,
+            DailyTask.MAIL_BUTTON_POSITION,
+        )
+        task.wait_panel.assert_called_once_with(
+            Labels.mail_panel,
+            time_out=DailyTask.MAIL_PANEL_WAIT_TIMEOUT,
+        )
+
+    def test_open_mail_panel_requires_post_verification_after_phone_menu_click(self):
+        task = self.make_task()
+        frame = np.zeros((1080, 1920, 3), dtype=np.uint8)
+        frame[900:940, 1650:1690] = 255
+        esc_panel = Mock(name="esc_option")
+        esc_panel.name = Labels.esc_option.value
+        task.openESCpanel = Mock(return_value=esc_panel)
+        task.next_frame = Mock(return_value=frame)
+        task.wait_panel = Mock(return_value=None)
+
+        result = DailyTask._open_mail_panel(task)
+
+        self.assertFalse(result)
+        task.operate_click.assert_called_once_with(1670, 920, down_time=0.08)
+        task.info_set.assert_called_once_with(
+            "邮件入口恢复失败",
+            "mail_panel_not_found",
+        )
 
     def test_open_mail_panel_reports_blocker_when_phone_menu_icon_missing(self):
         task = self.make_task()
