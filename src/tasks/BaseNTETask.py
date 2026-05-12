@@ -20,6 +20,13 @@ from src.scene.NTEScene import NTEScene
 from src.scene.ScreenPosition import ScreenPosition
 from src.utils import game_filters as gf
 from src.utils import image_utils as iu
+from src.utils.viewport_adapter import (
+    MODE_AUTO_16_9_VIEWPORT,
+    MODE_NATIVE_SCREEN,
+    classify_ui_layout_profile,
+    make_auto_viewport,
+    make_native_viewport,
+)
 
 logger = Logger.get_logger(__name__)
 stamina_re = re.compile(r"(\d+)[\s/\\|!Il／-]+\d+")
@@ -27,6 +34,7 @@ stamina_re = re.compile(r"(\d+)[\s/\\|!Il／-]+\d+")
 
 class BaseNTETask(BaseTask):
     DEFAULT_MOVE = False
+    ESC_PANEL_THRESHOLD = 0.45
     _current_move = contextvars.ContextVar("current_move", default=None)
 
     def __init__(self, *args, **kwargs):
@@ -34,6 +42,7 @@ class BaseNTETask(BaseTask):
         self.scene: NTEScene | None = None
         self.key_config = self.get_global_config("Game Hotkey Config")
         self.monthly_card_config = self.get_global_config("Monthly Card Config")
+        self.resolution_config = self._optional_global_config("Resolution Adaptation Config")
         self.sound_config = self.get_global_config("Sound Trigger Config")
         self._logged_in = False
         self.arrow_contour = {"contours": None, "shape": None}
@@ -131,6 +140,97 @@ class BaseNTETask(BaseTask):
     @property
     def main_viewport(self):
         return self.box_of_screen(0.0984, 0.1042, 0.8961, 0.8944, name="main_viewport")
+
+    def _optional_global_config(self, option):
+        try:
+            return self.get_global_config(option)
+        except RuntimeError as exc:
+            if f"Can not find global config {option}" in str(exc):
+                return None
+            raise
+
+    def get_ui_coordinate_mode(self):
+        config = getattr(self, "resolution_config", None)
+        if config is None:
+            return MODE_AUTO_16_9_VIEWPORT
+
+        mode = config.get("UI Coordinate Mode")
+        if mode in (MODE_AUTO_16_9_VIEWPORT, MODE_NATIVE_SCREEN):
+            return mode
+        return MODE_AUTO_16_9_VIEWPORT
+
+    def get_ui_viewport(self, frame=None):
+        if frame is None:
+            try:
+                frame = self.frame
+            except Exception:
+                frame = None
+
+        shape = getattr(frame, "shape", None)
+        try:
+            has_frame_shape = shape is not None and len(shape) >= 2
+        except TypeError:
+            has_frame_shape = False
+
+        if has_frame_shape:
+            height, width = shape[:2]
+        else:
+            frame = None
+            width = self.width
+            height = self.height
+
+        if self.get_ui_coordinate_mode() == MODE_NATIVE_SCREEN:
+            return make_native_viewport(width, height)
+        return make_auto_viewport(width, height, frame=frame)
+
+    def get_ui_layout_profile(self, frame=None):
+        viewport = self.get_ui_viewport(frame=frame)
+        return classify_ui_layout_profile(
+            viewport.screen_width,
+            viewport.screen_height,
+            viewport.mode,
+        )
+
+    def active_ui_frame(self, frame=None):
+        frame = self.frame if frame is None else frame
+        return self.get_ui_viewport(frame=frame).crop_active_frame(frame)
+
+    def ui_point(self, x: float, y: float, frame=None):
+        return self.get_ui_viewport(frame=frame).ui_point_to_screen_relative(x, y)
+
+    def click_ui(self, x, y=None, **kwargs):
+        if y is None:
+            return self.click(x, **kwargs)
+
+        px, py = self.get_ui_viewport().ui_point_to_screen_pixel(x, y)
+        return self.click(px, py, **kwargs)
+
+    def box_of_ui(
+        self,
+        x,
+        y,
+        to_x=1.0,
+        to_y=1.0,
+        width=0.0,
+        height=0.0,
+        name=None,
+        confidence=1.0,
+        frame=None,
+    ):
+        if name is None:
+            name = f"{x} {y} {width} {height}"
+
+        box_x, box_y, box_width, box_height = self.get_ui_viewport(
+            frame=frame
+        ).ui_box_to_screen_pixel(x, y, to_x=to_x, to_y=to_y, width=width, height=height)
+        return Box(box_x, box_y, box_width, box_height, name=name, confidence=confidence)
+
+    def ocr_ui(self, x, y, to_x=1.0, to_y=1.0, width=0.0, height=0.0, **kwargs):
+        frame = kwargs.get("frame")
+        kwargs["box"] = self.box_of_ui(
+            x, y, to_x=to_x, to_y=to_y, width=width, height=height, frame=frame
+        )
+        return self.ocr(**kwargs)
 
     # fmt: off
     @overload
@@ -525,24 +625,28 @@ class BaseNTETask(BaseTask):
         """
         检查窗口是否在最前端。
         """
-        if not self.hwnd:
+        hwnd_window = self.hwnd
+        if not hwnd_window:
             return False
-        return self.hwnd.is_foreground()
+        is_foreground = getattr(hwnd_window, "is_foreground", None)
+        if not callable(is_foreground):
+            return False
+        try:
+            return is_foreground() is True
+        except Exception:
+            return False
 
     def bring_to_front(self):
         """
         强制将窗口带到最前端。
         """
-        if not self.hwnd:
-            self.log_warning("bring_to_front skipped: hwnd_window unavailable")
-            return False
-        hwnd = self.hwnd.hwnd
-
         if self.is_foreground():
-            self.log_info(f"bring_to_front {hwnd} already is foreground")
-            return True
+            return
 
-        self.log_info(f"try bring_to_front {hwnd}")
+        hwnd_window = self.hwnd
+        hwnd = getattr(hwnd_window, "hwnd", hwnd_window)
+        if not hwnd:
+            return
 
         current_thread_id = 0
         target_thread_id = 0
@@ -578,15 +682,8 @@ class BaseNTETask(BaseTask):
                 win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
             win32gui.BringWindowToTop(hwnd)
             win32gui.SetForegroundWindow(hwnd)
-            self.sleep(0.1)
-            if self.is_foreground():
-                self.log_info(f"bring_to_front {hwnd} succeeded")
-                return True
-            self.log_info(f"bring_to_front {hwnd} did not keep foreground")
-            return False
         except Exception as e:
             logger.debug(f"bring_to_front failed: {e}")
-            return False
         finally:
             if attached_foreground:
                 ctypes.windll.user32.AttachThreadInput(
@@ -674,11 +771,11 @@ class BaseNTETask(BaseTask):
             raise CannotFindException("can't find panel, make sure f2 is the hotkey for panel")
         return result
 
-    def wait_panel(self, feature, box=None, threshold=0.8, time_out=4.5):
+    def wait_panel(self, feature, box=None, threshold=0.8, time_out=4.5, settle_time=0.5):
         result = self.wait_until(
             lambda: self.find_one(feature, box=box, threshold=threshold),
             time_out=time_out,
-            settle_time=0.5,
+            settle_time=settle_time,
         )
         logger.info(f"found {feature} {result}")
         return result
@@ -690,11 +787,148 @@ class BaseNTETask(BaseTask):
             self.send_key("esc", after_sleep=1)
             self.log_info("send esc key to open the panel")
 
-        result = self.wait_panel(Labels.esc_option, box=Labels.box_all_esc_options, threshold=0.3)
+        result = self._wait_esc_panel()
+        if not result:
+            self.log_info("未检测到 ESC 面板，尝试前台发送 ESC 键")
+            if self._send_foreground_key("esc", after_sleep=1):
+                result = self._wait_esc_panel()
         if not result:
             self.log_error("can't find panel, make sure esc is the hotkey for panel", notify=True)
             raise CannotFindException("can't find panel, make sure esc is the hotkey for panel")
         return result
+
+    def _wait_esc_panel(self):
+        result = self.wait_until(
+            self._find_esc_panel,
+            time_out=4.5,
+            settle_time=0,
+        )
+        logger.info(f"found esc panel {result}")
+        return result
+
+    def _find_esc_panel(self):
+        result = self.find_one(
+            Labels.esc_option,
+            box=Labels.box_all_esc_options,
+            threshold=self.ESC_PANEL_THRESHOLD,
+        )
+        if result:
+            return result
+        return self._find_esc_phone_menu()
+
+    def _find_esc_phone_menu(self):
+        try:
+            frame = self.frame
+        except Exception:
+            return None
+
+        shape = getattr(frame, "shape", None)
+        if shape is None or len(shape) < 2:
+            return None
+
+        height, width = shape[:2]
+        if height <= 0 or width <= 0:
+            return None
+
+        panel_x1, panel_y1 = int(width * 0.70), int(height * 0.12)
+        panel_x2, panel_y2 = int(width * 0.98), int(height * 0.93)
+        bar_x1, bar_y1 = int(width * 0.70), int(height * 0.79)
+        bar_x2, bar_y2 = int(width * 0.98), int(height * 0.93)
+
+        panel = frame[panel_y1:panel_y2, panel_x1:panel_x2]
+        bottom_bar = frame[bar_y1:bar_y2, bar_x1:bar_x2]
+        if panel.size == 0 or bottom_bar.size == 0:
+            return None
+
+        panel_dark = self._dark_pixel_ratio(panel, threshold=90)
+        bar_dark = self._dark_pixel_ratio(bottom_bar, threshold=90)
+        if panel_dark < 0.55 or bar_dark < 0.55:
+            return None
+
+        confidence = min(1.0, (panel_dark + bar_dark) / 2)
+        return Box(
+            panel_x1,
+            panel_y1,
+            panel_x2 - panel_x1,
+            panel_y2 - panel_y1,
+            name="esc_phone_menu",
+            confidence=confidence,
+        )
+
+    @staticmethod
+    def _dark_pixel_ratio(frame, threshold=90):
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        return float(np.mean(gray < threshold))
+
+    @staticmethod
+    def _hsv_pixel_ratio(frame, hue_min, hue_max, saturation_min=80, value_min=120):
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        mask = (
+            (hsv[:, :, 0] >= hue_min)
+            & (hsv[:, :, 0] <= hue_max)
+            & (hsv[:, :, 1] >= saturation_min)
+            & (hsv[:, :, 2] >= value_min)
+        )
+        return float(np.mean(mask))
+
+    def _send_foreground_key(self, key, down_time=0.05, after_sleep=0):
+        try:
+            self.bring_to_front()
+            hwnd_window = self.hwnd
+            if hasattr(hwnd_window, "bring_to_front"):
+                hwnd_window.bring_to_front()
+            foreground = True
+            if hasattr(hwnd_window, "is_foreground"):
+                foreground = False
+                for _ in range(5):
+                    time.sleep(0.1)
+                    if hwnd_window.is_foreground():
+                        foreground = True
+                        break
+                    self.bring_to_front()
+                    if hasattr(hwnd_window, "bring_to_front"):
+                        hwnd_window.bring_to_front()
+                if not foreground:
+                    logger.debug(f"foreground key continuing without foreground confirmation: {key}")
+
+            key_name = str(key).lower()
+            sent = self._send_pydirect_key(key_name, down_time)
+            if not sent:
+                self._send_pynput_key(key_name, down_time)
+            if after_sleep > 0:
+                self.sleep(after_sleep)
+            self.log_info(f"send foreground {key} key to open the panel")
+            return True
+        except Exception as e:
+            logger.debug(f"send foreground key failed: {key} {e}")
+            return False
+
+    @staticmethod
+    def _send_pydirect_key(key, down_time):
+        try:
+            import pydirectinput
+
+            pydirectinput.FAILSAFE = False
+            if hasattr(pydirectinput, "SendInput"):
+                pydirectinput.SendInput.argtypes = [ctypes.c_uint, ctypes.c_void_p, ctypes.c_int]
+            pydirectinput.keyDown(str(key))
+            time.sleep(down_time)
+            pydirectinput.keyUp(str(key))
+            return True
+        except Exception as e:
+            logger.debug(f"pydirect foreground key failed: {key} {e}")
+            return False
+
+    @staticmethod
+    def _send_pynput_key(key, down_time):
+        from pynput import keyboard
+
+        parsed_key = keyboard.Key.esc if key == "esc" else key
+        controller = keyboard.Controller()
+        controller.press(parsed_key)
+        time.sleep(down_time)
+        controller.release(parsed_key)
+        return True
 
     def ensure_main(self, esc=True, time_out=30):
         self.info_set("current task", f"wait main esc={esc}")
