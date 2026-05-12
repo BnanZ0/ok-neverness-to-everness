@@ -29,6 +29,7 @@ from src.tasks.DailyTaskItemRunner import DailyGiftDefaultRuntime, DailyTaskItem
 
 MODES = ("daily-full", "coffee-only", "daily-task-only", "gift-only")
 TASK_KEYS = ("mail", "periodic", "activity", "coffee", "gift")
+SUBPROCESS_TIMEOUT_SECONDS = 5
 MODE_TASKS = {
     "daily-full": ("coffee", "gift", "activity", "mail", "periodic"),
     "daily-task-only": ("activity", "mail", "periodic"),
@@ -69,13 +70,17 @@ def resolution_to_dict(resolution: tuple[int, int] | None) -> dict[str, int] | N
 
 
 def _run_git(args: list[str], cwd: Path) -> str:
-    completed = subprocess.run(
-        ["git", *args],
-        cwd=str(cwd),
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            ["git", *args],
+            cwd=str(cwd),
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return ""
     if completed.returncode != 0:
         return ""
     return completed.stdout.strip()
@@ -91,17 +96,21 @@ def get_git_info(cwd: Path = ROOT) -> dict[str, Any]:
 def htgame_process_exists() -> bool:
     if sys.platform != "win32":
         return False
-    completed = subprocess.run(
-        [
-            "powershell",
-            "-NoProfile",
-            "-Command",
-            "$p=Get-Process HTGame -ErrorAction SilentlyContinue; if($p){'1'}",
-        ],
-        text=True,
-        capture_output=True,
-        check=False,
-    )
+    try:
+        completed = subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-Command",
+                "$p=Get-Process HTGame -ErrorAction SilentlyContinue; if($p){'1'}",
+            ],
+            text=True,
+            capture_output=True,
+            check=False,
+            timeout=SUBPROCESS_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired:
+        return False
     return completed.returncode == 0 and completed.stdout.strip() == "1"
 
 
@@ -579,20 +588,24 @@ class DailyRealValidationRunner:
             analysis = getattr(task, "_last_daily_activity_analysis", None)
             cards_claimed = int(getattr(task, "_last_daily_activity_cards_claimed", 0) or 0)
             handler_completed = bool(getattr(task, "_last_daily_activity_handlers_completed", False))
-            task_completed = False
+            snapshot = {}
+            if isinstance(complete_payload, dict):
+                snapshot = complete_payload.get("snapshot", {})
+            if not isinstance(snapshot, dict):
+                snapshot = {}
             if not cards_claimed and isinstance(complete_payload, dict):
                 cards_claimed = int(complete_payload.get("cards_claimed") or 0)
-            if not cards_claimed and isinstance(complete_payload, dict):
-                snapshot = complete_payload.get("snapshot", {})
-                if isinstance(snapshot, dict):
-                    cards_claimed = int(snapshot.get("cards_claimed") or 0)
+            if not cards_claimed:
+                cards_claimed = int(snapshot.get("cards_claimed") or 0)
             if not handler_completed and isinstance(complete_payload, dict):
                 handler_completed = bool(complete_payload.get("handler_completed"))
-            if not handler_completed and isinstance(complete_payload, dict):
-                snapshot = complete_payload.get("snapshot", {})
-                if isinstance(snapshot, dict):
-                    handler_completed = bool(snapshot.get("handler_completed"))
-            task_completed = bool(cards_claimed)
+            if not handler_completed:
+                handler_completed = bool(snapshot.get("handler_completed"))
+            task_completed = bool(
+                cards_claimed
+                or (complete_payload.get("task_completed") if isinstance(complete_payload, dict) else False)
+                or snapshot.get("task_completed")
+            )
             milestone_claimed = reward_result is True or (
                 isinstance(reward_result, FlowResult) and reward_result.done and reward_result.mutated
             )

@@ -254,6 +254,18 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         return MailClaimFlow(self).claim()
 
     def _daily_activity_flow(self):
+        def legacy_override(legacy_name):
+            instance_method = self.__dict__.get(legacy_name)
+            if callable(instance_method):
+                return instance_method
+            method = getattr(self, legacy_name, None)
+            if not callable(method):
+                return None
+            base_method = getattr(DailyTask, legacy_name, None)
+            if base_method is not None and getattr(method, "__func__", None) is base_method:
+                return None
+            return method
+
         override_map = {
             "_open_activity_panel_result": "open_activity_panel_result",
             "_analyze_daily_activity": "analyze_daily_activity",
@@ -266,11 +278,11 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             "_claim_activity_milestone_rewards": "claim_activity_milestone_rewards",
             "_close_activity_reward_popup": "close_activity_reward_popup",
         }
-        method_overrides = {
-            flow_name: self.__dict__[legacy_name]
-            for legacy_name, flow_name in override_map.items()
-            if callable(self.__dict__.get(legacy_name))
-        }
+        method_overrides = {}
+        for legacy_name, flow_name in override_map.items():
+            method = legacy_override(legacy_name)
+            if method is not None:
+                method_overrides[flow_name] = method
         return DailyActivityFlow.from_task(
             self,
             registry=self.ACTIVITY_HANDLER_REGISTRY,
@@ -571,8 +583,8 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
                 self.info_set("环期任务领取失败", gate_result.reject_reason)
                 return {
                     "claimed": attempts,
-                    "mutation_performed": False,
-                    "mutation_verified": False,
+                    "mutation_performed": bool(attempts),
+                    "mutation_verified": bool(attempts),
                     "failure_reason": gate_result.reject_reason,
                     "gate_results": gate_results,
                 }
@@ -581,8 +593,8 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
                 self.info_set("环期任务领取失败", reason)
                 return {
                     "claimed": attempts,
-                    "mutation_performed": True,
-                    "mutation_verified": False,
+                    "mutation_performed": bool(attempts or gate_result.mutation_performed),
+                    "mutation_verified": bool(attempts),
                     "failure_reason": reason,
                     "gate_results": gate_results,
                 }

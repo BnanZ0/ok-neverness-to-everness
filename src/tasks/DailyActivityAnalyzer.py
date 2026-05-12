@@ -12,6 +12,61 @@ from src.tasks.F1PanelDetector import F1PanelDetector
 from src.tasks.DailyUIContext import ReadOnlyUIContext
 
 
+def _extract_progress_text(text):
+    value = str(text or "")
+    for start, char in enumerate(value):
+        if not char.isdigit():
+            continue
+        index = start
+        current = []
+        while index < len(value) and value[index].isdigit():
+            current.append(value[index])
+            index += 1
+        while index < len(value) and value[index].isspace():
+            index += 1
+        if index >= len(value) or value[index] != "/":
+            continue
+        index += 1
+        while index < len(value) and value[index].isspace():
+            index += 1
+        target = []
+        while index < len(value) and value[index].isdigit():
+            target.append(value[index])
+            index += 1
+        if target:
+            return f"{''.join(current)}/{''.join(target)}"
+    return ""
+
+
+def _is_progress_text(text):
+    normalized = str(text or "").replace(" ", "")
+    return bool(normalized and _extract_progress_text(text) == normalized)
+
+
+def _is_signed_integer_text(text):
+    normalized = str(text or "").replace(" ", "")
+    if normalized.startswith("+"):
+        normalized = normalized[1:]
+    return bool(normalized and normalized.isdigit())
+
+
+def _extract_reward_points(text):
+    value = str(text or "")
+    for start, char in enumerate(value):
+        if char != "+":
+            continue
+        index = start + 1
+        while index < len(value) and value[index].isspace():
+            index += 1
+        digits = []
+        while index < len(value) and value[index].isdigit() and len(digits) < 3:
+            digits.append(value[index])
+            index += 1
+        if digits:
+            return int("".join(digits))
+    return None
+
+
 class DailyActivityState(str, Enum):
     UNKNOWN = "unknown"
     PANEL_NOT_FOUND = "panel_not_found"
@@ -610,9 +665,9 @@ class DailyActivityAnalyzer:
             cleaned = text.strip()
             if not cleaned or cleaned in ignored:
                 continue
-            if re.fullmatch(r"[0-9]+\s*/\s*[0-9]+", cleaned):
+            if _is_progress_text(cleaned):
                 continue
-            if re.fullmatch(r"\+?\s*[0-9]+", cleaned):
+            if _is_signed_integer_text(cleaned):
                 continue
             if cleaned.startswith("+") and any(char.isdigit() for char in cleaned):
                 continue
@@ -622,17 +677,17 @@ class DailyActivityAnalyzer:
     @staticmethod
     def _select_progress_text(texts):
         for text in texts:
-            match = re.search(r"[0-9]+\s*/\s*[0-9]+", text)
-            if match:
-                return match.group(0).replace(" ", "")
+            progress = _extract_progress_text(text)
+            if progress:
+                return progress
         return ""
 
     @staticmethod
     def _select_reward_points(texts):
         for text in texts:
-            match = re.search(r"\+\s*([0-9]{1,3})", text)
-            if match:
-                return int(match.group(1))
+            points = _extract_reward_points(text)
+            if points is not None:
+                return points
         return None
 
     def _task_card_box_for_action(self, action_box, frame):

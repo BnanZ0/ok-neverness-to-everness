@@ -182,7 +182,6 @@ class DailyTaskItemsValidationRunner:
         summary_path = self.output_dir / "summary.json"
         summary_path.write_text(json.dumps(self.summary, ensure_ascii=False, indent=2), encoding="utf-8")
         self._artifact("summary_json", summary_path)
-        summary_path.write_text(json.dumps(self.summary, ensure_ascii=False, indent=2), encoding="utf-8")
         return self.summary
 
     def _artifact(self, name: str, path: Path):

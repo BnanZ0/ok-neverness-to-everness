@@ -75,8 +75,6 @@ class DailyCoffeeRuntime:
     PRODUCT_CATEGORIES = ("主食", "饮料", "甜品")
     TYCOON_TEXT_MARKERS = ("都市大亨", "大亨等级", "一咖舍", "咖舍", "猎人交易所", "车辆赛事", "都市闲趣")
     TYCOON_ASCII_MARKERS = ("CITYTYCOON", "CTYTYCOON", "TYCOON")
-    PRICE_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*/\s*h", re.IGNORECASE)
-
     def __init__(self, task):
         self.ui = TaskUIAdapter.coerce(task)
         self.actions: list[str] = []
@@ -635,10 +633,9 @@ class DailyCoffeeRuntime:
         options = []
         for index, box in enumerate(boxes):
             text = self.box_text(box)
-            match = self.PRICE_RE.search(text)
-            if not match:
+            price_value = self._extract_price_value(text)
+            if price_value is None:
                 continue
-            price_value = int(round(float(match.group(1)) * 100))
             category = self._nearest_category(box, boxes)
             name = self._nearest_name(box, boxes)
             identity = name or f"coffee_food_{index}"
@@ -672,7 +669,7 @@ class DailyCoffeeRuntime:
         candidates = []
         for box in boxes:
             text = self.box_text(box)
-            if not text or self.PRICE_RE.search(text) or text in self.PRODUCT_CATEGORIES:
+            if not text or self._extract_price_value(text) is not None or text in self.PRODUCT_CATEGORIES:
                 continue
             dx = abs(self._center_x(box) - price_center_x)
             dy = self._center_y(box) - price_center_y
@@ -993,7 +990,7 @@ class DailyCoffeeRuntime:
                 option = self._matching_visible_product_option(
                     page_options,
                     candidate,
-                    allow_price_fallback=False,
+                    allow_price_fallback=allow_price_fallback,
                 )
                 if option is None or option.target is None:
                     continue
@@ -1206,6 +1203,26 @@ class DailyCoffeeRuntime:
         if len(same_price) == 1:
             return same_price[0]
         return None
+
+    @staticmethod
+    def _extract_price_value(text):
+        value = str(text or "").lower().replace(" ", "")
+        search_from = 0
+        while True:
+            marker_index = value.find("/h", search_from)
+            if marker_index < 0:
+                return None
+            index = marker_index - 1
+            while index >= 0 and (value[index].isdigit() or value[index] == "."):
+                index -= 1
+            token = value[index + 1 : marker_index]
+            search_from = marker_index + 2
+            if not token or token.count(".") > 1 or not any(char.isdigit() for char in token):
+                continue
+            try:
+                return int(round(float(token) * 100))
+            except ValueError:
+                continue
 
     def _option_matches_any(self, option, candidates):
         return any(self._same_product_option(option, candidate) for candidate in candidates or [])

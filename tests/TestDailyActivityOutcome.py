@@ -42,6 +42,7 @@ class TestDailyActivityOutcome(unittest.TestCase):
         self.assertFalse(outcome.ok)
         self.assertIs(outcome.to_legacy_value(), False)
         self.assertTrue(flow.failed)
+        self.assertTrue(flow.mutated)
         self.assertEqual(flow.reason, "post_verification_failed")
         self.assertTrue(flow.details["mutation_performed"])
         self.assertFalse(flow.details["mutation_verified"])
@@ -79,6 +80,19 @@ class TestDailyActivityOutcome(unittest.TestCase):
 
         self.assertTrue(result.failed)
         self.assertIn("unknown_legacy_result_type:object", result.reason)
+
+    def test_legacy_status_failed_takes_precedence_over_default_ok(self):
+        result = FlowResult.from_legacy(
+            {
+                "status": "failed",
+                "reason": "legacy failed",
+                "mutation_performed": True,
+            }
+        )
+
+        self.assertTrue(result.failed)
+        self.assertEqual(result.reason, "legacy failed")
+        self.assertTrue(result.mutated)
 
     def test_snapshot_details_include_typed_boundary_fields(self):
         snapshot = DailyActivitySnapshot(

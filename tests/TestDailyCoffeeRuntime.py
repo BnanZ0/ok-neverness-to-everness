@@ -1212,6 +1212,29 @@ class TestDailyCoffeeRuntime(unittest.TestCase):
         runtime.find_empty_product_slot.assert_called_once()
         self.assertEqual([option.identity for option in runtime.selected_options], ["金枪鱼三明治"])
 
+    def test_visible_product_scan_forwards_price_fallback_to_matching(self):
+        task = self.make_task({"coffee_product_scrolls": 0})
+        runtime = DailyCoffeeRuntime(task)
+        candidate = CoffeeFoodOption("OCR漂移原名", price_value=35906, category="主食")
+        visible = CoffeeFoodOption(
+            "识别成别名",
+            price_value=35906,
+            category="主食",
+            target=FakeBox("359.06/h", x=500, y=500, width=90, height=38),
+        )
+        runtime.collect_product_options = Mock(return_value=[visible])
+
+        selected = runtime._click_product_candidates_single_pass(
+            [candidate],
+            1,
+            action="select_product",
+            allow_price_fallback=True,
+        )
+
+        self.assertEqual(selected, [candidate])
+        self.assertIn("select_product:识别成别名", runtime.actions)
+        self.assertEqual(task.click.call_count, 1)
+
     def test_optimize_products_skips_short_fill_candidate_and_tries_next_safe_option(self):
         task = self.make_task({"coffee_product_scrolls": 0, "coffee_product_target_slots": 5})
         runtime = DailyCoffeeRuntime(task)

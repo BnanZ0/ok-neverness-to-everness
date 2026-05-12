@@ -641,12 +641,12 @@ class BaseNTETask(BaseTask):
         强制将窗口带到最前端。
         """
         if self.is_foreground():
-            return
+            return True
 
         hwnd_window = self.hwnd
         hwnd = getattr(hwnd_window, "hwnd", hwnd_window)
         if not hwnd:
-            return
+            return False
 
         current_thread_id = 0
         target_thread_id = 0
@@ -684,6 +684,7 @@ class BaseNTETask(BaseTask):
             win32gui.SetForegroundWindow(hwnd)
         except Exception as e:
             logger.debug(f"bring_to_front failed: {e}")
+            return False
         finally:
             if attached_foreground:
                 ctypes.windll.user32.AttachThreadInput(
@@ -691,6 +692,7 @@ class BaseNTETask(BaseTask):
                 )
             if attached_target:
                 ctypes.windll.user32.AttachThreadInput(current_thread_id, target_thread_id, False)
+        return self.is_foreground()
 
     @property
     def interac_box(self):

@@ -848,6 +848,20 @@ class TestDailyTask(unittest.TestCase):
         fake_flow.daily_activity_card_swipe_points.assert_called_once_with("page")
         fake_flow.claim_completed_activity_card_rewards.assert_called_once_with("page", max_clicks=1)
 
+    def test_daily_activity_flow_collects_class_level_legacy_overrides(self):
+        class OverrideTask(DailyTask):
+            def _analyze_daily_activity(self, panel_detected=True):
+                return make_analysis()
+
+        task = object.__new__(OverrideTask)
+        task.config = {}
+        task.task_status = {}
+
+        flow = DailyTask._daily_activity_flow(task)
+
+        self.assertIn("analyze_daily_activity", flow.method_overrides)
+        self.assertIs(flow.method_overrides["analyze_daily_activity"].__self__, task)
+
     def test_daily_task_removed_unused_visible_mission_legacy_helpers(self):
         self.assertFalse(hasattr(DailyTask, "_claim_visible_activity_missions"))
         self.assertFalse(hasattr(DailyTask, "_find_visible_activity_mission_claim_target"))
@@ -971,29 +985,14 @@ class TestDailyTask(unittest.TestCase):
     def test_claim_activity_rewards_clicks_one_top_milestone_at_full_score(self):
         first_box = RegionBox("daily_activity_milestone_20", 680, 220, 70, 70)
         second_box = RegionBox("daily_activity_milestone_40", 920, 220, 70, 70)
-        after_page = DailyActivityPage(
-            activity_score=100,
-            milestone_rewards=[
-                DailyMilestoneReward(40, second_box, claimable=True, locked=False),
-                DailyMilestoneReward(
-                    100,
-                    RegionBox("daily_activity_milestone_100", 1640, 220, 70, 70),
-                    claimable=True,
-                    locked=False,
-                ),
-            ],
-        )
+        third_box = RegionBox("daily_activity_milestone_100", 1640, 220, 70, 70)
+        after_page = DailyActivityPage(activity_score=100, milestone_rewards=[])
         page = DailyActivityPage(
             activity_score=100,
             milestone_rewards=[
                 DailyMilestoneReward(20, first_box, claimable=True, locked=False),
                 DailyMilestoneReward(40, second_box, claimable=True, locked=False),
-                DailyMilestoneReward(
-                    100,
-                    RegionBox("daily_activity_milestone_100", 1640, 220, 70, 70),
-                    claimable=True,
-                    locked=False,
-                ),
+                DailyMilestoneReward(100, third_box, claimable=True, locked=False),
             ],
         )
         task = object.__new__(DailyTask)
@@ -1276,6 +1275,32 @@ class TestDailyTask(unittest.TestCase):
         self.assertEqual(flow.open_esc_panel_for_mail.call_count, 2)
         self.assertEqual(task.click.call_count, 2)
 
+    def test_open_mail_panel_retry_falls_back_when_second_panel_is_not_phone_menu(self):
+        phone_panel = Mock(name="mail_phone_menu", x=1792, y=160, width=716, height=1312)
+        phone_panel.name = "mail_phone_menu"
+        generic_panel = Mock(name="esc_option", x=10, y=10, width=50, height=50)
+        generic_panel.name = "esc_option"
+        task = object.__new__(DailyTask)
+        task.log_info = Mock()
+        task.log_error = Mock()
+        task.click = Mock()
+        task.click_ui = Mock()
+        task.wait_panel = Mock(side_effect=[False, object()])
+        flow = MailClaimFlow(task)
+        flow.open_esc_panel_for_mail = Mock(side_effect=[phone_panel, generic_panel])
+        flow.wait_mail_phone_menu = Mock(return_value=None)
+
+        result = flow.open_mail_panel()
+
+        self.assertTrue(result)
+        task.click.assert_called_once()
+        task.click_ui.assert_called_once_with(
+            *DailyTask.MAIL_BUTTON_RETRY_POSITION,
+            after_sleep=1,
+            move=True,
+            down_time=0.01,
+        )
+
     def test_open_mail_panel_retries_esc_panel_when_existing_panel_was_closed(self):
         task = object.__new__(DailyTask)
         task.log_info = Mock()
@@ -1438,6 +1463,46 @@ class TestDailyTask(unittest.TestCase):
             task.click_ui.mock_calls.index(call(*DailyTask.BATTLE_PASS_MISSION_TAB_POSITION)),
             task.click_ui.mock_calls.index(call(*DailyTask.BATTLE_PASS_REWARD_TAB_POSITION)),
         )
+
+    def test_battle_pass_mission_claim_preserves_prior_success_when_later_gate_fails(self):
+        task = object.__new__(DailyTask)
+        task.info_set = Mock()
+        target = RegionBox("领取", 100, 200, 80, 40)
+        success_gate = Mock(
+            allowed=True,
+            verified=True,
+            mutation_performed=True,
+            reject_reason="",
+            failure_reason="",
+        )
+        success_gate.to_details.return_value = {
+            "allowed": True,
+            "verified": True,
+            "mutation_performed": True,
+            "mutation_verified": True,
+        }
+        rejected_gate = Mock(
+            allowed=False,
+            verified=False,
+            mutation_performed=False,
+            reject_reason="low_confidence",
+            failure_reason="",
+        )
+        rejected_gate.to_details.return_value = {
+            "allowed": False,
+            "verified": False,
+            "mutation_performed": False,
+            "mutation_verified": False,
+        }
+        task._find_battle_pass_text_box = Mock(side_effect=[target, target])
+        task._execute_battle_pass_claim_gate = Mock(side_effect=[success_gate, rejected_gate])
+
+        result = DailyTask._claim_visible_battle_pass_mission_rewards(task)
+
+        self.assertEqual(result["claimed"], 1)
+        self.assertTrue(result["mutation_performed"])
+        self.assertTrue(result["mutation_verified"])
+        self.assertEqual(result["failure_reason"], "low_confidence")
 
     def test_claim_battle_pass_ignores_already_claimed_mission_text(self):
         already_claimed = RegionBox("已领取", 1760, 420, 120, 70)
@@ -1610,6 +1675,7 @@ class TestDailyTask(unittest.TestCase):
     def test_bring_to_front_unwraps_hwnd_window_handle(self):
         task = object.__new__(BaseNTETask)
         hwnd_window = Mock(hwnd=12345)
+        hwnd_window.is_foreground.side_effect = [False, True]
         task._executor = Mock(device_manager=Mock(hwnd_window=hwnd_window))
 
         with (
@@ -1623,8 +1689,9 @@ class TestDailyTask(unittest.TestCase):
             patch("src.tasks.BaseNTETask.win32gui.BringWindowToTop") as bring_top,
             patch("src.tasks.BaseNTETask.win32gui.SetForegroundWindow") as set_foreground,
         ):
-            BaseNTETask.bring_to_front(task)
+            result = BaseNTETask.bring_to_front(task)
 
+        self.assertTrue(result)
         get_thread.assert_called_once_with(12345)
         bring_top.assert_called_once_with(12345)
         set_foreground.assert_called_once_with(12345)

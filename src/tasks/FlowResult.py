@@ -66,8 +66,15 @@ class FlowResult:
         return cls(status="skipped", reason=reason, mutated=False, details=details or {}, legacy_return=legacy_return)
 
     @classmethod
-    def fail(cls, reason: str = "", details: dict[str, Any] | None = None, *, legacy_return: Any = None):
-        return cls(status="failed", reason=reason, mutated=False, details=details or {}, legacy_return=legacy_return)
+    def fail(
+        cls,
+        reason: str = "",
+        details: dict[str, Any] | None = None,
+        *,
+        legacy_return: Any = None,
+        mutated: bool = False,
+    ):
+        return cls(status="failed", reason=reason, mutated=mutated, details=details or {}, legacy_return=legacy_return)
 
     @classmethod
     def from_outcome(cls, outcome: Any):
@@ -95,7 +102,7 @@ class FlowResult:
         if status == "skipped":
             return cls.skip(reason, details=details, legacy_return=legacy_return)
         if status in ("failed", "failure"):
-            return cls.fail(reason, details=details, legacy_return=legacy_return)
+            return cls.fail(reason, details=details, legacy_return=legacy_return, mutated=mutation_performed)
         return cls.fail(f"unknown_outcome_status:{status or type(outcome).__name__}", details=details)
 
     @classmethod
@@ -127,12 +134,19 @@ class FlowResult:
             return cls.success(mutated=False)
 
         if isinstance(value, dict):
+            status = str(value.get("status") or "").strip().lower()
             ok = bool(value.get("ok", True))
             reason = str(value.get("reason") or "")
             mutated = cls._dict_mutated(value)
             details = dict(value)
+            if status in ("failed", "failure"):
+                return cls.fail(reason, details=details, mutated=mutated)
+            if status == "skipped":
+                return cls.skip(reason or skip_reason, details=details)
+            if status in ("done", "success", "succeeded"):
+                return cls.success(reason, mutated=mutated, details=details)
             if not ok:
-                return cls.fail(reason, details=details)
+                return cls.fail(reason, details=details, mutated=mutated)
             if bool(value.get("skipped")):
                 return cls.skip(reason or skip_reason, details=details)
             return cls.success(reason, mutated=mutated, details=details)

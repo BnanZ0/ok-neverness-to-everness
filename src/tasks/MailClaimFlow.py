@@ -38,7 +38,8 @@ class MailClaimFlow:
             if clicked_phone_mail:
                 self.log_info("邮件图标点击后未检测到邮件面板，重新打开手机菜单重试一次")
                 panel = self.resolve_mail_phone_menu(self.open_esc_panel_for_mail())
-                self.click_mail_button_from_phone_menu(panel)
+                if not self.click_mail_button_from_phone_menu(panel):
+                    self.click_ui(*self.MAIL_BUTTON_RETRY_POSITION, after_sleep=1, move=True, down_time=0.01)
             else:
                 self.click_ui(*self.MAIL_BUTTON_RETRY_POSITION, after_sleep=1, move=True, down_time=0.01)
             result = self.wait_panel(Labels.mail_panel, time_out=self.MAIL_PANEL_WAIT_TIMEOUT)

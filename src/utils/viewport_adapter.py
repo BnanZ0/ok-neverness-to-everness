@@ -97,13 +97,15 @@ class Viewport:
 
 
 def make_native_viewport(width: int, height: int) -> Viewport:
+    safe_width = max(int(width or 0), 1)
+    safe_height = max(int(height or 0), 1)
     return Viewport(
-        screen_width=width,
-        screen_height=height,
+        screen_width=safe_width,
+        screen_height=safe_height,
         left=0,
         top=0,
-        width=width,
-        height=height,
+        width=safe_width,
+        height=safe_height,
         mode=VIEWPORT_MODE_NATIVE_SCREEN,
     )
 

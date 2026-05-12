@@ -4,6 +4,7 @@ from unittest.mock import Mock, call, patch
 
 from src.tasks.DailyActivityAnalyzer import (
     DailyActivityAnalysis,
+    DailyMilestoneReward,
     DailyActivityPage,
     DailyActivityState,
     DailyTaskCard,
@@ -432,6 +433,100 @@ class TestDailyActivityFlow(unittest.TestCase):
             flow.snapshot.remaining_tasks,
             ["每日登录1次: 未配置安全自动 handler，未点击前往"],
         )
+
+    def test_handler_completion_without_task_progress_fails_verification(self):
+        go_box = RegionBox("daily_activity_go_button", 720, 820, 220, 54)
+        first_page = DailyActivityPage(
+            task_cards=[
+                DailyTaskCard(
+                    title="赠送1次礼物",
+                    progress_text="0/1",
+                    action="前往",
+                    state="go",
+                    box=RegionBox("daily_activity_task_card", 640, 600, 360, 320),
+                    action_box=go_box,
+                )
+            ],
+            go_buttons=[go_box],
+        )
+        refreshed_page = DailyActivityPage(
+            task_cards=[
+                DailyTaskCard(
+                    title="赠送1次礼物",
+                    progress_text="0/1",
+                    action="前往",
+                    state="go",
+                    box=RegionBox("daily_activity_task_card", 640, 600, 360, 320),
+                    action_box=go_box,
+                )
+            ],
+            go_buttons=[go_box],
+        )
+        flow, _ = self.make_flow(
+            open_activity_panel_result=Mock(return_value=make_open_result()),
+            analyze_daily_activity=Mock(
+                side_effect=[
+                    make_analysis(page=first_page),
+                    make_analysis(page=refreshed_page),
+                ]
+            ),
+            execute_available_activity_handlers_across_pages=Mock(return_value=True),
+            claim_completed_activity_card_rewards=Mock(return_value=0),
+        )
+
+        result = flow.complete_daily_activities()
+
+        self.assertTrue(result.failed)
+        self.assertTrue(result.mutated)
+        self.assertEqual(result.reason, "activity_handler_completed_but_task_not_verified")
+        self.assertEqual(flow.snapshot.cards_claimed, 0)
+        self.assertTrue(flow.snapshot.mutation_performed)
+        self.assertFalse(flow.snapshot.mutation_verified)
+
+    def test_claim_activity_rewards_fails_on_panel_analysis_failure(self):
+        flow, _ = self.make_flow(
+            open_activity_panel_result=Mock(return_value=make_open_result()),
+            analyze_daily_activity=Mock(
+                return_value=make_analysis(DailyActivityState.PANEL_NOT_FOUND, "panel lost")
+            ),
+        )
+        flow.claim_activity_milestone_rewards = Mock(return_value=True)
+
+        result = flow.claim_activity_rewards()
+
+        self.assertTrue(result.failed)
+        self.assertEqual(result.reason, "panel lost")
+        flow.claim_activity_milestone_rewards.assert_not_called()
+
+    def test_claim_activity_rewards_uses_single_click_for_claimable_milestones(self):
+        rewards = [
+            RegionBox("daily_activity_milestone_60", 600, 120, 80, 60),
+            RegionBox("daily_activity_milestone_100", 920, 120, 80, 60),
+        ]
+        page = DailyActivityPage(
+            activity_score=100,
+            milestone_rewards=[
+                DailyMilestoneReward(60, rewards[0], claimable=True, locked=False),
+                DailyMilestoneReward(100, rewards[1], claimable=True, locked=False),
+            ],
+        )
+        flow, _ = self.make_flow()
+        flow.snapshot.screenshot_id = "shot-1"
+        flow._execute_gated_click = Mock(
+            return_value=DailyActivityOutcome.succeeded(
+                "claimed",
+                mutation_performed=True,
+                mutation_verified=True,
+            )
+        )
+
+        claimed = flow.claim_activity_milestone_rewards(page)
+
+        self.assertTrue(claimed)
+        flow._execute_gated_click.assert_called_once()
+        self.assertIs(flow._execute_gated_click.call_args.kwargs["evidence_box"], rewards[0])
+        self.assertTrue(flow.snapshot.mutation_performed)
+        self.assertTrue(flow.snapshot.mutation_verified)
 
     def test_gift_handler_without_targets_is_no_mutation_skip(self):
         card = DailyTaskCard(title="赠送1次礼物", progress_text="0/1", action="前往", action_box="go-gift")

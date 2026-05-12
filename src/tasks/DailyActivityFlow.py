@@ -1,4 +1,3 @@
-import re
 from typing import Callable, Iterable
 
 from src.tasks.DailyActionGate import DailyActionGate
@@ -29,6 +28,48 @@ from src.utils.viewport_adapter import LAYOUT_PROFILE_NATIVE_16_9
 
 def _noop(*args, **kwargs):
     return None
+
+
+def _parse_progress_pair(progress: str):
+    value = str(progress or "")
+    for start, char in enumerate(value):
+        if not char.isdigit():
+            continue
+        index = start
+        current = []
+        while index < len(value) and value[index].isdigit():
+            current.append(value[index])
+            index += 1
+        while index < len(value) and value[index].isspace():
+            index += 1
+        if index >= len(value) or value[index] != "/":
+            continue
+        index += 1
+        while index < len(value) and value[index].isspace():
+            index += 1
+        target = []
+        while index < len(value) and value[index].isdigit():
+            target.append(value[index])
+            index += 1
+        if target:
+            return int("".join(current)), int("".join(target))
+    return None
+
+
+def _count_before_ci(text: str):
+    value = str(text or "")
+    marker_index = value.find("次")
+    if marker_index <= 0:
+        return None
+    index = marker_index - 1
+    while index >= 0 and value[index].isspace():
+        index -= 1
+    end = index + 1
+    while index >= 0 and value[index].isdigit():
+        index -= 1
+    if end <= index + 1:
+        return None
+    return int(value[index + 1 : end])
 
 
 class DailyActivityActionContext:
@@ -283,20 +324,32 @@ class DailyActivityFlow:
         handler_completed = self.execute_available_activity_handlers_across_pages(page)
         self.snapshot.handlers_completed = bool(handler_completed)
         if handler_completed:
+            self.snapshot.mutation_performed = True
             self.actions.log_info("已完成可安全自动处理的每日活跃度任务")
             refreshed_page = self.refresh_daily_activity_page_after_handlers()
             if refreshed_page is None:
+                self.snapshot.failure_reason = "activity_handler_refresh_failed"
+                return FlowResult.fail(
+                    self.snapshot.failure_reason,
+                    details=self.result_recorder.details(),
+                    mutated=True,
+                )
+            total_claimed, _ = self.claim_completed_activity_cards_until_stable(refreshed_page)
+            self.snapshot.cards_claimed = total_claimed
+            if total_claimed or not self._has_remaining_go_tasks(refreshed_page):
+                self.snapshot.mutation_verified = True
                 return FlowResult.success(
                     "activity_handler_completed",
                     mutated=True,
                     details=self.result_recorder.details(),
                 )
-            total_claimed, _ = self.claim_completed_activity_cards_until_stable(refreshed_page)
-            self.snapshot.cards_claimed = total_claimed
-            return FlowResult.success(
-                "activity_handler_completed",
-                mutated=True,
+            self.record_remaining_activity_tasks(refreshed_page)
+            self.snapshot.failure_reason = "activity_handler_completed_but_task_not_verified"
+            self.actions.info_set("每日活跃度完成验证", self.snapshot.failure_reason)
+            return FlowResult.fail(
+                self.snapshot.failure_reason,
                 details=self.result_recorder.details(),
+                mutated=True,
             )
 
         total_claimed, page = self.claim_completed_activity_cards_until_stable(page)
@@ -329,6 +382,16 @@ class DailyActivityFlow:
 
         analysis = self.analyze_daily_activity(panel_detected=True)
         self.record_daily_activity_analysis(analysis)
+        if analysis.state == DailyActivityState.PANEL_NOT_FOUND:
+            self.snapshot.failure_reason = analysis.reason or "daily_activity_panel_not_found"
+            self.actions.info_set("活跃度奖励状态", self.snapshot.failure_reason)
+            self.actions.log_info(self.snapshot.failure_reason)
+            return FlowResult.fail(self.snapshot.failure_reason, details=self.result_recorder.details())
+        if analysis.state == DailyActivityState.NO_ACTION_NEEDED:
+            self.snapshot.skipped_reason = analysis.reason
+            self.actions.info_set("活跃度奖励状态", analysis.reason)
+            self.actions.log_info(analysis.reason)
+            return FlowResult.skip(analysis.reason, details=self.result_recorder.details())
 
         if not self.claim_activity_milestone_rewards(analysis.page):
             reason = self.snapshot.reward_skip_reason or self.ACTIVITY_REWARD_UNAVAILABLE
@@ -866,15 +929,15 @@ class DailyActivityFlow:
     @staticmethod
     def activity_required_remaining(card, default=1):
         progress = (getattr(card, "progress_text", "") or "").strip()
-        match = re.search(r"(\d+)\s*/\s*(\d+)", progress)
-        if match:
-            current, target = int(match.group(1)), int(match.group(2))
+        parsed = _parse_progress_pair(progress)
+        if parsed:
+            current, target = parsed
             return max(0, target - current)
 
         title = (getattr(card, "title", "") or "").strip()
-        match = re.search(r"(\d+)\s*次", title)
-        if match:
-            return max(0, int(match.group(1)))
+        count = _count_before_ci(title)
+        if count is not None:
+            return max(0, count)
         return default
 
     def record_remaining_activity_tasks(self, page: DailyActivityPage):
@@ -990,10 +1053,7 @@ class DailyActivityFlow:
         if outcome.skipped:
             self.snapshot.reward_skip_reason = outcome.skipped_reason or "activity_milestone_gate_rejected"
             return False
-        self.actions.log_info(
-            "已点击一个顶部阶段奖励入口，"
-            f"当前可领取阶段: {page.milestone_claimable_values}"
-        )
+        self.actions.log_info(f"已点击顶部阶段奖励入口，当前可领取阶段: {page.milestone_claimable_values}")
         return True
 
     def close_activity_reward_popup(self):
@@ -1098,6 +1158,15 @@ class DailyActivityFlow:
         return not any(
             reward.claimable and self._same_box(before_box, getattr(reward, "box", None))
             for reward in page.claimable_milestones
+        )
+
+    def _has_remaining_go_tasks(self, page: DailyActivityPage | None):
+        if page is None:
+            return False
+        return any(
+            str(getattr(card, "action", "") or "") == "前往"
+            and self._is_valid_daily_activity_card(card)
+            for card in page.task_cards
         )
 
     def _verify_activity_entry_after_click(self):

@@ -1,12 +1,16 @@
 import tempfile
+import subprocess
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
+from unittest.mock import patch
 
 from scripts.run_daily_real_validation import (
     DailyRealValidationRunner,
     TASK_KEYS,
+    _run_git,
     extract_window_info,
+    htgame_process_exists,
     parse_resolution,
 )
 from src.tasks.FlowResult import FlowResult
@@ -243,6 +247,38 @@ class HandlerOnlyActivityTask(FakeTask):
             "details": {"skipped_reason": "活跃度未达到100，默认延后领取阶段奖励"},
         }
         self.task_skip_reasons["领取活跃度奖励"] = "活跃度未达到100，默认延后领取阶段奖励"
+        return self.TASK_SKIPPED
+
+
+class TaskCompletedPayloadActivityTask(FakeTask):
+    def complete_daily_activities(self):
+        self.calls.append("complete_daily")
+        self._last_daily_activity_analysis = SimpleNamespace(
+            no_claimable_reward=False,
+            reason="task completed from payload",
+            to_dict=lambda: {"reason": "task completed from payload"},
+        )
+        self._last_daily_activity_handlers_completed = False
+        self._last_daily_activity_cards_claimed = 0
+        self._last_daily_activity_flow_details = {
+            "完成每日活跃度": {
+                "status": "done",
+                "ok": True,
+                "reason": "activity_task_completed",
+                "mutated": True,
+                "details": {
+                    "task_completed": True,
+                    "cards_claimed": 0,
+                    "mutation_performed": True,
+                    "mutation_verified": True,
+                },
+            }
+        }
+        return True
+
+    def claim_activity_rewards(self):
+        self.calls.append("claim_activity_rewards")
+        self.task_skip_reasons["领取活跃度奖励"] = "no claimable reward"
         return self.TASK_SKIPPED
 
 
@@ -587,6 +623,20 @@ class TestDailyRealValidation(unittest.TestCase):
     def test_parse_resolution_accepts_x_and_star(self):
         self.assertEqual(parse_resolution("1920x1080"), (1920, 1080))
         self.assertEqual(parse_resolution("1920*1080"), (1920, 1080))
+
+    def test_git_info_helper_returns_empty_string_on_timeout(self):
+        with patch(
+            "scripts.run_daily_real_validation.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(["git"], timeout=5),
+        ):
+            self.assertEqual(_run_git(["status", "--short"], Path(".")), "")
+
+    def test_htgame_process_check_returns_false_on_timeout(self):
+        with patch("scripts.run_daily_real_validation.sys.platform", "win32"), patch(
+            "scripts.run_daily_real_validation.subprocess.run",
+            side_effect=subprocess.TimeoutExpired(["powershell"], timeout=5),
+        ):
+            self.assertFalse(htgame_process_exists())
 
     def test_extract_window_info_preserves_resolution_details(self):
         session = FakeSession(
@@ -938,6 +988,17 @@ class TestDailyRealValidation(unittest.TestCase):
         self.assertFalse(activity["task_completed"])
         self.assertEqual(activity["cards_claimed"], 0)
         self.assertFalse(activity["no_claimable_reward"])
+        self.assertTrue(activity["mutation_performed"])
+        self.assertTrue(activity["mutation_verified"])
+
+    def test_activity_summary_uses_explicit_task_completed_payload(self):
+        runner = make_runner("daily-task-only", TaskCompletedPayloadActivityTask())
+
+        summary = runner.run()
+
+        activity = summary["tasks"]["activity"]
+        self.assertTrue(activity["task_completed"])
+        self.assertEqual(activity["cards_claimed"], 0)
         self.assertTrue(activity["mutation_performed"])
         self.assertTrue(activity["mutation_verified"])
 

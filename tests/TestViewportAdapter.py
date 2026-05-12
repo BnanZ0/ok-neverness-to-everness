@@ -35,6 +35,13 @@ class TestViewportAdapter(unittest.TestCase):
         self.assertEqual(viewport.height, 1080)
         self.assertEqual(viewport.mode, VIEWPORT_MODE_NATIVE_16_9)
 
+    def test_non_positive_size_uses_safe_native_viewport(self):
+        viewport = make_16_9_viewport(0, 0)
+
+        self.assertEqual(viewport.screen_width, 1)
+        self.assertEqual(viewport.screen_height, 1)
+        self.assertEqual(viewport.ui_point_to_screen_relative(0.5, 0.5), (0.0, 0.0))
+
     def test_native_16_9_viewport_profile_stays_native_16_9(self):
         self.assertEqual(
             classify_ui_layout_profile(1920, 1080, VIEWPORT_MODE_NATIVE_16_9),

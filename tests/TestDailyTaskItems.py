@@ -580,6 +580,15 @@ class TestDailyTaskItemRunner(unittest.TestCase):
         self.assertTrue(result["mutation_performed"])
         self.assertTrue(result["mutation_verified"])
 
+    def test_gift_box_text_prefers_ocr_text_over_generic_name(self):
+        box = SimpleNamespace(name="generic_button", text="赠礼")
+
+        self.assertEqual(DailyGiftDefaultRuntime._box_text(box), "赠礼")
+
+    def test_progress_complete_does_not_treat_one_of_ten_as_done(self):
+        self.assertFalse(DailyTaskItemActionRunner._progress_is_complete("1/10"))
+        self.assertTrue(DailyTaskItemActionRunner._progress_is_complete("10/10"))
+
     def test_daily_task_facade_returns_runner_summary(self):
         task = object.__new__(DailyTask)
         flow = FakeFlow([DailyActivityPage(task_cards=[card()])])

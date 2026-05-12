@@ -636,7 +636,7 @@ class DailyGiftDefaultRuntime:
 
     @staticmethod
     def _box_text(box):
-        return str(getattr(box, "name", "") or getattr(box, "text", "") or "").strip()
+        return str(getattr(box, "text", "") or getattr(box, "name", "") or "").strip()
 
     @staticmethod
     def _blocked(reason, *, selected_character="", selected_item="", actions=None):
@@ -1263,7 +1263,7 @@ class DailyTaskItemActionRunner:
         after_progress = str(getattr(after, "progress_text", "") or "")
         after_action = str(getattr(after, "action", "") or "")
         progress_changed = bool(before_progress and after_progress and before_progress != after_progress)
-        completed_progress = after_progress.startswith("1/") or after_progress.endswith("/1") and after_progress[:1] == "1"
+        completed_progress = self._progress_is_complete(after_progress)
         action_changed = after_action and after_action != str(getattr(before_card, "action", "") or "")
         task_completed = bool(progress_changed or completed_progress or after_action in {"领取", "完成"} or action_changed)
         return {

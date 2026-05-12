@@ -68,6 +68,22 @@ class TestDailyResultRecorder(unittest.TestCase):
         self.assertFalse(details["mutation_verified"])
         self.assertEqual(details["failure_reason"], "post_verification_failed")
 
+    def test_outcome_false_mutation_fields_do_not_fall_back_to_snapshot_true(self):
+        snapshot = DailyActivitySnapshot(mutation_performed=True, mutation_verified=True)
+        recorder = DailyResultRecorder(snapshot)
+        recorder.record_outcome(
+            DailyActivityOutcome.skipped(
+                "not ready",
+                mutation_performed=False,
+                mutation_verified=False,
+            )
+        )
+
+        details = recorder.details()
+
+        self.assertFalse(details["mutation_performed"])
+        self.assertFalse(details["mutation_verified"])
+
 
 if __name__ == "__main__":
     unittest.main()
