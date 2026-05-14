@@ -118,6 +118,9 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
         self.config["coffee_supply_duration"] = duration
         self.config["coffee_price_table"] = str(self.config.get(self.CONF_PRICE_TABLE, self.AUTO) or self.AUTO)
         self.config["coffee_allow_pending_supply_completion"] = self._supply_requested()
+        self.config["coffee_action_collect_income"] = bool(self.config.get(self.CONF_COLLECT_INCOME, False))
+        self.config["coffee_action_optimize_products"] = bool(self.config.get(self.CONF_OPTIMIZE_PRODUCTS, False))
+        self.config["coffee_action_replenish_supply"] = self._supply_requested()
 
     def _actions_requested(self):
         return [

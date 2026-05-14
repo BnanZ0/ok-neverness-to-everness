@@ -103,6 +103,74 @@ class TestCoffeeRuntime(unittest.TestCase):
 
         self.assertTrue(runtime._is_tycoon_texts(["CITY TYCOON"]))
 
+    def test_run_skips_claim_income_when_action_flag_disabled(self):
+        runtime = CoffeeRuntime(_runtime_task({"coffee_action_collect_income": False}))
+        runtime.open_coffee_shop = Mock(return_value=True)
+        runtime.claim_income_if_present = Mock(side_effect=AssertionError("must not run when disabled"))
+        runtime.is_income_report_popup = Mock(side_effect=AssertionError("must not check post-claim popup when disabled"))
+        runtime.optimize_products = Mock()
+        runtime.replenish_supply = Mock(return_value=(True, "", False))
+
+        ok, _ = runtime.run()
+
+        self.assertTrue(ok)
+        self.assertFalse(runtime.income_claimed)
+        runtime.claim_income_if_present.assert_not_called()
+        runtime.is_income_report_popup.assert_not_called()
+        self.assertIn("collect_income_skipped_disabled", runtime.actions)
+
+    def test_run_skips_optimize_products_when_action_flag_disabled(self):
+        runtime = CoffeeRuntime(_runtime_task({"coffee_action_optimize_products": False}))
+        runtime.open_coffee_shop = Mock(return_value=True)
+        runtime.claim_income_if_present = Mock(return_value=False)
+        runtime.is_income_report_popup = Mock(return_value=False)
+        runtime.optimize_products = Mock(side_effect=AssertionError("must not run when disabled"))
+        runtime.replenish_supply = Mock(return_value=(True, "", False))
+
+        ok, _ = runtime.run()
+
+        self.assertTrue(ok)
+        runtime.optimize_products.assert_not_called()
+        self.assertIn("optimize_products_skipped_disabled", runtime.actions)
+
+    def test_run_skips_replenish_supply_when_action_flag_disabled(self):
+        runtime = CoffeeRuntime(_runtime_task({"coffee_action_replenish_supply": False}))
+        runtime.open_coffee_shop = Mock(return_value=True)
+        runtime.claim_income_if_present = Mock(return_value=False)
+        runtime.is_income_report_popup = Mock(return_value=False)
+        runtime.optimize_products = Mock()
+        runtime.replenish_supply = Mock(side_effect=AssertionError("must not run when disabled"))
+
+        ok, skip_reason = runtime.run()
+
+        self.assertTrue(ok)
+        self.assertEqual(skip_reason, "")
+        self.assertFalse(runtime.real_purchase_performed)
+        runtime.replenish_supply.assert_not_called()
+        self.assertIn("replenish_supply_skipped_disabled", runtime.actions)
+
+    def test_click_product_candidates_forwards_allow_price_fallback(self):
+        runtime = CoffeeRuntime(_runtime_task())
+        captured = []
+
+        def fake_match(options, candidate, allow_price_fallback=True):
+            captured.append(allow_price_fallback)
+            return None
+
+        runtime.collect_product_options = Mock(return_value=[])
+        runtime._dedupe_food_options = lambda options: list(options)
+        runtime._product_scrolls = lambda: 0
+        runtime._matching_visible_product_option = fake_match
+
+        runtime._click_product_candidates_single_pass(
+            [CoffeeFoodOption("食物-1", price_value=100)],
+            1,
+            "select_product",
+            allow_price_fallback=True,
+        )
+
+        self.assertEqual(captured, [True])
+
 
 class TestCoffeeTaskConfig(unittest.TestCase):
     def _task(self, config=None):
@@ -142,6 +210,8 @@ class TestCoffeeTaskConfig(unittest.TestCase):
                 CoffeeTask.CONF_PRODUCT_SLOTS: "3",
                 CoffeeTask.CONF_RESTOCK_DURATION: "8h",
                 CoffeeTask.CONF_PRICE_TABLE: "disabled",
+                CoffeeTask.CONF_COLLECT_INCOME: True,
+                CoffeeTask.CONF_OPTIMIZE_PRODUCTS: True,
                 CoffeeTask.CONF_RESTOCK_GOODS: True,
                 CoffeeTask.CONF_BUY_GOODS: True,
             }
@@ -154,6 +224,9 @@ class TestCoffeeTaskConfig(unittest.TestCase):
         self.assertEqual(task.config["coffee_supply_duration"], "8h")
         self.assertEqual(task.config["coffee_price_table"], "disabled")
         self.assertTrue(task.config["coffee_allow_pending_supply_completion"])
+        self.assertTrue(task.config["coffee_action_collect_income"])
+        self.assertTrue(task.config["coffee_action_optimize_products"])
+        self.assertTrue(task.config["coffee_action_replenish_supply"])
 
     def test_apply_runtime_config_auto_translates_to_24h(self):
         task = self._task(
@@ -169,6 +242,21 @@ class TestCoffeeTaskConfig(unittest.TestCase):
         self.assertEqual(task.config["coffee_product_target_slots"], 0)
         self.assertEqual(task.config["coffee_supply_duration"], "24小时")
         self.assertFalse(task.config["coffee_allow_pending_supply_completion"])
+        self.assertFalse(task.config["coffee_action_collect_income"])
+        self.assertFalse(task.config["coffee_action_optimize_products"])
+        self.assertFalse(task.config["coffee_action_replenish_supply"])
+
+    def test_apply_runtime_config_writes_supply_flag_only_when_both_restock_and_buy(self):
+        task = self._task(
+            {
+                CoffeeTask.CONF_RESTOCK_GOODS: True,
+                CoffeeTask.CONF_BUY_GOODS: False,
+            }
+        )
+
+        CoffeeTask._apply_runtime_config(task)
+
+        self.assertFalse(task.config["coffee_action_replenish_supply"])
 
     def test_do_run_skips_when_no_actions_enabled(self):
         task = self._task(

@@ -145,18 +145,33 @@ class CoffeeRuntime:
         if self.pending_supply_error:
             return False, self.pending_supply_error
 
-        self.income_claimed = self.claim_income_if_present()
-        if self.is_income_report_popup():
-            self.actions.append("income_popup_not_closed_after_claim")
-            return False, "营收报告弹窗未关闭，未进入商品/补货流程"
-        self.optimize_products()
-        if self.product_switch_error:
-            return False, self.product_switch_error
-        ok, skip_reason, real_purchase = self.replenish_supply()
-        if not ok:
-            return False, skip_reason
-        self.real_purchase_performed = real_purchase
+        if self._action_enabled("collect_income"):
+            self.income_claimed = self.claim_income_if_present()
+            if self.is_income_report_popup():
+                self.actions.append("income_popup_not_closed_after_claim")
+                return False, "营收报告弹窗未关闭，未进入商品/补货流程"
+        else:
+            self.actions.append("collect_income_skipped_disabled")
+
+        if self._action_enabled("optimize_products"):
+            self.optimize_products()
+            if self.product_switch_error:
+                return False, self.product_switch_error
+        else:
+            self.actions.append("optimize_products_skipped_disabled")
+
+        skip_reason = ""
+        if self._action_enabled("replenish_supply"):
+            ok, skip_reason, real_purchase = self.replenish_supply()
+            if not ok:
+                return False, skip_reason
+            self.real_purchase_performed = real_purchase
+        else:
+            self.actions.append("replenish_supply_skipped_disabled")
         return True, skip_reason
+
+    def _action_enabled(self, name):
+        return bool(self._config_get(f"coffee_action_{name}", True))
 
     def open_coffee_shop(self, card=None):
         if self._allow_pending_supply_completion():
@@ -986,7 +1001,7 @@ class CoffeeRuntime:
                 option = self._matching_visible_product_option(
                     page_options,
                     candidate,
-                    allow_price_fallback=False,
+                    allow_price_fallback=allow_price_fallback,
                 )
                 if option is None or option.target is None:
                     continue
