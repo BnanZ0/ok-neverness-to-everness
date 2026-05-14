@@ -21,6 +21,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
     CONF_CLAIM_ACTIVITY = "领取活跃度奖励"
     CONF_CLAIM_BP = "领取环期任务奖励"
     CONF_CLAIM_COFFEE = "领取/补货一咖舍"
+    CONF_RESTOCK_COFFEE = "一咖舍自动补货"
 
     CONF_AUTO_CYCLE_SUB_TASK = "自动循环项目"
     DAILY_STAMINA_TARGET = "目标消耗体力"
@@ -36,6 +37,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         self.default_config.update(
             {
                 self.CONF_CLAIM_COFFEE: False,
+                self.CONF_RESTOCK_COFFEE: True,
                 self.CONF_AUTO_CYCLE_SUB_TASK: False,
                 self.DAILY_STAMINA_TARGET: 180,
             }
@@ -43,6 +45,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         self.config_description.update(
             {
                 self.CONF_AUTO_CYCLE_SUB_TASK: "任务完成后自动切换至下一个项目",
+                self.CONF_RESTOCK_COFFEE: "关闭后只领取一咖舍收益，不执行补货购买",
             }
         )
         self.current_task_key = None
@@ -291,6 +294,10 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             settle_time=0.5,
         )
         self.sleep(1)
+
+        if not self.config.get(self.CONF_RESTOCK_COFFEE, True):
+            self.log_info("已跳过一咖舍补货")
+            return True
 
         # 进入补货
         
