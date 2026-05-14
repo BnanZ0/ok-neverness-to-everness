@@ -8,6 +8,7 @@ from src import text_white_color
 from src.Labels import Labels
 from src.tasks.AnomalyTask import AnomalyTask
 from src.tasks.BaseNTETask import BaseNTETask
+from src.tasks.F1PanelDetector import F1PanelDetector
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.utils import image_utils as iu
 
@@ -210,7 +211,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             self.openF1panel()
             self.operate_click(0.0551, 0.3833)
             self.sleep(0.5)
-            return self.wait_panel(Labels.f1_activity_panel)
+            return F1PanelDetector(self).wait_daily_activity_panel()
 
         self.log_info("正在领取活跃度奖励")
         result = self.retry_on_action(action, self.ensure_main)
