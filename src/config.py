@@ -197,6 +197,7 @@ config = {
     "onetime_tasks": [  # 用户点击触发的任务
         ["src.tasks.LauncherTask", "LauncherTask"],
         ["src.tasks.DailyTask", "DailyTask"],
+        ["src.tasks.CoffeeTask", "CoffeeTask"],
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.AnomalyTask", "AnomalyTask"],
         # ["src.tasks.MyOneTimeWithAGroup", "MyOneTimeWithAGroup"],
