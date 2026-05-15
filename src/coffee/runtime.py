@@ -1440,7 +1440,6 @@ class CoffeeRuntime:
         claim_button = self.find_button_text_box("领取", self.COFFEE_PANEL_REGION)
         if claim_button is not None:
             self._click(claim_button, "claim_coffee_challenge_reward")
-            self.pending_supply_completed = True
             self.wait_for(lambda: not self.is_coffee_challenge_result(), timeout=5)
             return True
         exit_button = self.find_button_text_box("退出", self.COFFEE_PANEL_REGION)
@@ -1460,7 +1459,10 @@ class CoffeeRuntime:
         if any("挑战成功" in text or "挑战失败" in text for text in texts):
             return False
         has_revenue_goal = any("营业额" in text for text in texts)
-        has_timed_goal = any("分钟内" in text or "分" in text and "秒" in text for text in texts)
+        has_timed_goal = any(
+            ("分钟内" in text) or (("分" in text) and ("秒" in text))
+            for text in texts
+        )
         return has_revenue_goal and has_timed_goal and not self.is_coffee_shop_panel()
 
     @staticmethod

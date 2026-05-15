@@ -171,6 +171,50 @@ class TestCoffeeRuntime(unittest.TestCase):
 
         self.assertEqual(captured, [True])
 
+    def test_claim_coffee_challenge_reward_does_not_mark_pending_supply_completed(self):
+        runtime = CoffeeRuntime(_runtime_task())
+        runtime.is_coffee_challenge_result = Mock(return_value=True)
+        claim_target = SimpleNamespace(text="领取", x=0, y=0, width=10, height=10)
+        runtime.find_button_text_box = Mock(return_value=claim_target)
+        runtime.wait_for = Mock(return_value=True)
+
+        result = runtime.claim_or_exit_coffee_challenge_result_if_present()
+
+        self.assertTrue(result)
+        self.assertFalse(runtime.pending_supply_completed)
+        self.assertIn("claim_coffee_challenge_reward", runtime.actions)
+
+    def test_replenish_supply_runs_after_challenge_claim(self):
+        runtime = CoffeeRuntime(_runtime_task())
+        runtime.is_coffee_challenge_result = Mock(return_value=True)
+        claim_target = SimpleNamespace(text="领取", x=0, y=0, width=10, height=10)
+        runtime.find_button_text_box = Mock(return_value=claim_target)
+        runtime.wait_for = Mock(return_value=True)
+        runtime.claim_or_exit_coffee_challenge_result_if_present()
+
+        runtime.current_business_seconds = Mock(return_value=None)
+        runtime.find_text_box = Mock(return_value=None)
+
+        ok, skip_reason, real_purchase = runtime.replenish_supply()
+
+        self.assertTrue(ok)
+        self.assertFalse(real_purchase)
+        self.assertEqual(skip_reason, "supply_not_needed_or_not_found")
+        self.assertNotIn("supply_already_completed_from_pending_confirm", runtime.actions)
+
+    def test_complete_pending_supply_delivery_still_marks_pending_supply_completed(self):
+        runtime = CoffeeRuntime(_runtime_task())
+        runtime.pending_supply_delivery_present = Mock(return_value=True)
+        runtime.finish_home_delivery_flow = Mock(return_value="")
+        runtime.close_popup = Mock()
+        runtime.wait_for_coffee_shop_panel = Mock(return_value=True)
+
+        result = runtime.complete_pending_supply_delivery_if_present()
+
+        self.assertTrue(result)
+        self.assertTrue(runtime.pending_supply_completed)
+        self.assertEqual(runtime.pending_supply_error, "")
+
 
 class TestCoffeeTaskConfig(unittest.TestCase):
     def _task(self, config=None):
