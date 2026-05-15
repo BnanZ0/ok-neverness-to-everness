@@ -118,8 +118,11 @@ class CoffeeRuntime:
         "都市大亨", "大亨等级", "一咖舍", "咖舍", "猎人交易所", "车辆赛事", "都市闲趣",
     )
     TYCOON_ASCII_MARKERS = ("CITYTYCOON", "CTYTYCOON", "TYCOON")
-    # ``\s?`` 限制为 0/1 个空格, 避免 ``\s*`` 触发的 polynomial backtracking 警告 (S5852).
-    PRICE_RE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s?/\s?h", re.IGNORECASE)
+    # 可能性的回溯通过 possessive (``++`` / ``?+``) 量词消除, 由 Python 3.11+ 支持.
+    # 保留 ``[0-9]`` 而非 ``\d`` 以避免 ``\d`` 匹配全角/Unicode 十进制数字时
+    # ``float()`` 抛出 ValueError. ``\s?+`` 在保持 0/1 个空格的同时阻止回溯,
+    # 使 SonarCloud python:S5852 不再判定为 polynomial backtracking 风险.
+    PRICE_RE = re.compile(r"([0-9]++(?:\.[0-9]++)?+)\s?+/\s?+h", re.IGNORECASE)
 
     def __init__(self, task):
         self.task = task

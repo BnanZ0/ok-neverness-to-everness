@@ -215,6 +215,43 @@ class TestCoffeeRuntime(unittest.TestCase):
         self.assertTrue(runtime.pending_supply_completed)
         self.assertEqual(runtime.pending_supply_error, "")
 
+    def test_price_re_matches_supported_ocr_formats(self):
+        cases_match = [
+            ("12/h", "12"),
+            ("12.34/h", "12.34"),
+            ("12 /h", "12"),
+            ("12 / h", "12"),
+            ("12.5 / h", "12.5"),
+            ("12.34/H", "12.34"),
+            ("商品12.5/h主食", "12.5"),
+            ("0/h", "0"),
+            ("999.999 /h", "999.999"),
+            (".5/h", "5"),
+            ("1234567890.1234567890/h", "1234567890.1234567890"),
+        ]
+        for text, expected in cases_match:
+            with self.subTest(text=text):
+                match = CoffeeRuntime.PRICE_RE.search(text)
+                self.assertIsNotNone(match, f"expected match for {text!r}")
+                self.assertEqual(match.group(1), expected)
+
+    def test_price_re_rejects_unsupported_inputs(self):
+        cases_no_match = [
+            "no price here",
+            "12.x/h",
+            "12./h",
+            "12//h",
+            "12 / / h",
+            "12.34a/h",
+            "１２/h",
+        ]
+        for text in cases_no_match:
+            with self.subTest(text=text):
+                self.assertIsNone(
+                    CoffeeRuntime.PRICE_RE.search(text),
+                    f"expected no match for {text!r}",
+                )
+
 
 class TestCoffeeTaskConfig(unittest.TestCase):
     def _task(self, config=None):
