@@ -623,8 +623,21 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
             name="default_bait",
         )
 
+    def find_default_bait_ocr(self):
+        box1 = self.ocr(0, 0, 0.5, 0.5, match="万能鱼饵")
+        box2 = self.ocr(0, 0, 0.5, 0.5, match="5")
+        target = Box
+        distance = 9999
+        for i in box1:
+            for j in box2:
+                x = i.center_distance(j)
+                if (x < distance):
+                    distance = x
+                    target = i
+        return target
+        
     def click_default_bait(self):
-        box = self.find_default_bait()
+        box = self.find_default_bait_ocr()
         if box:
             self.operate_click(box)
             return
