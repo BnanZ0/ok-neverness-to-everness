@@ -356,5 +356,18 @@ class TestCoffeeTaskConfig(unittest.TestCase):
         self.assertIn(("info", "一咖舍未启用任何动作"), messages)
 
 
+class TestCoffeeTaskLocaleScope(unittest.TestCase):
+    """BnanZ0 PR #86 反馈: 一咖舍 OCR 仅匹配简体中文, 非 zh_CN 不暴露此任务."""
+
+    def test_supported_languages_is_zh_cn_only(self):
+        # supported_languages 是一个类级别声明 (在 __init__ 中赋值);
+        # ok-script TaskManger 用它过滤显示给用户的任务列表.
+        # 直接从源码确认: 不实例化 task (避免触发依赖的 OK runtime).
+        import inspect
+
+        source = inspect.getsource(CoffeeTask.__init__)
+        self.assertIn('self.supported_languages = ["zh_CN"]', source)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -28,6 +28,9 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
         self.name = "一咖舍自动化"
         self.description = "领取一咖舍收益, 可选自动补货, 购买货物或优化商品"
         self.icon = FluentIcon.SHOPPING_CART
+        # 一咖舍页面的所有 OCR 判定 (商品名、价格表、营收弹窗、补货时长选项等)
+        # 仅在简体中文 UI 下匹配, 因此只对 zh_CN 暴露此任务.
+        self.supported_languages = ["zh_CN"]
         self.default_config.update(
             {
                 self.CONF_COLLECT_INCOME: True,
