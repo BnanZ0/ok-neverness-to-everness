@@ -23,6 +23,7 @@ class HotoriChain(Hotori):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.team_skill_records = {}
+        self.team_skill_window_start = 0
         self._chain_cycle = 0
         self._e_used = False
         self._e_lockdown = False
