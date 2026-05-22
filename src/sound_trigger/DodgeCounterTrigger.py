@@ -32,8 +32,20 @@ class DodgeCounterTrigger:
         self._last_counter_time = 0.0
         self._min_dodge_interval = 0.5
         self._min_counter_interval = 1.0
+        self._dodge_suppressed = False
+
+    @property
+    def dodge_suppressed(self):
+        return self._dodge_suppressed
+
+    @dodge_suppressed.setter
+    def dodge_suppressed(self, value):
+        self._dodge_suppressed = value
 
     def execute_dodge(self):
+        if self._dodge_suppressed:
+            logger.debug("Dodge suppressed by chain method")
+            return
         now = time.time()
         if now - self._last_dodge_time < self._min_dodge_interval:
             logger.debug(f"Dodge skipped, too soon: {now - self._last_dodge_time:.3f}s")

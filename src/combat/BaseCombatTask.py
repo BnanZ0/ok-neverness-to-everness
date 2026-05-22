@@ -13,6 +13,7 @@ from src.char.CharFactory import get_char_by_name, get_char_by_pos
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.char.Healer import Healer
 from src.combat.CombatCheck import CombatCheck
+from src.combat.ChainExecutor import ChainExecutor
 from src.sound_trigger.SoundCombatContext import SoundCombatContext
 from src.utils import game_filters as gf
 from src.utils import image_utils as iu
@@ -61,6 +62,7 @@ class BaseCombatTask(CombatCheck):
         self.chars: list[BaseChar] = []
         self.mouse_pos = None  # 当前鼠标位置
         self.combat_start = 0  # 战斗开始时间戳
+        self.chain_executor = ChainExecutor(self)
 
         self.add_text_fix({"Ｅ": "e"})
         self.use_ultimate = True
@@ -298,6 +300,7 @@ class BaseCombatTask(CombatCheck):
         self.wait_until(
             self.in_combat, time_out=wait_combat_time, raise_if_not_found=raise_if_not_found
         )
+        self.chain_executor.reset()
         self.load_chars()
         self.switch_to_combat_start_char()
         self.info["Combat Count"] = self.info.get("Combat Count", 0) + 1
@@ -478,7 +481,20 @@ class BaseCombatTask(CombatCheck):
 
         current_char.wait_switch_cd()
 
-        switch_to, has_intro = self._find_switch_target(current_char, free_intro)
+        if self.chain_executor.active:
+            switch_to, _ = self.chain_executor.target
+            if switch_to is not None and switch_to != current_char:
+                has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
+            else:
+                return
+        else:
+            anchor = getattr(self.chain_executor, '_pending_anchor', None)
+            if anchor is not None and anchor != current_char:
+                switch_to = anchor
+                has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
+                self.chain_executor._pending_anchor = None
+            else:
+                switch_to, has_intro = self._find_switch_target(current_char, free_intro)
 
         if switch_to is None or switch_to == current_char:
             logger.warning(f"{current_char} failed to find a valid switch target")
@@ -490,8 +506,21 @@ class BaseCombatTask(CombatCheck):
             has_intro=has_intro,
             post_action=post_action,
             free_intro=free_intro,
-            retry_intro=True,
+            retry_intro=not self.chain_executor.active,
             log_prefix="switch_next_char",
+        )
+
+    def switch_to_char(self, target_char, has_intro=False):
+        """切换到指定角色"""
+        current_char = self.get_current_char(raise_exception=False)
+        if current_char == target_char:
+            return
+        self._switch_to_char(
+            target_char,
+            current_char=current_char,
+            has_intro=has_intro,
+            log_prefix="switch_to_char",
+            time_out=self.switch_char_time_out
         )
 
     def switch_to_combat_start_char(self):
@@ -602,6 +631,16 @@ class BaseCombatTask(CombatCheck):
             self.next_frame()
             if not self.in_combat():
                 self.raise_not_in_combat("sleep check not in combat")
+
+    def suppress_dodge(self):
+        ctx = SoundCombatContext()
+        if ctx and ctx.trigger:
+            ctx.trigger.dodge_suppressed = True
+
+    def unsuppress_dodge(self):
+        ctx = SoundCombatContext()
+        if ctx and ctx.trigger:
+            ctx.trigger.dodge_suppressed = False
 
     def _apply_sound_config(self):
         if self.sound_config:

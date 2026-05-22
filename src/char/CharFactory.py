@@ -6,11 +6,15 @@ from typing_extensions import Any
 from src.char.BaseChar import BaseChar, Element
 from src.char.Chiz import Chiz
 from src.char.Hotori import Hotori
+from src.char.HotoriChain import HotoriChain
 from src.char.Jiuyuan import Jiuyuan
+from src.char.JiuyuanChain import JiuyuanChain
 from src.char.Mint import Mint
 from src.char.Nanally import Nanally
+from src.char.NanallyChain import NanallyChain
 from src.char.Sakiri import Sakiri
 from src.char.Zero import Zero
+from src.char.ZeroChain import ZeroChain
 
 if TYPE_CHECKING:
     import numpy as np
@@ -28,6 +32,10 @@ char_dict: dict[str, dict[str, Any]] = {
     "char_nanally": {"cls": Nanally, "cn_name": "娜娜莉", "element": Element.GREEN},
     "char_hotori": {"cls": Hotori, "cn_name": "浔", "element": Element.WHITE},
     "char_chiz": {"cls": Chiz, "cn_name": "小吱", "element": Element.WHITE},
+    "char_chain_hotori": {"cls": HotoriChain, "cn_name": "浔创生链式-浔", "element": Element.WHITE},
+    "char_chain_zero": {"cls": ZeroChain, "cn_name": "浔创生链式-零", "element": Element.WHITE},
+    "char_chain_jiuyuan": {"cls": JiuyuanChain, "cn_name": "浔创生链式-九原", "element": Element.GREEN},
+    "char_chain_nanally": {"cls": NanallyChain, "cn_name": "浔创生链式-娜娜莉", "element": Element.GREEN},
 }
 
 char_names = char_dict.keys()

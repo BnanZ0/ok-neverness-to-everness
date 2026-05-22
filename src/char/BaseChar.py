@@ -125,6 +125,14 @@ class BaseChar:
     def perform(self):
         """执行当前角色的主要战斗行动序列。"""
         self.last_perform = time.time()
+        if hasattr(self, '_chain_method') and self._chain_method:
+            method_name = self._chain_method
+            self._chain_method = None
+            if hasattr(self, method_name):
+                getattr(self, method_name)()
+            else:
+                self.task.chain_executor.step_complete()
+            return
         if self.has_intro:
             self.add_intro_motion_freeze(self.last_perform)
         if self.need_fast_perform():
@@ -880,3 +888,25 @@ class BaseChar:
                 self.send_key(next_char)
             self.sleep(0.2, sleep_check=False)
         self.logger.debug(f"switch_other_char on_combat_end {self.index} switch end")
+
+    def is_anchor(self) -> bool:
+        return False
+
+    def _get_char_key(self, char_name):
+        for c in self.task.chars:
+            if c is not None and c.__class__.__name__ == char_name:
+                return c.index + 1
+        return None
+
+    def _send_chain_key(self):
+        if self.task.chain_executor.active:
+            target_char, _ = self.task.chain_executor.target
+            if target_char is not None and target_char != self:
+                self.task.send_key(target_char.index + 1)
+                return True
+        else:
+            anchor = getattr(self.task.chain_executor, '_pending_anchor', None)
+            if anchor is not None and anchor != self:
+                self.task.send_key(anchor.index + 1)
+                return True
+        return False
