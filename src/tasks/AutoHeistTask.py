@@ -10,6 +10,7 @@ from src import text_white_color
 from src.combat.BaseCombatTask import BaseCombatTask
 from src.heist_path.HeistEntrancePath import HeistEntrancePath
 from src.heist_path.HeistPathA import HeistPathA
+from src.heist_path.HeistPathB import HeistPathB
 from src.Labels import Labels
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.tasks.trigger.SkipDialogTask import SkipDialogTask
@@ -49,6 +50,10 @@ INST = r"""
             <div style="margin-left:2em; margin-top:2px;">战斗角色: 主角 / 哈尼娅</div>
             <div style="margin-left:2em; margin-top:2px;">跑图角色: 薄荷</div>
             <div style="margin-left:2em; margin-top:2px;">避战角色(可选): 翳 / 浔</div>
+            strong>路径2推荐设置</strong>
+            <div style="margin-left:2em; margin-top:2px;">战斗角色: 早雾（必须，战斗角色中最前） / 主角 / 哈尼娅</div>
+            <div style="margin-left:2em; margin-top:2px;">跑图角色: 薄荷</div>
+            <div style="margin-left:2em; margin-top:2px;">避战角色: 翳/div>
         </div>
     """
 
@@ -80,6 +85,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.supported_languages = ["zh_CN"]
         self.paths = {
             "路径1(路线参考自B站UP: 早柚大魔王丶)": HeistPathA,
+            "路径2(优化了大厅到办公层的路线，其他参考自B站UP: 早柚大魔王丶)": HeistPathB,
         }
         path_names = list(self.paths.keys())
         self.avoid_methods = [self.AVOID_METHOD_DASH, self.AVOID_METHOD_ATTACK]
