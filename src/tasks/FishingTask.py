@@ -1,4 +1,4 @@
-﻿import time
+import time
 from enum import Enum
 
 import cv2
