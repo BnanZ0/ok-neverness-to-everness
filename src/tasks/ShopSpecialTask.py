@@ -24,7 +24,7 @@ class ShopSpecialTask(NTEOneTimeTask, BaseNTETask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "店长特供"
+        self.name = og.app.tr("店长特供")
         self.description = "自动循环进出关卡（需配合游戏内挂机流派使用）"
         self.instructions = og.app.tr(
             "功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，"
