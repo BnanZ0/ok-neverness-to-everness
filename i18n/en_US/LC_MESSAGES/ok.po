@@ -1083,13 +1083,12 @@ msgstr "Round {}"
 msgid "检测 |"
 msgstr "Detect |"
 
-#, python-brace-format
 msgid ""
-"{}：平滑流畅, 易过冲\n"
-"{}: 安全较慢, 防过冲"
+"长按：平滑流畅, 易过冲\n"
+"点按: 安全较慢, 防过冲"
 msgstr ""
-"{}: Smooth and responsive, prone to overshoot\n"
-"{}: Safer but slower, prevents overshoot"
+"Hold: Smooth and responsive, prone to overshoot\n"
+"Tap: Safer but slower, prevents overshoot"
 
 #, python-brace-format
 msgid "开启后将跳过 [{}]"
