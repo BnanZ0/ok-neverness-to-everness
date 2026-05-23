@@ -10,6 +10,7 @@ from src import text_white_color
 from src.combat.BaseCombatTask import BaseCombatTask
 from src.heist_path.HeistEntrancePath import HeistEntrancePath
 from src.heist_path.HeistPathA import HeistPathA
+from src.heist_path.HeistPathB import HeistPathB
 from src.Labels import Labels
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.tasks.trigger.SkipDialogTask import SkipDialogTask
@@ -49,6 +50,10 @@ INST = r"""
             <div style="margin-left:2em; margin-top:2px;">战斗角色: 主角 / 哈尼娅</div>
             <div style="margin-left:2em; margin-top:2px;">跑图角色: 薄荷</div>
             <div style="margin-left:2em; margin-top:2px;">避战角色(可选): 翳 / 浔</div>
+            <strong>路径2推荐设置</strong>
+            <div style="margin-left:2em; margin-top:2px;">战斗角色: 早雾（必须，最前，不排除后面线路会出现问题）/ 主角 / 哈尼娅</div>
+            <div style="margin-left:2em; margin-top:2px;">跑图角色: 薄荷</div>
+            <div style="margin-left:2em; margin-top:2px;">避战角色: 翳（必须） / 浔</div>
         </div>
     """
 
@@ -80,6 +85,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.supported_languages = ["zh_CN"]
         self.paths = {
             "路径1(路线参考自B站UP: 早柚大魔王丶)": HeistPathA,
+            "路径2(优化大厅到LG1路线，其他参考自B站UP: 早柚大魔王丶)": HeistPathB,
         }
         path_names = list(self.paths.keys())
         self.avoid_methods = [self.AVOID_METHOD_DASH, self.AVOID_METHOD_ATTACK]
@@ -706,19 +712,22 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         deadline = time.time() + 60
         settle = -1
         while time.time() < deadline:
-            self.send_key("space")
-            self.sleep(0.1)
-            self.click()
-            self.sleep(0.1)
-            if not self.is_in_team():
-                self.log_info(f"fighter {_key} dead, try next")
-                self._dead_fighter_keys.append(_key)
-                self.ensure_in_team()
-                _key = self.switch_to_fighter()
+            if settle < 0:
+                self.send_key("space")
+                self.sleep(0.1)
+                self.click()
+                self.sleep(0.1)
+                if not self.is_in_team():
+                    self.log_info(f"fighter {_key} dead, try next")
+                    self._dead_fighter_keys.append(_key)
+                    self.ensure_in_team()
+                    _key = self.switch_to_fighter()
+                else:
+                    _key = self._current_fighter_key or _key
+                self.send_key(_key)
+                self.next_frame()
             else:
-                _key = self._current_fighter_key or _key
-            self.send_key(_key)
-            self.next_frame()
+                self.sleep(0.1)
             if not self._find_red_health_bar(10):
                 if settle < 0:
                     settle = time.time()
