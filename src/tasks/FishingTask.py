@@ -37,7 +37,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "自动钓鱼"
+        self.name = self.tr("自动钓鱼")
         self.description = "自动完成一轮或多轮钓鱼"
         self.icon = FluentIcon.SYNC
         self.default_config.update(
@@ -195,7 +195,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     machine_start = None
                 else:
                     self.info_set("失败原因", "钓鱼状态轮询失败")
-                self.ensure_fishing_scene("钓鱼")
+                self.ensure_fishing_scene(self.tr("钓鱼"))
 
         self.info_set("当前阶段", "任务结束")
         self.info_set("成功次数", success_count)
@@ -262,7 +262,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                 state_index += 1
             except WaitFailedException:
                 retry_by_state[state] += 1
-                self.ensure_fishing_scene("买饵补货")
+                self.ensure_fishing_scene(self.tr("买饵补货"))
                 if retry_by_state[state] > self.RESTOCK_RETRY_LIMIT:
                     raise
 
