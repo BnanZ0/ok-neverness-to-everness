@@ -58,13 +58,13 @@ class ShopSpecialTask(NTEOneTimeTask, BaseNTETask):
         self.info_set("成功次数", "0")
         self.info_set("失败次数", 0)
         self.info_set("失败原因", None)
-        self.log_info(f"开始店长特供，共 {rounds} 轮")
+        self.log_info(self.tr("开始店长特供，共 {} 轮").format(rounds))
 
         while round_index <= rounds:
             self.info_set("轮次", f"{round_index}/{rounds}")
             self.info_set("成功次数", f"{success_count}/{rounds}")
             self.info_set("失败次数", failed_count)
-            self.log_info(f"开始第 {round_index}/{rounds} 轮")
+            self.log_info(self.tr("开始第 {}/{} 轮").format(round_index, rounds))
 
             if self.run_round(round_index):
                 success_count += 1
@@ -72,7 +72,7 @@ class ShopSpecialTask(NTEOneTimeTask, BaseNTETask):
             else:
                 failed_count += 1
                 self.info_set("失败次数", failed_count)
-                self.log_error(f"第 {round_index} 轮失败")
+                self.log_error(self.tr("第 {} 轮失败").format(round_index))
 
             rounds = self._configured_rounds()
             round_index += 1
@@ -80,7 +80,7 @@ class ShopSpecialTask(NTEOneTimeTask, BaseNTETask):
         self.info_set("当前阶段", "任务结束")
         self.info_set("成功次数", f"{success_count}/{rounds}")
         self.info_set("失败次数", failed_count)
-        self.log_info(f"店长特供结束，成功 {success_count}/{rounds}", notify=True)
+        self.log_info(self.tr("店长特供结束，成功 {}/{}").format(success_count, rounds), notify=True)
 
     def run_round(self, round_index: int) -> bool:
         # 步骤1：按 F 进入店长特供页面

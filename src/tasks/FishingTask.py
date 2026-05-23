@@ -1,4 +1,4 @@
-import time
+﻿import time
 from enum import Enum
 
 import cv2
@@ -50,8 +50,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         )
         self.config_description.update(
             {
-                self.CONF_CONTROL_MODE: f"{self.MODE_HOLD}：平滑流畅, 易过冲\n"
-                f"{self.MODE_TAP}: 安全较慢, 防过冲",
+                self.CONF_CONTROL_MODE: self.tr("{}：平滑流畅, 易过冲\n{}: 安全较慢, 防过冲").format(self.MODE_HOLD, self.MODE_TAP),
                 self.CONF_TAP_MULTIPLIER: "点按模式专用。用于微调每次按键的持续时间",
                 self.CONF_AUTO_BUY_BAIT: "抛竿失败时，补充默认鱼饵并出售鱼获后重试",
             }
@@ -102,7 +101,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         retry_count = 0
         try_cast_count = 0
         machine_start = None
-        self.log_info(f"开始自动钓鱼，共 {target_rounds} 轮")
+        self.log_info(self.tr("开始自动钓鱼，共 {} 轮").format(target_rounds))
 
         while success_count + failed_count < target_rounds:
             round_text = f"{round_index}/{target_rounds}"
@@ -118,7 +117,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     self._set_stage("is success")
                     machine_start = None
                     if pending_success_round is not None:
-                        self.log_info(f"第 {pending_success_round} 轮钓鱼成功")
+                        self.log_info(self.tr("第 {} 轮钓鱼成功").format(pending_success_round))
                         success_count += 1
                         pending_success_round = None
                         round_index += 1
@@ -136,7 +135,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     if pending_success_round is not None:
                         failed_count += 1
                         self.info_set("失败原因", "下一轮咬钩前未检测到成功面板")
-                        self.log_error(f"第 {pending_success_round} 轮钓鱼失败：未检测到成功面板")
+                        self.log_error(self.tr("第 {} 轮钓鱼失败：未检测到成功面板").format(pending_success_round))
                         pending_success_round = None
                         round_index += 1
                         if success_count + failed_count >= target_rounds:
@@ -189,7 +188,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     failed_count += 1
                     self.info_set("失败原因", "状态轮询连续失败")
                     self.screenshot(f"fishing_round_failed_{round_index}")
-                    self.log_error(f"第 {round_index} 轮钓鱼失败：状态轮询连续失败")
+                    self.log_error(self.tr("第 {} 轮钓鱼失败：状态轮询连续失败").format(round_index))
                     round_index += 1
                     retry_count = 0
                     try_cast_count = 0
@@ -202,7 +201,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self.info_set("成功次数", success_count)
         self.info_set("失败次数", failed_count)
         self.log_info(
-            f"自动钓鱼结束，成功 {success_count}/{target_rounds}",
+            self.tr("自动钓鱼结束，成功 {}/{}").format(success_count, target_rounds),
             notify=True,
         )
 
@@ -322,7 +321,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self._clear_bar_key_if_hold_mode()
         if workflow_name:
             self.screenshot(f"fishing_{workflow_name}_wait_failed")
-            self.log_warning(f"[{workflow_name}]流程等待超时，执行恢复操作")
+            self.log_warning(self.tr("[{}]流程等待超时，执行恢复操作").format(workflow_name))
 
         self._set_stage("恢复钓鱼界面")
         deadline = time.time() + 60
@@ -432,7 +431,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         text = self.ocr(0.4090, 0.4778, 0.5914, 0.5188, frame=self.frame)
         self.log_error("未检测到进入抛竿状态", notify=True)
         if text:
-            self.log_warning(f"检测到文字: {text}")
+            self.log_warning(self.tr("检测到文字: {}").format(text))
 
     def apply_bar_control(self, state: dict):
         mode = self.config.get(self.CONF_CONTROL_MODE, self.MODE_HOLD)
@@ -451,7 +450,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         if abs_error <= deadzone:
             self._set_bar_key(None)
             if now - self._last_bar_log_time > 1:
-                self.log_debug(f"指针已锁定中心: pointer={pointer_center}, target={zone_center}")
+                self.log_debug(self.tr("指针已锁定中心: pointer={}, target={}").format(pointer_center, zone_center))
                 self._last_bar_log_time = now
             return
 
@@ -466,7 +465,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
 
         if abs_dist <= max(2, int(zone_width * 0.08)):
             if now - self._last_bar_log_time > 0.5:
-                self.log_debug(f"指针已锁定中心: pointer={pointer_center}, target={zone_center}")
+                self.log_debug(self.tr("指针已锁定中心: pointer={}, target={}").format(pointer_center, zone_center))
                 self._last_bar_log_time = now
             return
 
