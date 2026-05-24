@@ -14,7 +14,7 @@ class HeistTask(BaseNTETask, TriggerTask):
     CONF_USE_SCROLL = "使用滚轮加速拾取"
     CONF_QUICK_RUN = "切换角色快速奔跑"
     CONF_QUICK_RUN_CHAR_COUNT = "快速奔跑角色数量"
-    SEND_KEY_INTERVAL = 0.25
+    SEND_KEY_INTERVAL = 0.2
     CHECK_INTERVAL = 0.01
     PICK_KEY_HOLD_INTERVAL = 0.35
     QUICK_RUN_HOLD_INTERVAL = 0.5
@@ -133,6 +133,7 @@ class HeistTask(BaseNTETask, TriggerTask):
             self._pick_key_pressed = True
 
         self.send_key(key, interval=self.SEND_KEY_INTERVAL)
+        time.sleep(0.001)
         self.alternate_scroll(interval=self.SEND_KEY_INTERVAL)
 
     def _reset_pick_key(self):

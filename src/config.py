@@ -202,7 +202,7 @@ config = {
         ["src.tasks.AnomalyTask", "AnomalyTask"],
         ["src.tasks.RhythmTask", "RhythmTask"], 
         ["src.tasks.ShopSpecialTask", "ShopSpecialTask"],
-        # ["src.tasks.AutoHeistTask", "AutoHeistTask"],
+        ["src.tasks.AutoHeistTask", "AutoHeistTask"],
         # ["src.tasks.MyOneTimeWithAGroup", "MyOneTimeWithAGroup"],
         # ["src.tasks.MyOneTimeWithAGroup2", "MyOneTimeWithAGroup2"],
         # ["src.tasks.MyOneTimeWithBGroup", "MyOneTimeWithBGroup"],

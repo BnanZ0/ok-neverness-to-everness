@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Callable, List, Optional, Tuple, Union
+from typing import Callable, List, Optional, Tuple
 
 from ok import CannotFindException, TaskDisabledException, find_color_rectangles, og
 from qfluentwidgets import FluentIcon
@@ -22,11 +22,14 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
     CONF_COMPLETE_DAILY = "完成每日活跃度"
     CONF_CLAIM_ACTIVITY = "领取活跃度奖励"
     CONF_CLAIM_BP = "领取环期任务奖励"
-    CONF_CLAIM_COFFEE = "领取/补货一咖舍"
-    CONF_RESTOCK_COFFEE = "运行一咖舍自动化"
-
+    CONF_COFFEE_TASK = "一咖舍任务"
     CONF_AUTO_CYCLE_SUB_TASK = "自动循环项目"
     DAILY_STAMINA_TARGET = "目标消耗体力"
+
+    # --- 一咖舍任务选项 ---
+    COFFEE_MODE_NONE = "不执行"
+    COFFEE_MODE_CLAIM_AND_RESTOCK = "领取/补货一咖舍"
+    COFFEE_MODE_AUTO = "运行一咖舍自动化"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -40,21 +43,23 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             {
                 self.DAILY_STAMINA_TARGET: 180,
                 self.CONF_AUTO_CYCLE_SUB_TASK: False,
-                self.CONF_CLAIM_COFFEE: False,
+                self.CONF_COFFEE_TASK: self.COFFEE_MODE_NONE,
             }
         )
         self.config_description.update(
             {
                 self.CONF_AUTO_CYCLE_SUB_TASK: "任务完成后自动切换至下一个项目",
+                self.CONF_COFFEE_TASK: "选择日常任务中的一咖舍处理方式",
             }
         )
-        # 一咖舍页面 OCR 仅匹配简体中文; 在非 zh_CN 下不向用户暴露补货开关,
-        # 但保留键的运行时缺省为开启 (与 upstream 行为一致).
+        coffee_options = [self.COFFEE_MODE_NONE, self.COFFEE_MODE_CLAIM_AND_RESTOCK]
+        # 一咖舍自动化页面 OCR 仅匹配简体中文; 在非 zh_CN 下不向用户暴露自动化选项.
         if self._is_zh_cn_locale():
-            self.default_config[self.CONF_RESTOCK_COFFEE] = False
-            self.config_description[self.CONF_RESTOCK_COFFEE] = (
-                f"开启后将跳过 [{self.CONF_CLAIM_COFFEE}]"
-            )
+            coffee_options.append(self.COFFEE_MODE_AUTO)
+        self.config_type[self.CONF_COFFEE_TASK] = {
+            "type": "drop_down",
+            "options": coffee_options,
+        }
         self.current_task_key = None
         self.add_exit_after_config()
 
@@ -88,22 +93,28 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         self.ensure_main()
         self.log_info("开始执行日常任务")
 
-        force_claim_coffee = None
-        if self.config.get(self.CONF_RESTOCK_COFFEE, False):
-            force_claim_coffee = False
-
-        tasks: List[
-            Union[
-                Tuple[str, bool, Callable],
-                Tuple[str, bool, Callable, Optional[bool]],
-            ]
-        ] = [
-            (self.CONF_CLAIM_MAIL, True, self.claim_mail),
-            (self.CONF_CLAIM_COFFEE, True, self.claim_coffee, force_claim_coffee),
-            (self.CONF_RESTOCK_COFFEE, False, self.run_coffee_task),
-            (self.CONF_COMPLETE_DAILY, True, self.complete_daily_activities),
-            (self.CONF_CLAIM_ACTIVITY, True, self.claim_activity_rewards),
-            (self.CONF_CLAIM_BP, True, self.claim_battle_pass_rewards),
+        tasks: List[Tuple[str, bool, Callable]] = [
+            (
+                self.CONF_CLAIM_MAIL,
+                self._task_enabled(self.CONF_CLAIM_MAIL, True),
+                self.claim_mail,
+            ),
+            *self._coffee_task_entries(),
+            (
+                self.CONF_COMPLETE_DAILY,
+                self._task_enabled(self.CONF_COMPLETE_DAILY, True),
+                self.complete_daily_activities,
+            ),
+            (
+                self.CONF_CLAIM_ACTIVITY,
+                self._task_enabled(self.CONF_CLAIM_ACTIVITY, True),
+                self.claim_activity_rewards,
+            ),
+            (
+                self.CONF_CLAIM_BP,
+                self._task_enabled(self.CONF_CLAIM_BP, True),
+                self.claim_battle_pass_rewards,
+            ),
         ]
 
         self._reset_task_status(tasks)
@@ -115,22 +126,44 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         self._print_result()
         self.log_info("结束执行日常任务", notify=True)
 
-    def execute_task(self, key, default, func, force=None):
+    def _task_enabled(self, key, default):
+        return bool(self.config.get(key, default))
+
+    def _coffee_task_entries(self) -> List[Tuple[str, bool, Callable]]:
+        coffee_task = self._coffee_task_entry()
+        return [coffee_task] if coffee_task else []
+
+    def _coffee_task_entry(self) -> Optional[Tuple[str, bool, Callable]]:
+        mode = self._coffee_task_mode()
+        if mode == self.COFFEE_MODE_CLAIM_AND_RESTOCK:
+            return (self.COFFEE_MODE_CLAIM_AND_RESTOCK, True, self.claim_coffee)
+        if mode == self.COFFEE_MODE_AUTO:
+            return (self.COFFEE_MODE_AUTO, True, self.run_coffee_task)
+        return None
+
+    def _coffee_task_mode(self):
+        mode = self.config.get(self.CONF_COFFEE_TASK)
+        if mode in (
+            self.COFFEE_MODE_NONE,
+            self.COFFEE_MODE_CLAIM_AND_RESTOCK,
+            self.COFFEE_MODE_AUTO,
+        ):
+            return mode
+        return self.COFFEE_MODE_NONE
+
+    def execute_task(self, key, enabled, func):
         """执行单个子任务。
 
         Args:
             key (str): 任务名称
-            default (bool): 配置缺省值
+            enabled (bool): 是否执行
             func (Callable): 任务执行函数
-            force (Optional[bool]): None 表示按配置决定；True 强制执行；
-                False 强制跳过
 
         根据配置决定是否跳过，并记录执行结果。
         """
 
         self.task_status["pending"].remove(key)
 
-        enabled = self.config.get(key, default) if force is None else force
         if not enabled:
             self.task_status["skipped"].append(key)
             return

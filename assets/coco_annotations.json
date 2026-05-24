@@ -155,6 +155,18 @@
             "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
+        },
+        {
+            "id": 27,
+            "file_name": "images/2.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 28,
+            "file_name": "images/1.png",
+            "width": 2560,
+            "height": 1440
         }
     ],
     "annotations": [
@@ -859,6 +871,58 @@
             ],
             "area": 2303,
             "iscrowd": 0
+        },
+        {
+            "id": 55,
+            "image_id": 27,
+            "category_id": 56,
+            "bbox": [
+                1554,
+                768,
+                36,
+                37
+            ],
+            "area": 1332,
+            "iscrowd": 0
+        },
+        {
+            "id": 56,
+            "image_id": 28,
+            "category_id": 55,
+            "bbox": [
+                1247,
+                645,
+                56,
+                57
+            ],
+            "area": 3192,
+            "iscrowd": 0
+        },
+        {
+            "id": 57,
+            "image_id": 28,
+            "category_id": 57,
+            "bbox": [
+                925,
+                770,
+                63,
+                63
+            ],
+            "area": 3969,
+            "iscrowd": 0
+        },
+        {
+            "id": 58,
+            "image_id": 28,
+            "category_id": 58,
+            "bbox": [
+                106,
+                1234,
+                106,
+                95
+            ],
+            "area": 10070,
+            "iscrowd": 0
         }
     ],
     "categories": [
@@ -1130,6 +1194,26 @@
         {
             "id": 54,
             "name": "heist_timer",
+            "supercategory": ""
+        },
+        {
+            "id": 55,
+            "name": "map_big_teleport",
+            "supercategory": ""
+        },
+        {
+            "id": 56,
+            "name": "heist_interac_lock_pick",
+            "supercategory": ""
+        },
+        {
+            "id": 57,
+            "name": "map_small_teleport",
+            "supercategory": ""
+        },
+        {
+            "id": 58,
+            "name": "map_city_tycoon_activities",
             "supercategory": ""
         }
     ]

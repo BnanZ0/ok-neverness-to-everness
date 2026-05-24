@@ -581,3 +581,12 @@ msgstr ""
 "1. Asegúrate de haber configurado tu build AFK dentro del juego.\n"
 "2. Colócate en una posición del café donde puedas interactuar con F.\n"
 "3. (Opcional) Si quieres elegir una fase concreta, entra manualmente en esa fase una vez, sal de ella y luego inicia este script."
+
+msgid "一咖舍任务"
+msgstr "Tareas del café"
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr "Elige cómo gestionar las tareas diarias del café"
+
+msgid "不执行"
+msgstr "No ejecutar"

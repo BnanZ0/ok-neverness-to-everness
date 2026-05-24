@@ -61,6 +61,9 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                 self.CONF_CONTROL_MODE: {
                     "type": "drop_down",
                     "options": [self.MODE_HOLD, self.MODE_TAP],
+                    "sub_configs": {
+                        self.MODE_TAP: self.CONF_TAP_MULTIPLIER,
+                    },
                 },
             }
         )
@@ -75,7 +78,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         try:
             return self.do_run()
         except TaskDisabledException:
-            pass
+            raise
         except Exception as e:
             self.screenshot("fishing_unexpected_exception")
             self.log_error("FishingTask error", e)
@@ -393,23 +396,12 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
             return True
         return False
 
-    def wait_click_confirm(self, action, raise_if_not_found=True):
-        box = self.box_of_screen(0.641, 0.610, 0.713, 0.698)
-        button = self.wait_until(
-            lambda: self.find_one(Labels.skip_quest_confirm, box=box),
-            pre_action=action,
-            settle_time=1,
-            raise_if_not_found=raise_if_not_found,
+    def wait_click_confirm(self, action, range=None, raise_if_not_found=True):
+        if range is None:
+            range=(0.641, 0.610, 0.713, 0.698)
+        return super().wait_click_confirm(
+            action=action, range=range, raise_if_not_found=raise_if_not_found
         )
-        if not button:
-            return False
-        result = self.wait_until(
-            lambda: not self.find_one(Labels.skip_quest_confirm, box=box),
-            pre_action=lambda: self.operate_click(button, interval=2),
-            settle_time=1,
-            raise_if_not_found=raise_if_not_found,
-        )
-        return bool(result)
 
     def wait_strict(
         self,

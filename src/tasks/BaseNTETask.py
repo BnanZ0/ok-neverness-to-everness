@@ -563,9 +563,7 @@ class BaseNTETask(BaseTask):
                     rect = cv2.minAreaRect(cnt)
                     angle = rect[2]  # 得到角度
 
-                    results.append(
-                        {"center": (cx, cy), "angle": angle, "score": round(score, 3)}
-                    )
+                    results.append({"center": (cx, cy), "angle": angle, "score": round(score, 3)})
 
         # 按分数升序排列（得分越低越好）
         results = sorted(results, key=lambda x: x["score"])
@@ -576,12 +574,13 @@ class BaseNTETask(BaseTask):
         in_world = self.in_world()
         return in_team and in_world
 
-    def wait_in_team(self, time_out=30, raise_if_not_found=True, esc=False):
+    def wait_in_team(self, time_out=30, raise_if_not_found=True, esc=False, settle_time=0):
         success = self.wait_until(
             self.is_in_team,
             time_out=time_out,
             raise_if_not_found=raise_if_not_found,
             post_action=lambda: self.back(after_sleep=2) if esc else None,
+            settle_time=settle_time,
         )
         if success:
             self.sleep(0.1)
@@ -745,6 +744,44 @@ class BaseNTETask(BaseTask):
         box = box.copy(y_offset=y, width_offset=w, height_offset=-y)
         return self.find_one(Labels.teleport, box=box)
 
+    def click_nearest_map_teleport(self, threshold=0.7, time_out=5):
+        self.ensure_main()
+        self.wait_until(
+            lambda: self.find_one(Labels.map_city_tycoon_activities),
+            time_out=10,
+            pre_action=lambda: self.send_key("m", interval=2),
+            raise_if_not_found=True,
+        )
+        to_find = [Labels.map_big_teleport, Labels.map_small_teleport]
+        template_boxes = [self.get_box_by_name(label) for label in to_find]
+        max_template_size = max(
+            max(template_box.width, template_box.height) for template_box in template_boxes
+        )
+        step = max(max_template_size, self.width_of_screen(0.02), 1)
+        center_x = self.width_of_screen(0.5)
+        center_y = self.height_of_screen(0.5)
+        max_radius = max(self.width, self.height)
+
+        def find_teleport():
+            radius = step
+            while radius <= max_radius:
+                x = max(0, center_x - radius)
+                y = max(0, center_y - radius)
+                to_x = min(self.width, center_x + radius)
+                to_y = min(self.height, center_y + radius)
+                box = Box(x=x, y=y, to_x=to_x, to_y=to_y, name="nearest_map_teleport")
+                teleport = self.find_best_match_in_box(box, to_find, threshold=threshold)
+                if teleport:
+                    return teleport
+                radius += step
+
+        teleport = self.wait_until(find_teleport, time_out=time_out, raise_if_not_found=True)
+        self.log_info(f"found nearest map teleport {teleport}")
+        self.operate_click(teleport, action_name="click_nearest_map_teleport", interval=1)
+        self.sleep(0.5)
+        self.click_traval_button()
+        return teleport
+
     def click_traval_button(self, travel_btn=None):
         if not isinstance(travel_btn, Box):
             travel_btn = self.wait_until(
@@ -894,7 +931,7 @@ class BaseNTETask(BaseTask):
             if self.in_team_and_world():
                 return True
             self.handle_monthly_card()
-            texts = self.ocr(log=self.debug)
+            # texts = self.ocr(log=self.debug)
             # if login := self.find_boxes(
             #     texts, boundary=self.box_of_screen(0.3, 0.3, 0.7, 0.7), match="登录"
             # ):
@@ -1125,6 +1162,32 @@ class BaseNTETask(BaseTask):
             if not result and reset_action is not None:
                 reset_action()
         return result
+
+    def wait_click_confirm(
+        self,
+        action,
+        range: tuple[float, float, float, float] | None = None,
+        raise_if_not_found=True,
+    ):
+        if range is None:
+            box = self.main_viewport
+        else:
+            box = self.box_of_screen(*range)
+        button = self.wait_until(
+            lambda: self.find_one(Labels.skip_quest_confirm, box=box),
+            pre_action=action,
+            settle_time=1,
+            raise_if_not_found=raise_if_not_found,
+        )
+        if not button:
+            return False
+        result = self.wait_until(
+            lambda: not self.find_one(Labels.skip_quest_confirm, box=box),
+            pre_action=lambda: self.operate_click(button, interval=2),
+            settle_time=1,
+            raise_if_not_found=raise_if_not_found,
+        )
+        return bool(result)
 
 
 def interac_mask(image):

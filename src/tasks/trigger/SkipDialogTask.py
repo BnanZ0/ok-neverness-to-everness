@@ -106,7 +106,6 @@ class SkipDialogTask(TriggerTask, BaseNTETask):
             Labels.skip_dialog,
             horizontal_variance=0.02,
             threshold=0.75,
-            frame_processor=gf.isolate_dialog_to_white,
         )
 
     def try_click_skip(self):

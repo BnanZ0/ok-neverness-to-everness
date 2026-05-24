@@ -2,9 +2,9 @@ import threading
 from concurrent.futures import ThreadPoolExecutor
 from threading import Event
 
+from ok import Logger, get_path_relative_to_exe
 from PySide6.QtCore import QObject
 
-from ok import Logger, get_path_relative_to_exe
 from src.sound_trigger.SoundCombatContext import SoundCombatContext
 
 logger = Logger.get_logger(__name__)

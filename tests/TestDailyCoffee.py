@@ -52,7 +52,7 @@ class TestDailyCoffee(unittest.TestCase):
 
 
 class TestDailyCoffeeLocaleGate(unittest.TestCase):
-    """BnanZ0 PR #86 反馈: 仅在 zh_CN 下暴露 CONF_RESTOCK_COFFEE 给 UI."""
+    """BnanZ0 PR #86 反馈: 仅在 zh_CN 下暴露一咖舍自动化给 UI."""
 
     def _patch_locale(self, name=None, *, raise_exc=False, missing_app=False, missing_locale=False):
         from unittest.mock import MagicMock
@@ -89,22 +89,36 @@ class TestDailyCoffeeLocaleGate(unittest.TestCase):
         ctor_app = MagicMock()
         return DailyTask(executor=executor, app=ctor_app)
 
-    def test_zh_cn_locale_exposes_restock_toggle(self):
+    def test_zh_cn_locale_exposes_auto_coffee_mode(self):
         original = self._patch_locale("zh_CN")
         try:
             task = self._instantiate()
-            self.assertIn(DailyTask.CONF_RESTOCK_COFFEE, task.default_config)
-            self.assertFalse(task.default_config[DailyTask.CONF_RESTOCK_COFFEE])
-            self.assertIn(DailyTask.CONF_RESTOCK_COFFEE, task.config_description)
+            self.assertIn(DailyTask.CONF_COFFEE_TASK, task.default_config)
+            self.assertEqual(
+                DailyTask.COFFEE_MODE_NONE,
+                task.default_config[DailyTask.CONF_COFFEE_TASK],
+            )
+            self.assertEqual(
+                [
+                    DailyTask.COFFEE_MODE_NONE,
+                    DailyTask.COFFEE_MODE_CLAIM_AND_RESTOCK,
+                    DailyTask.COFFEE_MODE_AUTO,
+                ],
+                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
+            )
         finally:
             self._restore_app(original)
 
-    def test_non_zh_cn_locale_hides_restock_toggle(self):
+    def test_non_zh_cn_locale_hides_auto_coffee_mode(self):
         original = self._patch_locale("en_US")
         try:
             task = self._instantiate()
-            self.assertNotIn(DailyTask.CONF_RESTOCK_COFFEE, task.default_config)
-            self.assertNotIn(DailyTask.CONF_RESTOCK_COFFEE, task.config_description)
+            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.default_config)
+            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.config_description)
+            self.assertEqual(
+                [DailyTask.COFFEE_MODE_NONE, DailyTask.COFFEE_MODE_CLAIM_AND_RESTOCK],
+                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
+            )
         finally:
             self._restore_app(original)
 
@@ -114,7 +128,11 @@ class TestDailyCoffeeLocaleGate(unittest.TestCase):
         original = self._patch_locale(missing_locale=True)
         try:
             task = self._instantiate()
-            self.assertNotIn(DailyTask.CONF_RESTOCK_COFFEE, task.default_config)
+            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.default_config)
+            self.assertNotIn(
+                DailyTask.COFFEE_MODE_AUTO,
+                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
+            )
         finally:
             self._restore_app(original)
 
@@ -122,18 +140,46 @@ class TestDailyCoffeeLocaleGate(unittest.TestCase):
         original = self._patch_locale(raise_exc=True)
         try:
             task = self._instantiate()
-            self.assertNotIn(DailyTask.CONF_RESTOCK_COFFEE, task.default_config)
+            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.default_config)
+            self.assertNotIn(
+                DailyTask.COFFEE_MODE_AUTO,
+                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
+            )
         finally:
             self._restore_app(original)
 
-    def test_runtime_default_preserves_restock_when_key_absent(self):
-        # 即使配置里没有 CONF_RESTOCK_COFFEE 键 (非 zh_CN locale 路径),
-        # claim_coffee 在运行时仍然走"补货"分支 (config.get 默认 True),
-        # 与 upstream 历史行为一致.
+    def test_dropdown_mode_selects_restock_task(self):
+        task = TestDailyCoffee()._task(
+            {DailyTask.CONF_COFFEE_TASK: DailyTask.COFFEE_MODE_AUTO}
+        )  # noqa: SLF001 - reuse stub helper
+
+        entry = DailyTask._coffee_task_entry(task)
+
+        self.assertIsNotNone(entry)
+        key, enabled, func = entry
+        self.assertEqual(DailyTask.COFFEE_MODE_AUTO, key)
+        self.assertTrue(enabled)
+        self.assertEqual(DailyTask.run_coffee_task.__name__, func.__name__)
+
+    def test_old_bool_config_does_not_select_restock_task(self):
+        task = TestDailyCoffee()._task(
+            {"运行一咖舍自动化": True}
+        )  # noqa: SLF001
+
+        self.assertIsNone(DailyTask._coffee_task_entry(task))
+
+    def test_dropdown_mode_none_skips_coffee_task(self):
+        task = TestDailyCoffee()._task(
+            {DailyTask.CONF_COFFEE_TASK: DailyTask.COFFEE_MODE_NONE}
+        )  # noqa: SLF001 - reuse stub helper
+
+        self.assertIsNone(DailyTask._coffee_task_entry(task))
+
+    def test_claim_coffee_runtime_still_restocks(self):
         original = self._patch_locale("en_US")
         try:
             task = TestDailyCoffee()._task({})  # noqa: SLF001 - reuse stub helper
-            self.assertNotIn(DailyTask.CONF_RESTOCK_COFFEE, task.config)
+            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.config)
             self.assertTrue(DailyTask.claim_coffee(task))
             click_positions = [(x, y) for x, y, _ in task.clicks]
             self.assertIn((0.115, 0.53), click_positions)

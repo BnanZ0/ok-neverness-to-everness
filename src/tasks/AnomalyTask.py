@@ -66,6 +66,12 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
                         cls.TASK_ARC,
                         cls.TASK_CONSOLE,
                     ],
+                    "sub_configs": {
+                        cls.TASK_EXP_COIN: cls.CONF_EXP_TARGET,
+                        cls.TASK_ABILITY: cls.CONF_ABILITY_ID,
+                        cls.TASK_ARC: cls.CONF_ARC_ID,
+                        cls.TASK_CONSOLE: cls.CONF_CONSOLE_ID,
+                    },
                 },
                 cls.CONF_EXP_TARGET: {
                     "type": "drop_down",
@@ -118,7 +124,7 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
             lambda: self.find_one(Labels.stamina_icon, box=box),
             pre_action=lambda: self.operate_click(0.0563, 0.4924, interval=0.5),
             settle_time=0.5,
-            time_out= 10,
+            time_out=10,
         )
 
         self.sleep(0.5)
@@ -148,16 +154,6 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         self.click_traval_button()
         self.wait_in_team_and_world()
 
-        self.log_info("寻路至交互点并触发交互")
-        self.walk_until_interac(raise_if_not_found=True)
-        self.wait_until(
-            lambda: not self.find_interac(),
-            post_action=lambda: self.send_interac(handle_claim=False),
-            time_out=10,
-        )
-
-        self.wait_until(lambda: self.find_one(Labels.stamina_icon), settle_time=0.5, time_out=10)
-
         stamina_units = stamina // self.TASK_COST
         if stamina_target is not None:
             target_units = (stamina_target + self.TASK_COST - 1) // self.TASK_COST
@@ -167,6 +163,39 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         single_count = stamina_units % 2
         self.log_info(f"双倍次数: {double_count}, 单倍次数: {single_count}")
 
+        self.enter_anomaly_from_interac(idx)
+
+        total_count = double_count + single_count
+        completed_count = 0
+        while completed_count < total_count:
+            double = completed_count < double_count
+            self.wait_in_team()
+            self.sleep(2)
+            if not self.do_combat_and_claim(double):
+                self.log_warning("本次未成功领取奖励，退出副本后重试当前目标")
+                self.exit_anomaly()
+                self.enter_anomaly_from_interac(idx, retry=True)
+                continue
+            completed_count += 1
+            self.sleep(2)
+            if completed_count < total_count:
+                self.operate_click(0.621, 0.864)
+        self.operate_click(0.381, 0.861)
+        self.log_info("任务执行完毕")
+        return True
+
+    def enter_anomaly_from_interac(self, idx, retry=False):
+        self.log_info("寻路至交互点并触发交互")
+        direction = "s" if retry else "w"
+        self.walk_until_interac(direction=direction, raise_if_not_found=True)
+        self.wait_until(
+            lambda: not self.find_interac(),
+            post_action=lambda: self.send_interac(handle_claim=False),
+            time_out=10,
+        )
+
+        self.wait_until(lambda: self.find_one(Labels.stamina_icon), settle_time=0.5, time_out=10)
+
         # 不同操作 2: 选择对应序号的项目
         self.log_info(f"选择项目序号: {idx + 1}")
         self.click_sub_idx(idx)
@@ -174,19 +203,17 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
 
         # 共同操作 3
         self.log_info("进入副本并等待")
-        self.operate_click(0.8008, 0.9042)
+        self.wait_until(
+            lambda: not self.find_one(Labels.stamina_icon),
+            pre_action=lambda: self.operate_click(0.8008, 0.9042),
+            time_out=10,
+        )
 
-        for i in range(double_count + single_count):
-            double = i < double_count
-            self.wait_in_team()
-            self.sleep(2)
-            self.do_combat_and_claim(double)
-            self.sleep(2)
-            if i < double_count + single_count - 1:
-                self.operate_click(0.621, 0.864)
-        self.operate_click(0.381, 0.861)
-        self.log_info("任务执行完毕")
-        return True
+    def exit_anomaly(self):
+        self.wait_click_confirm(
+            lambda: self.send_key("esc", interval=2), range=(0.6629, 0.6167, 0.6988, 0.6965)
+        )
+        self.wait_in_team_and_world()
 
     def do_combat_and_claim(self, double: bool):
         self.log_info("开始执行战斗流程")
@@ -211,13 +238,14 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         claims = self.retry_on_action(action)
         if not claims:
             return False
-        
+
         if double:
             box = max(claims, key=lambda x: x.x)
         else:
             box = min(claims, key=lambda x: x.x)
         btn = box.copy(x_offset=box.width * 3)
         self.operate_click(btn)
+        return True
 
     def click_sub_idx(self, idx):
         y = 0.1715 + idx * (0.2806 - 0.1715)

@@ -588,3 +588,12 @@ msgstr ""
 "1. Make sure you have configured your in-game AFK build.\n"
 "2. Stand at a cafe position where you can interact with F.\n"
 "3. (Optional) To target a specific stage, manually enter that stage once, exit it, then start this script."
+
+msgid "一咖舍任务"
+msgstr "Cafe Tasks"
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr "Choose how to handle Cafe daily tasks"
+
+msgid "不执行"
+msgstr "Do not execute"
