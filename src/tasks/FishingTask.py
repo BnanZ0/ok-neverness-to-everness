@@ -3,10 +3,27 @@ from enum import Enum
 
 import cv2
 import numpy as np
-from ok import TaskDisabledException, WaitFailedException
+from ok import TaskDisabledException, WaitFailedException, og
 from qfluentwidgets import FluentIcon
 
 from src import text_white_color
+
+
+def _tr(text: str) -> str:
+    try:
+        return og.app.tr(text) if og.app else text
+    except Exception:
+        return text
+
+
+def _tr_fmt(template: str, *args) -> str:
+    try:
+        translated = tuple(_tr(str(a)) if isinstance(a, str) else a for a in args)
+        return og.app.tr(template).format(*translated)
+    except Exception:
+        return template.format(*args)
+
+
 from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
@@ -42,8 +59,8 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self.icon = FluentIcon.SYNC
         self.default_config.update(
             {
-                self.CONF_ROUNDS: 1,
-                self.CONF_CONTROL_MODE: self.MODE_HOLD,
+                self.CONF_ROUNDS: 99999,
+                self.CONF_CONTROL_MODE: self.MODE_TAP,
                 self.CONF_TAP_MULTIPLIER: 1.0,
                 self.CONF_AUTO_BUY_BAIT: True,
             }
@@ -102,7 +119,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         retry_count = 0
         try_cast_count = 0
         machine_start = None
-        self.log_info(f"开始自动钓鱼，共 {target_rounds} 轮")
+        self.log_info(_tr_fmt("开始自动钓鱼，共 {} 轮", target_rounds))
 
         while success_count + failed_count < target_rounds:
             round_text = f"{round_index}/{target_rounds}"
@@ -118,7 +135,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     self._set_stage("is success")
                     machine_start = None
                     if pending_success_round is not None:
-                        self.log_info(f"第 {pending_success_round} 轮钓鱼成功")
+                        self.log_info(_tr_fmt("第 {} 轮钓鱼成功", pending_success_round))
                         success_count += 1
                         pending_success_round = None
                         round_index += 1
@@ -136,7 +153,9 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     if pending_success_round is not None:
                         failed_count += 1
                         self.info_set("失败原因", "下一轮咬钩前未检测到成功面板")
-                        self.log_error(f"第 {pending_success_round} 轮钓鱼失败：未检测到成功面板")
+                        self.log_error(
+                            _tr_fmt("第 {} 轮钓鱼失败：未检测到成功面板", pending_success_round)
+                        )
                         pending_success_round = None
                         round_index += 1
                         if success_count + failed_count >= target_rounds:
@@ -189,7 +208,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
                     failed_count += 1
                     self.info_set("失败原因", "状态轮询连续失败")
                     self.screenshot(f"fishing_round_failed_{round_index}")
-                    self.log_error(f"第 {round_index} 轮钓鱼失败：状态轮询连续失败")
+                    self.log_error(_tr_fmt("第 {} 轮钓鱼失败：状态轮询连续失败", round_index))
                     round_index += 1
                     retry_count = 0
                     try_cast_count = 0
@@ -202,7 +221,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self.info_set("成功次数", success_count)
         self.info_set("失败次数", failed_count)
         self.log_info(
-            f"自动钓鱼结束，成功 {success_count}/{target_rounds}",
+            _tr_fmt("自动钓鱼结束，成功 {}/{}", success_count, target_rounds),
             notify=True,
         )
 
@@ -322,7 +341,9 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self._clear_bar_key_if_hold_mode()
         if workflow_name:
             self.screenshot(f"fishing_{workflow_name}_wait_failed")
-            self.log_warning(f"[{workflow_name}]流程等待超时，执行恢复操作")
+            self.log_warning(
+                _tr_fmt("[{}]流程等待超时，执行恢复操作", _tr(workflow_name) if workflow_name else "")
+            )
 
         self._set_stage("恢复钓鱼界面")
         deadline = time.time() + 60
@@ -432,7 +453,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         text = self.ocr(0.4090, 0.4778, 0.5914, 0.5188, frame=self.frame)
         self.log_error("未检测到进入抛竿状态", notify=True)
         if text:
-            self.log_warning(f"检测到文字: {text}")
+            self.log_warning(_tr_fmt("检测到文字: {}", text))
 
     def apply_bar_control(self, state: dict):
         mode = self.config.get(self.CONF_CONTROL_MODE, self.MODE_HOLD)
@@ -676,6 +697,8 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         return max(1, int(self.config.get(self.CONF_ROUNDS, 1)))
 
     def _publish_config_info(self):
+        for transient_key in ("Error", "Warning", "Log"):
+            self.info.pop(transient_key, None)
         self.info_set("控条模式", self.config.get(self.CONF_CONTROL_MODE, self.MODE_HOLD))
         self.info_set(
             "自动补饵卖鱼",

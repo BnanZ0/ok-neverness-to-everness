@@ -93,10 +93,10 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
 
         while endless or count < total:
             count += 1
-            label = f"第 {count} 次" + ("" if endless else f"/{total}")
+            label = self.tr("第 {} 次").format(count) + ("" if endless else f"/{total}")
 
             # 点击开始演奏
-            self.log_info(f"{label}：点击开始演奏")
+            self.log_info(self.tr("{}：点击开始演奏").format(label))
             self.operate_click(SONG_START_POS[0], SONG_START_POS[1])
 
             # 等待离开选歌界面（最多15秒），确认进入音游后再开始检测
@@ -137,7 +137,7 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
                     self.log_error("10 秒内未返回选歌界面，停止任务")
                     raise TaskDisabledException()
 
-        self.log_info(f"自动音游任务结束，共完成 {count} 次", notify=True)
+        self.log_info(self.tr("自动音游任务结束，共完成 {} 次").format(count), notify=True)
 
     def _run_single(self):
         """单曲打击主循环"""
@@ -253,7 +253,7 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
                 key, col = self._key_queue.popleft()
 
             self.send_key(key, interval=0, down_time=KEY_DOWN_TIME)
-            self.log_info(f"按键 {key.upper()} ({col})")
+            self.log_info(self.tr("按键 {} ({})").format(key.upper(), col))
 
     # =========================================================================
     # 鼓点检测：命中线附近窗口亮度

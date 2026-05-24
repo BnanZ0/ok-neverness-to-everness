@@ -53,7 +53,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         if self._is_zh_cn_locale():
             self.default_config[self.CONF_RESTOCK_COFFEE] = False
             self.config_description[self.CONF_RESTOCK_COFFEE] = (
-                f"开启后将跳过 [{self.CONF_CLAIM_COFFEE}]"
+                self.tr("开启后将跳过 [{}]").format(self.CONF_CLAIM_COFFEE)
             )
         self.current_task_key = None
         self.add_exit_after_config()
@@ -136,7 +136,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
             return
 
         self.current_task_key = key
-        self.log_info(f"开始任务: {key}")
+        self.log_info(self.tr("开始任务: {}").format(key))
 
         self.ensure_main()
 
@@ -145,11 +145,11 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         if result is False:
             self.task_status["failed"].append(key)
             self.screenshot(f"fail_{key}")
-            self.log_info(f"任务失败: {key}")
+            self.log_info(self.tr("任务失败: {}").format(key))
             return
 
         self.task_status["success"].append(key)
-        self.log_info(f"任务完成: {key}")
+        self.log_info(self.tr("任务完成: {}").format(key))
         self.current_task_key = None
 
     def _reset_task_status(self, tasks):

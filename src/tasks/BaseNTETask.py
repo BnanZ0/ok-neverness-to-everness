@@ -621,11 +621,11 @@ class BaseNTETask(BaseTask):
         m = safe_get(methods, idx)
         if m is None:
             self.log_error(
-                f"无法设置交互方式：索引 {idx} 越界。当前可用选择有: {available_options}"
+                self.tr("无法设置交互方式：索引 {} 越界。当前可用选择有: {}").format(idx, available_options)
             )
             return
         og.device_manager.set_interaction(m)
-        self.log_info(f"已切换交互式方式: {get_name(m)}")
+        self.log_info(self.tr("已切换交互式方式: {}").format(get_name(m)))
 
     def is_foreground(self):
         """

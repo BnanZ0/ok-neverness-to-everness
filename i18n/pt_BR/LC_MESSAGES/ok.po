@@ -11,17 +11,88 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
+msgid "    • 参数: {}\n"
+msgstr "    • Parâmetros: {}\n"
+
+msgid ""
+"    • 示例: {}\n"
+"\n"
+msgstr ""
+"    • Exemplo: {}\n"
+"\n"
+
+msgid "    • 说明: {}\n"
+msgstr "    • Descrição: {}\n"
+
+msgid "1. 确保您已配置好游戏内的挂机流派。\n"
+msgstr "1. Certifique-se de ter configurado a build idle no jogo.\n"
+
+msgid "10 秒内未返回选歌界面，停止任务"
+msgstr "Não retornou à seleção de músicas em 10 s; tarefa interrompida"
+
+msgid "15 秒内未进入音游界面，停止任务"
+msgstr "Não entrou no jogo de ritmo em 15 s; tarefa interrompida"
+
+msgid "2. 站在咖啡店可进行 F 交互的位置。\n"
+msgstr "2. Fique no café em um local onde a interação F esteja disponível.\n"
+
+msgid "3. （可选）若想指定特定关卡，请先手动进入该关卡一次后退出，再启动本脚本即可。"
+msgstr "3. (Opcional) Para um estágio específico, entre e saia manualmente uma vez antes de iniciar este script."
+
+msgid "4列对应的键盘按键"
+msgstr "Teclas do teclado para 4 colunas"
+
+msgid "<b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgstr "o recurso <b style=\"color: #0078d7;\">{fixed_team}</b>."
+
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 "
+msgstr "<b style=\"color: #0078d7;\">Personagem</b> e "
+
 msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 msgstr "<b style=\"color: #0078d7;\">Personagem</b> e <b style=\"color: #0078d7;\">{combo}</b> suportam entrada e criação, e também suportam a seleção de itens existentes."
 
+msgid ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+msgstr ""
+"Todas as teclas de letras/números, incluindo todas as teclas de atalho acima, são substituídas pelas posições físicas do QWERTY dos EUA,\n"
+"não pelas teclas impressas no layout atual."
+
 msgid "Arc Key"
-msgstr "Tecla do Arco"
+msgstr "Tecla Arc"
+
+msgid "Auto exit because game exited"
+msgstr "Fechamento automático porque o jogo foi encerrado"
 
 msgid "Check Monthly Card"
 msgstr "Verificar Passe Mensal"
 
 msgid "Check for monthly card to avoid interruption of tasks"
 msgstr "Verificar passe mensal para evitar interrupção das tarefas"
+
+msgid "Counter Attack Threshold"
+msgstr "Limiar de Contra-ataque"
+
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgstr "Limiar de reconhecimento de som de contra-ataque (0,0-1,0, quanto menor, mais sensível)"
+
+msgid "Dodge All Attacks"
+msgstr "Esquivar de Todos os Ataques"
+
+msgid "Dodge Threshold"
+msgstr "Limiar de Esquiva"
+
+msgid "Dodge all attacks without performing counter attacks"
+msgstr "Esquivar de todos os ataques sem realizar contra-ataques"
+
+msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgstr "Limiar de reconhecimento de som de esquiva (0,0-1,0, quanto menor, mais sensível)"
+
+msgid "Enable Sound Trigger"
+msgstr "Ativar Gatilho de Som"
+
+msgid "Enable sound recognition for automatic dodge and counter attacks"
+msgstr "Ativar reconhecimento de som para esquivas e contra-ataques automáticos"
 
 msgid "F10"
 msgstr "F10"
@@ -35,11 +106,20 @@ msgstr "F12"
 msgid "F9"
 msgstr "F9"
 
+msgid "FishingTask error"
+msgstr "Erro na tarefa de pesca"
+
+msgid "Game Exited"
+msgstr "Jogo encerrado"
+
 msgid "Game Hotkey Config"
 msgstr "Configuração de Teclas de Atalho"
 
 msgid "In Game Hotkey for Skills"
 msgstr "Teclas de Atalho para Habilidades no Jogo"
+
+msgid "Launcher Path"
+msgstr "Caminho do launcher"
 
 msgid "Monthly Card Config"
 msgstr "Configuração do Passe Mensal"
@@ -47,8 +127,35 @@ msgstr "Configuração do Passe Mensal"
 msgid "Monthly Card Time"
 msgstr "Horário do Passe Mensal"
 
+msgid "Paused because browser exited"
+msgstr "Pausado porque o navegador foi encerrado"
+
+msgid "Paused because game exited"
+msgstr "Pausado porque o jogo foi encerrado"
+
+msgid "Paused because game window is minimized or out of screen!"
+msgstr "Pausado porque a janela do jogo está minimizada ou fora da tela!"
+
+msgid "RhythmTask error"
+msgstr "Erro na tarefa de ritmo"
+
 msgid "Skill Key"
 msgstr "Tecla de Habilidade"
+
+msgid "Sound Trigger Config"
+msgstr "Configuração do Gatilho de Som"
+
+msgid "Sound-based dodge and counter trigger settings"
+msgstr "Configurações de gatilho de esquiva e contra-ataque baseadas em som"
+
+msgid "Start Game"
+msgstr "Iniciar jogo"
+
+msgid "Stereo/Headphones 输出，避免使用 Hands-Free/AG Audio。"
+msgstr "Saída estéreo/fones de ouvido; evite Hands-Free/AG Audio."
+
+msgid "Stopped"
+msgstr "Parado"
 
 msgid "Turn on to avoid interruption by monthly card when executing tasks"
 msgstr "Ative para evitar interrupção pelo passe mensal ao executar tarefas"
@@ -56,11 +163,56 @@ msgstr "Ative para evitar interrupção pelo passe mensal ao executar tarefas"
 msgid "Ultimate Key"
 msgstr "Tecla do Ultimate"
 
+msgid "Use QWERTY Physical Keys"
+msgstr "Usar teclas físicas QWERTY"
+
 msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "Horário local do computador para o pop-up do passe mensal, hora em (1-24)"
 
+msgid "[LV-Init] 模板切割失败，仅找到 {} 个轮廓"
+msgstr "[LV-Init] Falha na segmentação do modelo; apenas {} contornos encontrados"
+
+msgid "[{}]流程等待超时，执行恢复操作"
+msgstr "[{}] fluxo expirou, executando recuperação"
+
 msgid "[内置代码]"
 msgstr "[Código Interno]"
+
+msgid "buy bait"
+msgstr "Comprar isca"
+
+msgid "cast rod"
+msgstr "Arremessar vara"
+
+msgid "check monthly card"
+msgstr "Verificar passe mensal"
+
+msgid "control bar"
+msgstr "Barra de tensão"
+
+msgid "info_set"
+msgstr "info_set"
+
+msgid "int选项"
+msgstr "Opção inteira"
+
+msgid "is bite"
+msgstr "Peixe mordendo"
+
+msgid "is success"
+msgstr "Pesca bem-sucedida"
+
+msgid "list选项"
+msgstr "Opção de lista"
+
+msgid "monthly_card close failed"
+msgstr "Falha ao fechar o passe mensal"
+
+msgid "monthly_card found click"
+msgstr "Passe mensal detectado, clicando para fechar"
+
+msgid "sell fish"
+msgstr "Vender peixes"
 
 msgid "{combo}: {} 删除成功"
 msgstr "{combo}: {} excluído com sucesso"
@@ -83,11 +235,90 @@ msgstr "{fixed_team} limpo"
 msgid "{} 号位"
 msgstr "Espaço {}"
 
+msgid "{}：点击开始演奏"
+msgstr "{}: clique para iniciar a execução"
+
+msgid "一键出售未完成，可能当前鱼获不可出售，跳过出售"
+msgstr "Venda rápida incompleta; captura pode ser invendável, ignorando"
+
+msgid "下一轮咬钩前未检测到成功面板"
+msgstr "Painel de sucesso não detectado antes da próxima mordida"
+
+msgid "下拉菜单选项"
+msgstr "Opção de menu suspenso"
+
+msgid ""
+"不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+msgstr ""
+"e não inclui preparo de comida nem atendimento a clientes dentro do estágio.\n"
+"\n"
+
+msgid "不安全的压缩包路径"
+msgstr "Caminho de arquivo compactado inseguro"
+
 msgid "不扫描也可自动战斗，将使用通用脚本"
 msgstr "O combate automático é possível sem escanear; um script genérico será usado."
 
+msgid "不支持从OK启动游戏"
+msgstr "Não é suportado iniciar o jogo pelo OK"
+
+msgid "不支持的导入格式"
+msgstr "Formato de importação não suportado"
+
+msgid "九原"
+msgstr "Jiuyuan"
+
+msgid "买饵补货"
+msgstr "reabastecimento de isca"
+
+msgid "仅支持导入导出数据的 zip（custom_chars/db.json 无效）"
+msgstr "Somente ZIP de exportação de dados é suportado (custom_chars/db.json inválido)"
+
+msgid "仅支持导入导出数据的 zip（缺少 custom_chars/db.json）"
+msgstr "Somente ZIP de exportação de dados é suportado (falta custom_chars/db.json)"
+
+msgid "任务失败: {}"
+msgstr "Tarefa falhou: {}"
+
+msgid "任务完成: {}"
+msgstr "Tarefa concluída: {}"
+
+msgid "任务完成后自动切换至下一个项目"
+msgstr "Alternar automaticamente para o próximo item após a conclusão da tarefa"
+
+msgid "任务执行完毕"
+msgstr "Execução da tarefa concluída"
+
+msgid "任务类型"
+msgstr "Tipo de Tarefa"
+
+msgid "任务结束"
+msgstr "Tarefa concluída"
+
 msgid "任务跳过对话"
 msgstr "Tarefa: Pular Diálogo"
+
+msgid "休眠停顿等待指定时间"
+msgstr "Pausa pelo tempo especificado"
+
+msgid "传送"
+msgstr "Teletransporte"
+
+msgid "体力不足，退出任务"
+msgstr "Stamina insuficiente; saindo da tarefa"
+
+msgid "体力消耗目标"
+msgstr "Meta de consumo de stamina"
+
+msgid "使用ESC"
+msgstr "Usar ESC"
+
+msgid "使用方法：\n"
+msgstr "Uso:\n"
+
+msgid "使用滚轮加速拾取"
+msgstr "Usar rolagem do mouse para acelerar a coleta"
 
 msgid ""
 "供非中/英语用户自定义传送文字, 逗号分隔\n"
@@ -105,8 +336,29 @@ msgstr "Desativar"
 msgid "先扫描或手动填写"
 msgstr "Escanear primeiro ou preencher manualmente"
 
+msgid "关闭"
+msgstr "Desativado"
+
+msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
+msgstr "Quando desativado, o combate só inicia se um inimigo for selecionado com o botão do meio e 'Lv' for detectado na tela"
+
+msgid "关闭结算界面"
+msgstr "Fechando tela de resultados"
+
+msgid "具体奖励目标"
+msgstr "Objetivo de Recompensa Específico"
+
 msgid "出招表"
 msgstr "Lista de Combos"
+
+msgid "切换至任务页签: {}"
+msgstr "Alternando para a aba de tarefa: {}"
+
+msgid "切换角色快速奔跑"
+msgstr "Alternar personagens para corrida rápida"
+
+msgid "切换角色数量"
+msgstr "Número de Personagens para Alternância"
 
 msgid "初次使用请先至 [{team_mgmt}] 进行设置"
 msgstr "Para primeiro uso, vá em [{team_mgmt}] para configurar."
@@ -123,20 +375,60 @@ msgstr "Excluir Personagem"
 msgid "刷新列表"
 msgstr "Atualizar Lista"
 
+msgid "功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，"
+msgstr "Sobre: este recurso cuida apenas do loop de cliques para 'sair automaticamente do estágio' e 'reiniciar estágio',"
+
+msgid ""
+"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 确保您已配置好游戏内的挂机流派。\n"
+"2. 站在咖啡店可进行 F 交互的位置。\n"
+"3. （可选）若想指定特定关卡，请先手动进入该关卡一次后退出，再启动本脚本即可。"
+msgstr ""
+"Notas da função: esta função cuida apenas do ciclo de cliques para \"sair automaticamente da fase\" e \"reiniciar a fase\". Ela não inclui ações dentro da fase, como preparar comida ou atender clientes.\n"
+"\n"
+"Como usar:\n"
+"1. Certifique-se de que sua build AFK dentro do jogo já está configurada.\n"
+"2. Fique em uma posição no café onde seja possível interagir com F.\n"
+"3. (Opcional) Para escolher uma fase específica, entre manualmente nessa fase uma vez, saia dela e então inicie este script."
+
 msgid "匹配成功: {}"
 msgstr "Correspondência bem-sucedida: {}"
 
 msgid "匹配文字"
 msgstr "Corresponder Texto"
 
+msgid "单曲超时时间(秒)"
+msgstr "Tempo limite por música (s)"
+
+msgid "压缩包内没有可导入的数据"
+msgstr "O arquivo não contém dados importáveis"
+
+msgid "双倍次数: {}, 单倍次数: {}"
+msgstr "Execuções em dobro: {}, Execuções simples: {}"
+
+msgid "发现 {} 个领取奖励"
+msgstr "Encontrada(s) {} recompensa(s) para resgatar"
+
 msgid "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
 msgstr "Devido à singularidade da interface do Neverness-to-Everness, a estabilidade do reconhecimento pode variar em alguns cenários."
+
+msgid ""
+"可以在出招表中输入以下指令 (以英文逗号 [ , ] 分隔):\n"
+"\n"
+msgstr ""
+"Você pode inserir os seguintes comandos na lista de golpes (separados por vírgulas [ , ]):\n"
+"\n"
 
 msgid "可用指令"
 msgstr "Comandos Disponíveis"
 
 msgid "启用"
 msgstr "Ativar"
+
+msgid "商城"
+msgstr "Loja"
 
 msgid "固定队伍"
 msgstr "Equipe Fixa"
@@ -147,11 +439,50 @@ msgstr "Clique automático em teletransporte no mapa"
 msgid "填入扫描"
 msgstr "Preencher Escaneamento"
 
+msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>"
+msgstr "Após adicionar <b style=\"color: #0078d7;\">traços de personagem</b>, o personagem atual será detectado automaticamente.<br>"
+
 msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
 msgstr "Adicionar <b style=\"color: #0078d7;\">Características do Personagem</b> identificará automaticamente o personagem atual.<br>Se não quiser gerenciar as <b style=\"color: #0078d7;\">Características do Personagem</b>, ative diretamente a função <b style=\"color: #0078d7;\">{fixed_team}</b>."
 
+msgid "声音监听未找到严格匹配的系统声音回环设备，已使用兼容模式监听。"
+msgstr "O listener de áudio não encontrou um dispositivo de loopback do sistema com correspondência exata; usando modo de compatibilidade."
+
+msgid "声音闪避反击"
+msgstr "Esquiva e contra-ataque por som"
+
+msgid "失败原因"
+msgstr "Motivo da falha"
+
+msgid "失败次数"
+msgstr "Falhas"
+
+msgid "奖励目标"
+msgstr "Meta de recompensa"
+
+msgid "如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用"
+msgstr "Se não quiser gerenciar <b style=\"color: #0078d7;\">traços de personagem</b>, você pode ativar diretamente"
+
+msgid "如果你使用蓝牙耳机并发现音质变差，请在 Windows 声音设置中选择"
+msgstr "Se você usa fones Bluetooth e nota queda na qualidade do áudio, selecione nas configurações de som do Windows"
+
+msgid "娜娜莉"
+msgstr "Nanally"
+
+msgid "子类必须实现 get_current_char 方法"
+msgstr "Subclasses devem implementar get_current_char"
+
+msgid "子类必须实现 load_chars 方法"
+msgstr "Subclasses devem implementar load_chars"
+
 msgid "完成每日活跃度"
 msgstr "Completar Atividade Diária"
+
+msgid "寻找钓鱼交互点"
+msgstr "Procurar ponto de interação"
+
+msgid "寻路至交互点并触发交互"
+msgstr "Indo até o ponto de interação e acionando-o"
 
 msgid "导入失败"
 msgstr "Falha ao importar"
@@ -168,14 +499,23 @@ msgstr "Exportar Dados"
 msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
 msgstr "Priorizará o uso de personagens fixos no combate; identificará automaticamente quando não ativado ou quando os espaços estiverem vazios."
 
+msgid "小吱"
+msgstr "Chiz"
+
 msgid "已保存 {}/4"
 msgstr "Salvo {}/4"
+
+msgid "已切换交互式方式: {}"
+msgstr "Método de interação alterado: {}"
 
 msgid "已启用 {}/4"
 msgstr "Ativado {}/4"
 
 msgid "已启用{fixed_team}"
 msgstr "{fixed_team} ativado"
+
+msgid "已回到钓鱼准备界面"
+msgstr "Retornou à tela de preparação de pesca"
 
 msgid "已填入 {}"
 msgstr "Preenchido {}"
@@ -201,6 +541,88 @@ msgstr "{combo} desvinculado de {}"
 msgid "应用更改"
 msgstr "Aplicar Alterações"
 
+msgid "店长特供"
+msgstr "Seleção do dono"
+
+msgid "店长特供结束，成功 {}/{}"
+msgstr "Seleção do dono concluída, {}/{} bem-sucedidas"
+
+msgid "开启"
+msgstr "Ativado"
+
+msgid ""
+"开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
+"若游戏运行不流畅，可能因按键响应延迟导致误退出钓鱼场景"
+msgstr ""
+"Quando ativado, prioriza fechar telas de sucesso com ESC para evitar que o fundo roube o foco do mouse.\n"
+"Se o jogo estiver lento, o atraso na resposta das teclas pode causar saída acidental da cena de pesca."
+
+msgid "开启后将跳过 [{}]"
+msgstr "Quando ativado, [{}] será ignorado"
+
+msgid "开启活跃度面板"
+msgstr "Abrindo painel de atividade"
+
+msgid "开始任务: {}"
+msgstr "Iniciando tarefa: {}"
+
+msgid "开始任务: {}, 目标索引: {}"
+msgstr "Iniciando tarefa: {}, índice alvo: {}"
+
+msgid "开始店长特供，共 {} 轮"
+msgstr "Iniciando Seleção do dono por {} rodada(s)"
+
+msgid "开始执行战斗流程"
+msgstr "Iniciando sequência de combate"
+
+msgid "开始执行日常任务"
+msgstr "Iniciando tarefas diárias"
+
+msgid "开始扫描当前队伍..."
+msgstr "Escaneando equipe atual..."
+
+msgid "开始玩法"
+msgstr "Iniciando jogabilidade"
+
+msgid "开始第 {}/{} 轮"
+msgstr "Iniciando rodada {}/{}"
+
+msgid "开始自动钓鱼，共 {} 轮"
+msgstr "Iniciando pesca automática, {} rodada(s) no total"
+
+msgid "开始营业循环"
+msgstr "Iniciando loop de operação"
+
+msgid "异环鼓组音游自动打击与重试"
+msgstr "Jogo Rítmico NTE - Toque Automático e Repetição"
+
+msgid "异能升级材料"
+msgstr "Material de Melhoria de Habilidade"
+
+msgid "异能材料序号"
+msgstr "Índice de Material de Habilidade"
+
+msgid "异象界域"
+msgstr "Zona de Anomalias"
+
+msgid "弧盘材料序号"
+msgstr "Índice de ascensão Arc"
+
+msgid "弧盘突破材料"
+msgstr "Ascensão Arc"
+
+msgid "弧盘经验"
+msgstr "Experiência do disco Arc"
+
+msgid "当前体力"
+msgstr "Stamina atual"
+
+msgid "当前体力消耗或每日活跃度已达标，跳过每日活跃度任务"
+msgstr "Consumo de stamina ou meta de atividade diária atingida; ignorando tarefa de atividade diária"
+
+msgid "当前失败任务"
+msgstr "Tarefa com falha atual"
+
 msgid ""
 "当前未绑定任何{combo}。\n"
 "遇到此角色将默认使用基础通用脚本(BaseChar)。"
@@ -208,17 +630,95 @@ msgstr ""
 "Nenhum {combo} vinculado atualmente.\n"
 "Este personagem usará o script genérico básico (BaseChar) por padrão."
 
+msgid "当前阶段"
+msgstr "Estágio atual"
+
 msgid "循环次数"
-msgstr "Contagem de Ciclos"
+msgstr "Número de rodadas"
 
 msgid "快速传送"
 msgstr "Viagem Rápida"
 
+msgid "快速奔跑角色数量"
+msgstr "Número de Personagens para Corrida Rápida"
+
+msgid "恢复钓鱼准备界面超时"
+msgstr "Tempo esgotado ao restaurar tela de preparação"
+
+msgid "恢复钓鱼界面"
+msgstr "Restaurar tela de pesca"
+
+msgid "成功次数"
+msgstr "Sucessos"
+
+msgid "成功进入钓鱼场景"
+msgstr "Entrou na cena de pesca com sucesso"
+
+msgid "战斗结束，正在前往领取奖励"
+msgstr "Combate concluído; indo resgatar recompensas"
+
+msgid "打开F1面板并选择对应功能"
+msgstr "Abrindo painel F1 e selecionando função"
+
+msgid "打歌次数, 0=无限循环"
+msgstr "Número de execuções, 0=Infinito"
+
 msgid "扫描中..."
 msgstr "Escaneando..."
 
+msgid "扫描完成！"
+msgstr "Varredura concluída!"
+
 msgid "扫描队伍"
 msgstr "Escanear Equipe"
+
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "Se a arremessada falhar, reabastece a isca padrão, vende a captura e tenta novamente"
+
+msgid "抢钱流"
+msgstr "Build de roubo"
+
+msgid "招"
+msgstr "Movimento"
+
+msgid "持续时间(s)，选填"
+msgstr "Duração em segundos (opcional)"
+
+msgid "指针已锁定中心: pointer={}, target={}"
+msgstr "Ponteiro bloqueado no centro: pointer={}, target={}"
+
+msgid "按下并松开按键"
+msgstr "Pressionar e soltar uma tecla"
+
+msgid "按下按键"
+msgstr "Pressionar uma tecla"
+
+msgid "按下秒数, 默认0.01秒"
+msgstr "Duração do pressionamento em segundos (padrão 0,01 s)"
+
+msgid "按住Shift生效"
+msgstr "Efetivo ao segurar Shift"
+
+msgid "按住鼠标右键。带参数则指定秒数"
+msgstr "Manter botão direito do mouse. Com argumento, manter pelos segundos indicados"
+
+msgid "按住鼠标左键。带参数则指定秒数"
+msgstr "Manter botão esquerdo do mouse. Com argumento, manter pelos segundos indicados"
+
+msgid "按键 {} ({})"
+msgstr "Tecla {} ({})"
+
+msgid "按键方向、持续时间(s)，必填"
+msgstr "Direção da tecla e duração em segundos (obrigatório)"
+
+msgid "按键，必填"
+msgstr "Tecla (obrigatório)"
+
+msgid "按键，选填"
+msgstr "Tecla (opcional)"
+
+msgid "控制角色向指定方向行走"
+msgstr "Mover personagem na direção indicada"
 
 msgid "控条模式"
 msgstr "Modo Barra de Controle"
@@ -226,11 +726,56 @@ msgstr "Modo Barra de Controle"
 msgid "搜索角色"
 msgstr "Buscar Personagem"
 
+msgid "支持输入并创建，也支持选择已有项。"
+msgstr "Permite inserir um valor novo ou selecionar um existente."
+
+msgid "文件不存在"
+msgstr "O arquivo não existe"
+
+msgid "文字框选项"
+msgstr "Opção de campo de texto"
+
+msgid "无"
+msgstr "Nenhum"
+
+msgid "无参数"
+msgstr "Sem parâmetros"
+
+msgid "无法找到一咖舍面板"
+msgstr "Painel do café não encontrado"
+
+msgid "无法找到活跃度奖励领取框"
+msgstr "Caixa de resgate de recompensa de atividade não encontrada"
+
+msgid "无法找到活跃度面板"
+msgstr "Painel de atividade não encontrado"
+
+msgid "无法找到环期任务面板"
+msgstr "Painel de tarefas periódicas não encontrado"
+
+msgid "无法找到邮件面板"
+msgstr "Painel de correio não encontrado"
+
+msgid "无法设置交互方式：索引 {} 越界。当前可用选择有: {}"
+msgstr "Não é possível definir o método de interação: índice {} fora do intervalo. Opções disponíveis: {}"
+
 msgid "无画面"
 msgstr "Sem Imagem"
 
 msgid "日常任务"
 msgstr "Tarefas Diárias"
+
+msgid "日常任务开始运行!"
+msgstr "Tarefa diária iniciada!"
+
+msgid "日常任务运行完成!"
+msgstr "Tarefa diária concluída!"
+
+msgid "早雾"
+msgstr "Sakiri"
+
+msgid "是否选项默认支持"
+msgstr "Opção Sim/Não (ativada por padrão)"
 
 msgid "暂不可用"
 msgstr "Temporariamente Indisponível"
@@ -241,6 +786,18 @@ msgstr "Atualizar"
 msgid "未启用"
 msgstr "Não Ativado"
 
+msgid "未处于自动战斗时, 响应声音闪避或反击"
+msgstr "Quando o combate automático não está ativo, responde a esquivas ou contra-ataques por som"
+
+msgid "未找到领取奖励按钮"
+msgstr "Botão de resgatar recompensa não encontrado"
+
+msgid "未检测到可用鱼饵，开始买饵补货"
+msgstr "Sem isca disponível, iniciando reabastecimento"
+
+msgid "未检测到进入抛竿状态"
+msgstr "Estado de arremesso não detectado"
+
 msgid "未能识别该特征"
 msgstr "Não foi possível identificar esta característica"
 
@@ -249,6 +806,51 @@ msgstr "Característica não obtida"
 
 msgid "未识别，关联新特征"
 msgstr "Não identificado, associando nova característica"
+
+msgid "未进入购买鱼饵页面"
+msgstr "Não entrou na tela de compra de isca"
+
+msgid "本轮完成"
+msgstr "Rodada concluída"
+
+msgid "条件命令、一个或多个目标命令"
+msgstr "Comando de condição seguido de um ou mais comandos alvo"
+
+msgid "条件执行：仅可使用标记为（可用于 if_ 条件）的命令作为条件命令"
+msgstr "Execução condicional: apenas comandos marcados como (utilizável em condição if_) podem ser a condição"
+
+msgid "松开按键"
+msgstr "Soltar uma tecla"
+
+msgid "检测 |"
+msgstr "Detectar |"
+
+msgid "检测到文字: {}"
+msgstr "Texto detectado: {}"
+
+msgid "检测到结算界面"
+msgstr "Tela de resultados detectada"
+
+msgid "正在传送至目标地点"
+msgstr "Teletransportando para o destino"
+
+msgid "正在打开邮件面板"
+msgstr "Abrindo painel de correio"
+
+msgid "正在执行每日活跃度任务"
+msgstr "Executando tarefa de atividade diária"
+
+msgid "正在领取一咖舍奖励"
+msgstr "Resgatando recompensas do café"
+
+msgid "正在领取活跃度奖励"
+msgstr "Resgatando recompensas de atividade"
+
+msgid "正在领取环期任务奖励"
+msgstr "Resgatando recompensas de tarefas periódicas"
+
+msgid "正在领取邮件奖励"
+msgstr "Resgatando recompensas de correio"
 
 msgid ""
 "此为内建 Python 脚本，不可在此修改。\n"
@@ -263,29 +865,152 @@ msgstr "Nenhum resultado de escaneamento disponível"
 msgid "没有找到匹配的指令。"
 msgstr "Nenhum comando correspondente encontrado."
 
+msgid "浔"
+msgstr "Hotori"
+
 msgid "清空"
 msgstr "Limpar"
+
+msgid "游戏启动后自动登录游戏"
+msgstr "Entrar automaticamente após iniciar o jogo"
+
+msgid "游戏更新成功, 游戏即将重启"
+msgstr "Jogo atualizado com sucesso; reiniciando"
+
+msgid "溜鱼状态超时"
+msgstr "Estado de tensionar expirou"
 
 msgid "点击上方按钮扫描..."
 msgstr "Clique no botão acima para escanear..."
 
+msgid "点击同意按钮!"
+msgstr "Clicando no botão Concordar!"
+
+msgid "点击开始游戏! {start}"
+msgstr "Clicando em Iniciar jogo! {start}"
+
 msgid "点击时将短暂控制物理鼠标"
 msgstr "Controla brevemente o mouse físico ao clicar"
+
+msgid "点击登录按钮!"
+msgstr "Clicando no botão Entrar!"
+
+msgid "点击触发运行任务"
+msgstr "Clique para executar tarefa"
 
 msgid "点按"
 msgstr "Toque"
 
 msgid "点按时长倍率"
-msgstr "Multiplicador de Duração do Toque"
+msgstr "Multiplicador de duração do toque"
 
 msgid "点按模式专用。用于微调每次按键的持续时间"
-msgstr "Apenas para o modo Toque. Usado para ajustar a duração de cada pressionamento de tecla."
+msgstr "Somente para o modo toque. Ajusta fino a duração de cada pressionamento."
+
+msgid "状态机运行超时"
+msgstr "Máquina de estados expirou"
+
+msgid "状态轮询连续失败"
+msgstr "Polling de estado falhou repetidamente"
+
+msgid "生成文档失败: {}"
+msgstr "Falha ao gerar documentação: {}"
+
+msgid "用户点击时调用run方法"
+msgstr "Chama o método run quando o usuário clica"
+
+msgid "甲硬币"
+msgstr "Moedas Besouro"
+
+msgid "目标消耗体力"
+msgstr "Consumo de vigor alvo"
+
+msgid "空幕"
+msgstr "Console"
+
+msgid "空幕序号"
+msgstr "Índice do Console"
+
+msgid "第 {} 个项目"
+msgstr "Item n.º {}"
+
+msgid "第 {} 次"
+msgstr "Rodada {}"
+
+msgid "第 {} 轮失败"
+msgstr "Rodada {} falhou"
+
+msgid "第 {} 轮钓鱼失败：未检测到成功面板"
+msgstr "Rodada {} falhou: painel de sucesso não detectado"
+
+msgid "第 {} 轮钓鱼失败：状态轮询连续失败"
+msgstr "Rodada {} falhou: polling de estado falhou repetidamente"
+
+msgid "第 {} 轮钓鱼成功"
+msgstr "Rodada {} de pesca concluída com sucesso"
+
+msgid "第1列"
+msgstr "Coluna 1"
+
+msgid "第2列"
+msgstr "Coluna 2"
+
+msgid "第3"
+msgstr "Terceiro"
+
+msgid "第3列"
+msgstr "Coluna 3"
+
+msgid "第4列"
+msgstr "Coluna 4"
+
+msgid "第一"
+msgstr "Primeiro"
+
+msgid "第二"
+msgstr "Segundo"
+
+msgid "等待回到选歌界面"
+msgstr "Aguardando retorno à seleção de músicas"
+
+msgid "等待时间(s)，必填"
+msgstr "Tempo de espera em segundos (obrigatório)"
+
+msgid "等待进入音游界面"
+msgstr "Aguardando entrar no jogo de ritmo"
+
+msgid "等待钓鱼准备界面"
+msgstr "Aguardando tela de preparação"
+
+msgid "等待鱼儿咬钩超时"
+msgstr "Tempo esgotado aguardando mordida"
+
+msgid "粉爪大劫案"
+msgstr "Assalto Pink Paws"
+
+msgid "粉爪大劫案便利性功能"
+msgstr "Recursos de conveniência do Pink Paws Heist"
+
+msgid "经验与甲硬币"
+msgstr "EXP e Moedas Besouro"
+
+msgid "结束执行日常任务"
+msgstr "Execução de tarefas diárias concluída"
+
+msgid "结算确认"
+msgstr "Confirmar resumo"
 
 msgid "编辑名称"
 msgstr "Editar Nome"
 
 msgid "自动完成一轮或多轮钓鱼"
-msgstr "Completar automaticamente uma ou mais rodadas de pesca"
+msgstr "Concluir automaticamente uma ou mais rodadas de pesca"
+
+msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
+msgstr "Repetir automaticamente a entrada e saída de fases (requer uma build AFK dentro do jogo)"
+
+msgid "自动循环项目"
+msgstr "Itens de Ciclo Automático"
 
 msgid "自动战斗"
 msgstr "Combate Automático"
@@ -293,11 +1018,47 @@ msgstr "Combate Automático"
 msgid "自动消息"
 msgstr "Mensagem Automática"
 
+msgid "自动登录游戏"
+msgstr "Login automático"
+
 msgid "自动目标"
 msgstr "Alvo Automático"
 
+msgid "自动补饵卖鱼"
+msgstr "Recarga Automática de Isca e Venda de Peixes"
+
+msgid "自动进行异象界域任务"
+msgstr "Realizar automaticamente tarefas da Zona de Anomalias"
+
 msgid "自动钓鱼"
-msgstr "Pesca Automática"
+msgstr "Pesca automática"
+
+msgid "自动钓鱼结束，成功 {}/{}"
+msgstr "Pesca automática concluída, sucesso {}/{}"
+
+msgid "自动银行差事出错"
+msgstr "Erro de recado bancário automático"
+
+msgid "自动音游"
+msgstr "Jogo Rítmico Automático"
+
+msgid "自动音游任务结束，共完成 {} 次"
+msgstr "Jogo de ritmo automático concluído, completado {} vezes"
+
+msgid "营业中"
+msgstr "Em operação"
+
+msgid "营业额已达标，退出营业循环"
+msgstr "Meta de receita atingida; saindo do loop de operação"
+
+msgid "营业额未在超时内达标"
+msgstr "A receita não atingiu a meta antes do tempo limite"
+
+msgid "营业额检测超时"
+msgstr "Verificação de receita expirou"
+
+msgid "薄荷"
+msgstr "Mint"
 
 msgid "角色"
 msgstr "Personagem"
@@ -314,175 +1075,11 @@ msgstr "Personagem renomeado para: {}"
 msgid "角色管理"
 msgstr "Gerenciamento Pers."
 
-msgid "解除绑定"
-msgstr "Desvincular"
-
-msgid "请在左侧选择一个角色以管理特征和{combo}"
-msgstr "Selecione um personagem à esquerda para gerenciar características e {combo}"
-
-msgid "跳过剧情"
-msgstr "Pular História"
-
-msgid "运行一次测试"
-msgstr "Executar um teste"
-
-msgid "选择或输入{combo}名"
-msgstr "Selecionar ou digitar nome do {combo}"
-
-msgid "重命名失败"
-msgstr "Falha ao renomear"
-
-msgid "长按"
-msgstr "Pressionar e Segurar"
-
-msgid ""
-"长按：平滑流畅, 易过冲\n"
-"点按: 安全较慢, 防过冲"
-msgstr ""
-"Pressionar e Segurar: Suave e fluido, propenso a excesso\n"
-"Toque: Mais seguro e lento, previne excesso"
-
-msgid "队伍不存在"
-msgstr "Equipe não existe"
-
-msgid "队伍人数少于2人"
-msgstr "Tamanho da equipe inferior a 2"
-
-msgid "队伍管理"
-msgstr "Gestão de Equipe"
-
-msgid "领取活跃度奖励"
-msgstr "Receber Recompensas de Atividade"
-
-msgid "领取环期任务奖励"
-msgstr "Receber Recompensas de Tarefas Periódicas"
-
-msgid "领取邮件"
-msgstr "Receber Correio"
-
-msgid "使用ESC"
-msgstr "Usar ESC"
-
-msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
-msgstr "Quando desativado, o combate só inicia se um inimigo for selecionado com o botão do meio e 'Lv' for detectado na tela"
-
-msgid ""
-"开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
-"若游戏运行不流畅，可能因按键响应延迟导致误退出钓鱼场景"
-msgstr ""
-"Quando ativado, prioriza fechar telas de sucesso com ESC para evitar que o fundo roube o foco do mouse.\n"
-"Se o jogo estiver lento, o atraso na resposta das teclas pode causar saída acidental da cena de pesca."
-
-msgid "Counter Attack Threshold"
-msgstr "Limiar de Contra-ataque"
-
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr "Limiar de reconhecimento de som de contra-ataque (0,0-1,0, quanto menor, mais sensível)"
-
-msgid "Dodge Threshold"
-msgstr "Limiar de Esquiva"
-
-msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr "Limiar de reconhecimento de som de esquiva (0,0-1,0, quanto menor, mais sensível)"
-
-msgid "Enable Sound Trigger"
-msgstr "Ativar Gatilho de Som"
-
-msgid "Enable sound recognition for automatic dodge and counter attacks"
-msgstr "Ativar reconhecimento de som para esquivas e contra-ataques automáticos"
-
-msgid "Sound Trigger Config"
-msgstr "Configuração do Gatilho de Som"
-
-msgid "Sound-based dodge and counter trigger settings"
-msgstr "Configurações de gatilho de esquiva e contra-ataque baseadas em som"
-
-msgid "Dodge All Attacks"
-msgstr "Esquivar de Todos os Ataques"
-
-msgid "Dodge all attacks without performing counter attacks"
-msgstr "Esquivar de todos os ataques sem realizar contra-ataques"
-
-msgid "不支持从OK启动游戏"
-msgstr "Não é suportado iniciar o jogo pelo OK"
-
-msgid "任务完成后自动切换至下一个项目"
-msgstr "Alternar automaticamente para o próximo item após a conclusão da tarefa"
-
-msgid "任务类型"
-msgstr "Tipo de Tarefa"
-
-msgid "具体奖励目标"
-msgstr "Objetivo de Recompensa Específico"
-
-msgid "异能升级材料"
-msgstr "Material de Melhoria de Habilidade"
-
-msgid "异能材料序号"
-msgstr "Índice de Material de Habilidade"
-
-msgid "异象界域"
-msgstr "Zona de Anomalias"
-
-msgid "弧盘材料序号"
-msgstr "Índice de Material do Disco de Arco"
-
-msgid "弧盘突破材料"
-msgstr "Material de Ascensão do Disco de Arco"
-
-msgid "弧盘经验"
-msgstr "Experiência do Disco de Arco"
-
-msgid "甲硬币"
-msgstr "Moedas Besouro"
-
-msgid "空幕"
-msgstr "Console"
-
-msgid "空幕序号"
-msgstr "Índice do Console"
-
-msgid "经验与甲硬币"
-msgstr "EXP e Moedas Besouro"
-
-msgid "自动循环项目"
-msgstr "Itens de Ciclo Automático"
-
-msgid "自动进行异象界域任务"
-msgstr "Realizar automaticamente tarefas da Zona de Anomalias"
-
 msgid "角色经验"
 msgstr "Experiência do Personagem"
 
-msgid "选择经验与甲硬币任务的具体奖励目标"
-msgstr "Selecionar o objetivo de recompensa específico para tarefas de EXP e Moedas Besouro"
-
-msgid "选择要进行的任务类型"
-msgstr "Selecionar o tipo de tarefa a ser realizada"
-
-msgid "选择列表中的第几个项目 ({}-{})"
-msgstr "Selecionar qual item da lista ({}-{})"
-
-msgid "使用滚轮加速拾取"
-msgstr "Usar rolagem do mouse para acelerar a coleta"
-
-msgid "切换角色快速奔跑"
-msgstr "Alternar personagens para corrida rápida"
-
-msgid "切换角色数量"
-msgstr "Número de Personagens para Alternância"
-
-msgid "快速奔跑角色数量"
-msgstr "Número de Personagens para Corrida Rápida"
-
-msgid "按住Shift生效"
-msgstr "Efetivo ao segurar Shift"
-
-msgid "粉爪大劫案"
-msgstr "Grande Roubo da Garra Rosa"
-
-msgid "粉爪大劫案便利性功能"
-msgstr "Funções de Conveniência do Grande Roubo da Garra Rosa"
+msgid "解除绑定"
+msgstr "Desvincular"
 
 msgid "触发按键"
 msgstr "Tecla de Ativação"
@@ -493,26 +1090,11 @@ msgstr "A ativação de cliques automáticos terá efeito simultaneamente"
 msgid "触发连点的按键 (按住生效)"
 msgstr "Tecla de Cliques Automáticos (Ativo ao segurar)"
 
-msgid "自动补饵卖鱼"
-msgstr "Recarga Automática de Isca e Venda de Peixes"
+msgid "记录新特征"
+msgstr "Registrar nova característica"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Recarregar isca padrão e vender os peixes capturados quando o primeiro lançamento falhar"
-
-msgid "4列对应的键盘按键"
-msgstr "Teclas do teclado para 4 colunas"
-
-msgid "单曲超时时间(秒)"
-msgstr "Tempo limite por música (s)"
-
-msgid "异环鼓组音游自动打击与重试"
-msgstr "Jogo Rítmico NTE - Toque Automático e Repetição"
-
-msgid "打歌次数, 0=无限循环"
-msgstr "Número de execuções, 0=Infinito"
-
-msgid "自动音游"
-msgstr "Jogo Rítmico Automático"
+msgid "请在左侧选择一个角色以管理特征和{combo}"
+msgstr "Selecione um personagem à esquerda para gerenciar características e {combo}"
 
 msgid "调试日志"
 msgstr "Log de Depuração"
@@ -520,69 +1102,150 @@ msgstr "Log de Depuração"
 msgid "超时秒数"
 msgstr "Tempo limite (s)"
 
-msgid "输出调试日志"
-msgstr "Exibir logs de depuração"
+msgid "跳跃一下"
+msgstr "Pular uma vez"
 
-msgid "记录新特征"
-msgstr "Registrar Nova Característica"
+msgid "跳过剧情"
+msgstr "Pular História"
 
-msgid "输入或选择绑定的{combo} (可选)"
-msgstr "Digite ou selecione o {combo} vinculado (opcional)"
+msgid "轮次"
+msgstr "Rodada"
 
 msgid "输入或选择关联的角色名称"
 msgstr "Digite ou selecione o nome do personagem associado"
 
+msgid "输入或选择绑定的{combo} (可选)"
+msgstr "Digite ou selecione o {combo} vinculado (opcional)"
+
+msgid "输出调试日志"
+msgstr "Exibir logs de depuração"
+
+msgid "运行一咖舍自动化"
+msgstr "Executar automação do café"
+
+msgid "运行一次测试"
+msgstr "Executar um teste"
+
+msgid "进入副本并等待"
+msgstr "Entrando na instância e aguardando"
+
+msgid "进入店长特供"
+msgstr "Entrar na Seleção do dono"
+
+msgid "进入溜鱼状态"
+msgstr "Entrando no estado de tensionar o peixe"
+
+msgid "选择列表中的第几个项目 ({}-{})"
+msgstr "Selecionar qual item da lista ({}-{})"
+
+msgid "选择或输入{combo}名"
+msgstr "Selecionar ou digitar nome do {combo}"
+
+msgid "选择经验与甲硬币任务的具体奖励目标"
+msgstr "Selecionar o objetivo de recompensa específico para tarefas de EXP e Moedas Besouro"
+
+msgid "选择要进行的任务类型"
+msgstr "Selecionar o tipo de tarefa a ser realizada"
+
+msgid "选择项目序号: {}"
+msgstr "Selecionando índice do item: {}"
+
+msgid "释放弧盘技能"
+msgstr "Usar habilidade Arc"
+
+msgid "释放技能"
+msgstr "Usar habilidade"
+
+msgid "释放终结技"
+msgstr "Usar golpe final"
+
+msgid "重命名失败"
+msgstr "Falha ao renomear"
+
+msgid "钓鱼"
+msgstr "pesca"
+
+msgid "钓鱼状态轮询失败"
+msgstr "Falha no polling de estado de pesca"
+
 msgid "键位"
 msgstr "Teclas"
 
-msgid "目标消耗体力"
-msgstr "Consumo de vigor alvo"
-
-msgid "声音闪避反击"
-msgstr "Esquiva e contra-ataque por som"
-
-msgid "未处于自动战斗时, 响应声音闪避或反击"
-msgstr "Quando o combate automático não está ativo, responde a esquivas ou contra-ataques por som"
+msgid "长按"
+msgstr "Pressionar e segurar"
 
 msgid ""
-"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
-"physical positions, not your current layout's printed keys."
+"长按：平滑流畅, 易过冲\n"
+"点按: 安全较慢, 防过冲"
 msgstr ""
-"Todas as teclas de letras/números, incluindo todas as teclas de atalho acima, são substituídas pelas posições físicas do QWERTY dos EUA,\n"
-"não pelas teclas impressas no layout atual."
+"Pressionar e Segurar: Suave e fluido, propenso a excesso\n"
+"Toque: Mais seguro e lento, previne excesso"
 
-msgid "Use QWERTY Physical Keys"
-msgstr "Usar teclas físicas QWERTY"
+msgid "长文字框选项"
+msgstr "Opção de campo de texto longo"
 
-msgid "店长特供"
-msgstr "Seleção do dono"
+msgid "队伍不存在"
+msgstr "Equipe não existe"
 
-msgid "抢钱流"
-msgstr "Build de roubo"
+msgid "队伍不存在, 扫描结束"
+msgstr "A equipe não existe; varredura encerrada"
 
-msgid "游戏启动后自动登录游戏"
-msgstr "Entrar automaticamente após iniciar o jogo"
+msgid "队伍人数少于2人"
+msgstr "Tamanho da equipe inferior a 2"
 
-msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
-msgstr "Repetir automaticamente a entrada e saída de fases (requer uma build AFK dentro do jogo)"
+msgid "队伍人数少于2人, 扫描结束"
+msgstr "Equipe com menos de 2 membros; varredura encerrada"
 
-msgid "自动登录游戏"
-msgstr "Login automático"
+msgid "队伍管理"
+msgstr "Gestão de Equipe"
+
+msgid "零"
+msgstr "Zero"
+
+msgid "音游开始，按键 D/F/J/K"
+msgstr "Jogo de ritmo iniciado, teclas D/F/J/K"
+
+msgid "项目序号"
+msgstr "Índice do item"
 
 msgid "领取/补货一咖舍"
 msgstr "Resgatar/reabastecer café"
 
-msgid ""
-"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
-"\n"
-"使用方法：\n"
-"1. 确保您已配置好游戏内的挂机流派。\n"
-"2. 站在咖啡店可进行 F 交互的位置。\n"
-"3. （可选）若想指定特定关卡，请先手动进入该关卡一次后退出，再启动本脚本即可。"
-msgstr ""
-"Notas da função: esta função cuida apenas do ciclo de cliques para \"sair automaticamente da fase\" e \"reiniciar a fase\". Ela não inclui ações dentro da fase, como preparar comida ou atender clientes.\n"
-"\n"
-"Como usar:\n"
-"1. Certifique-se de que sua build AFK dentro do jogo já está configurada.\n"
-"2. Fique em uma posição no café onde seja possível interagir com F.\n"
-"3. (Opcional) Para escolher uma fase específica, entre manualmente nessa fase uma vez, saia dela e então inicie este script."
+msgid "领取活跃度奖励"
+msgstr "Receber Recompensas de Atividade"
+
+msgid "领取环期任务奖励"
+msgstr "Receber Recompensas de Tarefas Periódicas"
+
+msgid "领取邮件"
+msgstr "Receber Correio"
+
+msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
+msgstr "Recarregar isca padrão e vender os peixes capturados quando o primeiro lançamento falhar"
+
+msgid "鱼儿咬钩"
+msgstr "O peixe mordeu a isca"
+
+msgid "鱼舱内没有可出售鱼获，跳过出售"
+msgstr "Sem peixes vendáveis no compartimento, ignorando venda"
+
+msgid "默认文字"
+msgstr "Texto padrão"
+
+msgid "默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字默认文字"
+msgstr "texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão texto padrão"
+
+msgid "默认鱼饵可用"
+msgstr "Isca padrão disponível"
+
+msgid "鼠标右键。带参数则连点鼠标右键指定秒数，无参数为单次点按"
+msgstr "Clique direito. Com argumento, cliques repetidos pelos segundos indicados; sem argumento, clique único"
+
+msgid "鼠标左键。带参数则连点鼠标左键指定秒数，无参数为单次点按"
+msgstr "Clique esquerdo. Com argumento, cliques repetidos pelos segundos indicados; sem argumento, clique único"
+
+msgid "鼠标按键left、right、middle, 不填默认left"
+msgstr "Botão do mouse: left, right, middle (padrão left)"
+
+msgid "（可用于 if_ 条件）"
+msgstr "(utilizável em condição if_)"

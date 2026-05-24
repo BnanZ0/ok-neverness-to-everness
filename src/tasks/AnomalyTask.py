@@ -104,9 +104,9 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         if task_type == self.TASK_EXP_COIN:
             self.info_set("奖励目标", config.get(self.CONF_EXP_TARGET))
         else:
-            self.info_set("项目序号", f"第 {idx + 1} 个项目")
+            self.info_set("项目序号", self.tr("第 {} 个项目").format(idx + 1))
 
-        self.log_info(f"开始任务: {task_type}, 目标索引: {idx + 1}")
+        self.log_info(self.tr("开始任务: {}, 目标索引: {}").format(task_type, idx + 1))
 
         # 共同操作 1
         self.ensure_main()
@@ -124,7 +124,7 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         self.sleep(0.5)
 
         # 不同操作 1: 选择任务类型
-        self.log_info(f"切换至任务页签: {task_type}")
+        self.log_info(self.tr("切换至任务页签: {}").format(task_type))
         if task_type == self.TASK_EXP_COIN:
             self.operate_click(0.1703, 0.1528)
         elif task_type == self.TASK_ABILITY:
@@ -165,10 +165,10 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
             self.info_set("体力消耗目标", stamina_target)
         double_count = stamina_units // 2
         single_count = stamina_units % 2
-        self.log_info(f"双倍次数: {double_count}, 单倍次数: {single_count}")
+        self.log_info(self.tr("双倍次数: {}, 单倍次数: {}").format(double_count, single_count))
 
         # 不同操作 2: 选择对应序号的项目
-        self.log_info(f"选择项目序号: {idx + 1}")
+        self.log_info(self.tr("选择项目序号: {}").format(idx + 1))
         self.click_sub_idx(idx)
         self.sleep(0.25)
 
@@ -199,7 +199,7 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
             self.walk_to_treasure()
             self.send_interac(handle_claim=False)
             claims = self.find_all_claim()
-            self.log_info(f"发现 {len(claims)} 个领取奖励")
+            self.log_info(self.tr("发现 {} 个领取奖励").format(len(claims)))
             if not claims:
                 self.log_warning("未找到领取奖励按钮")
                 key = "a" if count % 2 else "d"
