@@ -696,7 +696,7 @@ class CombatCheck(BaseNTETask):
         valid_cnts.sort(key=lambda c: cv2.boundingRect(c)[0])
 
         if len(valid_cnts) < 2:
-            self.log_error(f"[LV-Init] 模板切割失败，仅找到 {len(valid_cnts)} 个轮廓")
+            self.log_error(self.tr("[LV-Init] 模板切割失败，仅找到 {} 个轮廓").format(len(valid_cnts)))
             return False
 
         # 提取 L 和 v 的标准指纹

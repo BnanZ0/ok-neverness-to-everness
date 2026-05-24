@@ -876,7 +876,7 @@ class CharManagerTab(CustomTab):
                 )
             return "[Translating with Google...]\n\n" + text
         except Exception as e:
-            return f"生成文档失败: {e}"
+            return self.tr("生成文档失败: {}").format(e)
 
     def _filter_doc_commands(self, command=""):
         self._pending_command = command
