@@ -177,7 +177,7 @@ class BaseNTETask(BaseTask):
         )
     # fmt: on
 
-    def check_action_interval(self, action_name: str, interval: float) -> bool:
+    def check_action_interval(self, action_name: Any, interval: float) -> bool:
         if interval <= 0:
             return True
         # action_name must be a stable identifier, not a dynamic value.
@@ -188,6 +188,35 @@ class BaseNTETask(BaseTask):
                 return False
             self._last_interval_action_time[action_name] = now
             return True
+
+    def _get_interval_func_key(self, func: Callable):
+        bound_func = getattr(func, "__func__", None)
+        if bound_func is not None:
+            return ("func_interval", id(getattr(func, "__self__", None)), bound_func)
+
+        code = getattr(func, "__code__", None)
+        if code is not None:
+            return ("func_interval", code)
+
+        try:
+            hash(func)
+        except TypeError:
+            return ("func_interval", id(func))
+        return ("func_interval", func)
+
+    def run_with_interval(
+        self,
+        func: Callable,
+        interval: float,
+        *args,
+        action_name=None,
+        **kwargs,
+    ) -> Any:
+        """按函数自己的时间间隔执行，未到间隔时返回 False。"""
+        action_name = action_name or self._get_interval_func_key(func)
+        if not self.check_action_interval(action_name, interval):
+            return False
+        return func(*args, **kwargs)
 
     def operate(self, func: Callable, block=False, restore_cursor=True):
         from src.interaction.NTEInteraction import NTEInteraction
@@ -364,10 +393,11 @@ class BaseNTETask(BaseTask):
         """判断指定索引是否为当前角色"""
         score = self._get_char_match_scores(frame=frame)[index]
         new = f"idx {index} conf {score:.3f}"
-        if self.info_get("current char") != new:
-            self.info_set("current char", new)
         if score < threshold:
+            self.info_set("current char", new)
             return True
+        else:
+            self.run_with_interval(lambda: self.info_set("current char", new), 0.5)
 
     def get_current_char_index(self):
         """扫描所有槽位，返回匹配度最高的索引"""
@@ -973,7 +1003,7 @@ class BaseNTETask(BaseTask):
                 if not self.is_foreground():
                     self.bring_to_front()
                     self.sleep(3)
-                self.click(0.499, 0.865, after_sleep=3)
+                self.operate_click(0.499, 0.865, after_sleep=3)
                 return False
 
     def find_treasure(self):
