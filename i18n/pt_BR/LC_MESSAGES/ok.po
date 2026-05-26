@@ -496,8 +496,8 @@ msgstr "Tecla de Cliques Automáticos (Ativo ao segurar)"
 msgid "自动补饵卖鱼"
 msgstr "Recarga Automática de Isca e Venda de Peixes"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Recarregar isca padrão e vender os peixes capturados quando o primeiro lançamento falhar"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "Se a arremessada falhar, reabastece a isca padrão, vende a captura e tenta novamente"
 
 msgid "4列对应的键盘按键"
 msgstr "Teclas do teclado para 4 colunas"
@@ -595,3 +595,9 @@ msgstr "Escolha como lidar com as tarefas diárias do café"
 
 msgid "不执行"
 msgstr "Não executar"
+
+msgid "Launcher Path"
+msgstr "Caminho do launcher"
+
+msgid "Start Game"
+msgstr "Iniciar jogo"

@@ -433,7 +433,7 @@ class BaseChar:
     def _wait_ultimate_unfreeze(self, start):
         self.logger.debug("waiting for time unfrozen")
         self.task.wait_until(
-            lambda: self.has_cd("ultimate"), post_action=self.click_with_interval, time_out=0.5
+            lambda: self.has_cd("ultimate"), post_action=self.click_with_interval, time_out=2
         )
         box_ultimate = self.task.get_box_by_name(Labels.box_ultimate)
         snapshot = box_ultimate.crop_frame(self.task.frame)

@@ -53,6 +53,7 @@ INST = "<br>".join(
     [
         _inst_line("📍 步骤起点：站在可互动小吱的位置开始", "#FF5555", bold=True),
         _inst_line("⚙️ 镜头设置：控制 ➔ 移动镜头修正 ➔ 禁用", "#FF5555", bold=True),
+        _inst_line("⚠️ 必備條件：至少有一個復活道具", "#FF5555", bold=True),
         _inst_gap(),
         _inst_line("路径1推荐设置", bold=True),
         _inst_line("战斗角色: 主角 / 哈尼娅", indent=1),
@@ -476,10 +477,12 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
             return self.ocr(0.625, 0.483, 0.685, 0.525, match=re.compile("挑战时间"))
 
         def action():
-            self.send_key("f", action_name="enter_heist_f", interval=1)
             if not self.is_in_team():
+                self.operate_click(0.727, 0.471, action_name="enter_heist", interval=2)
                 self.sleep(0.1)
                 skip_task.check_skip()
+            else:
+                self.send_key("f", action_name="enter_heist", interval=1)
 
         self.wait_until(
             in_panel,
@@ -725,9 +728,9 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         settle = -1
         while time.time() < deadline:
             self.send_key("space")
-            self.sleep(0.1)
+            self.sleep(0.15)
             self.click()
-            self.sleep(0.1)
+            self.sleep(0.15)
             if not self.is_in_team():
                 self.log_info(f"fighter {_key} dead, try next")
                 self._dead_fighter_keys.append(_key)
@@ -891,3 +894,9 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
     def wait_team_ui_settle(self):
         self.wait_until(lambda: not self.is_in_team(), time_out=1)
         self.wait_in_team(settle_time=0.25)
+
+    def sleep_send_key(self, time_out, key, interval=0.2):
+        deadline = time.time() + time_out
+        while time.time() < deadline:
+            self.send_key(key, interval=interval)
+            self.sleep(0.01)

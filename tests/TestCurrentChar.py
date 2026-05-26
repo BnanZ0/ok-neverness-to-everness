@@ -36,6 +36,7 @@ class TestCurrentChar(TaskTestCase):
             ("tests/images/current_char/current_1.png", 1),
             ("tests/images/current_char/current_2_light.png", 2),
             ("tests/images/current_char/current_2_similar_back.png", 2),
+            ("tests/images/current_char/current_3_light_2.png", 3)
         ]
         for image, expected_index in cases:
             with self.subTest(image=image):

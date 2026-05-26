@@ -13,49 +13,49 @@ msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">
 msgstr "<b style=\"color: #0078d7;\">Character</b> and <b style=\"color: #0078d7;\">{combo}</b> support input and creation, and also support selecting existing items."
 
 msgid "Arc Key"
-msgstr ""
+msgstr "Arc Key"
 
 msgid "Check Monthly Card"
-msgstr ""
+msgstr "Check Monthly Card"
 
 msgid "Check for monthly card to avoid interruption of tasks"
-msgstr ""
+msgstr "Check for monthly card to avoid interruption of tasks"
 
 msgid "F10"
-msgstr ""
+msgstr "F10"
 
 msgid "F11"
-msgstr ""
+msgstr "F11"
 
 msgid "F12"
-msgstr ""
+msgstr "F12"
 
 msgid "F9"
-msgstr ""
+msgstr "F9"
 
 msgid "Game Hotkey Config"
-msgstr ""
+msgstr "Game Hotkey Config"
 
 msgid "In Game Hotkey for Skills"
-msgstr ""
+msgstr "In Game Hotkey for Skills"
 
 msgid "Monthly Card Config"
-msgstr ""
+msgstr "Monthly Card Config"
 
 msgid "Monthly Card Time"
-msgstr ""
+msgstr "Monthly Card Time"
 
 msgid "Skill Key"
-msgstr ""
+msgstr "Skill Key"
 
 msgid "Turn on to avoid interruption by monthly card when executing tasks"
-msgstr ""
+msgstr "Turn on to avoid interruption by monthly card when executing tasks"
 
 msgid "Ultimate Key"
-msgstr ""
+msgstr "Ultimate Key"
 
 msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
-msgstr ""
+msgstr "Your computer's local time when the monthly card will popup, hour in (1-24)"
 
 msgid "[内置代码]"
 msgstr "[Built-in Code]"
@@ -372,34 +372,34 @@ msgstr ""
 "If the game lags, input delay may cause accidental exit from the fishing scene."
 
 msgid "Counter Attack Threshold"
-msgstr ""
+msgstr "Counter Attack Threshold"
 
 msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr ""
+msgstr "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 
 msgid "Dodge Threshold"
-msgstr ""
+msgstr "Dodge Threshold"
 
 msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr ""
+msgstr "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
 
 msgid "Enable Sound Trigger"
-msgstr ""
+msgstr "Enable Sound Trigger"
 
 msgid "Enable sound recognition for automatic dodge and counter attacks"
-msgstr ""
+msgstr "Enable sound recognition for automatic dodge and counter attacks"
 
 msgid "Sound Trigger Config"
-msgstr ""
+msgstr "Sound Trigger Config"
 
 msgid "Sound-based dodge and counter trigger settings"
-msgstr ""
+msgstr "Sound-based dodge and counter trigger settings"
 
 msgid "Dodge All Attacks"
-msgstr ""
+msgstr "Dodge All Attacks"
 
 msgid "Dodge all attacks without performing counter attacks"
-msgstr ""
+msgstr "Dodge all attacks without performing counter attacks"
 
 msgid "不支持从OK启动游戏"
 msgstr "Launching the game from OK is not supported"
@@ -494,8 +494,8 @@ msgstr "Auto-Clicking Key (Active while held)"
 msgid "自动补饵卖鱼"
 msgstr "Auto-Refill Bait & Sell Fish"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Refill default bait and sell fish catch when the first cast fails"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "When casting fails, refill default bait, sell catch, and retry"
 
 msgid "4列对应的键盘按键"
 msgstr "Keyboard keys for 4 columns"
@@ -552,9 +552,11 @@ msgid ""
 "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
 "physical positions, not your current layout's printed keys."
 msgstr ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
 
 msgid "Use QWERTY Physical Keys"
-msgstr ""
+msgstr "Use QWERTY Physical Keys"
 
 msgid "店长特供"
 msgstr "Owner's Selection"

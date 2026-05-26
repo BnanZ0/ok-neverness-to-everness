@@ -129,13 +129,13 @@ class CombatCheck(BaseNTETask):
         return False
 
     def _find_red_health_bar(self, width=100):
-        min_height = self.height_of_screen(5 / 1440)
+        min_height = self.height_of_screen(4 / 1440)
         min_width = self.width_of_screen(width / 2560)
         # if self._in_combat:
         #     min_width = self.width_of_screen(100 / 2560)
         # else:
         #     min_width = self.width_of_screen(30 / 2560)
-        max_height = min_height * 2.5
+        max_height = min_height * 3
         max_width = self.width_of_screen(200 / 2560)
 
         # 还原原始的颜色过滤
@@ -147,7 +147,7 @@ class CombatCheck(BaseNTETask):
             min_height,
             max_width,
             max_height,
-            box=self.main_viewport,
+            box=self.box_of_screen(0.0984, 0, 0.8961, 0.8944, name="health_bar"),
         )
 
         if len(boxes) > 0:
@@ -514,7 +514,7 @@ class CombatCheck(BaseNTETask):
         return True
 
 
-enemy_health_hsv = iu.HSVRange((0, 190, 175), (10, 255, 255))
+enemy_health_hsv = iu.HSVRange((0, 190, 175), (179, 255, 255))
 
 enemy_health_color_red = {
     "r": (210, 255),

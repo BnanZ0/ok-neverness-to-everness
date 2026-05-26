@@ -494,8 +494,8 @@ msgstr "Tecla de clics automáticos (Mantener para activar)"
 msgid "自动补饵卖鱼"
 msgstr "Auto-recarga cebo y vende pescado"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Recarga el cebo predeterminado y vende la captura cuando el primer lanzamiento falle"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "Si falla el lanzamiento, reponer cebo predeterminado, vender capturas y reintentar"
 
 msgid "4列对应的键盘按键"
 msgstr "Teclas para 4 columnas"
@@ -590,3 +590,12 @@ msgstr "Elige cómo gestionar las tareas diarias del café"
 
 msgid "不执行"
 msgstr "No ejecutar"
+
+msgid "记录新特征"
+msgstr "Registrar nueva característica"
+
+msgid "输入或选择关联的角色名称"
+msgstr "Introduce o selecciona el nombre del personaje asociado"
+
+msgid "输入或选择绑定的{combo} (可选)"
+msgstr "Introduce o selecciona el {combo} vinculado (opcional)"

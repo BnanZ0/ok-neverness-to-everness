@@ -250,16 +250,21 @@ class BaseNTETask(BaseTask):
         box = self.shift_char_ui_box(box, expend=True)
         return box
 
-    def is_in_team(self):
+    def is_in_team(self) -> Box | None:
+        frame = self.frame
+        if frame is None:
+            self.log_warning("Received an empty or None frame. Skipping...")
+            time.sleep(1)
+            return
         box = self.find_one(
             Labels.health_bar_slash,
             mask_function=iu.mask_corners,
             horizontal_variance=0.01,
             vertical_variance=0.005,
+            frame=frame,
         )
-        result = box is not None
         # self.log_debug(f"is_in_team {box}")
-        return result
+        return box
 
     def shift_char_ui_box(self, box: Box, expend=False):
         """
