@@ -21,8 +21,19 @@ class HotoriChain(Hotori):
         ("NanallyChain", "chain_dynamic_standby"),
         ("JiuyuanChain", "chain_q_e_heavy"),
     ]
-    STARTUP_DURATION = 15.0
-    WARMUP_DURATION = 20.0
+    STARTUP_DURATION = 15.0         # 启动轴时长
+    WARMUP_DURATION = 20.0          # 暖机轴时长
+    SWITCH_TIMEOUT = 1.0            # 切人超时
+    E_RETRY_INTERVAL = 1.0          # E重试间隔
+    E_CLICK_TIMEOUT = 0.5           # E点击超时
+    CD_CONFIRM_TIMEOUT = 0.5        # CD确认超时
+    CD_CONFIRM_TICK = 0.03          # CD确认轮询间隔
+    POST_ACTION_PAUSE = 0.1         # 动作后暂停
+    CHAIN_NA_INTERVAL = 0.2         # 链内普攻间隔
+    Q_PRE_SLEEP = 1.0               # Q前等待
+    Q_RECOVERY_MARGIN = 0.3         # Q恢复余量
+    LOOP_TICK = 0.05                # 通用轮询间隔
+    INTRO_LOOP_INTERVAL = 0.1       # 入场动画轮询间隔
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -99,14 +110,17 @@ class HotoriChain(Hotori):
                 Hotori.do_perform(self)
                 return
         if self._e_lockdown:
-            self.continues_normal_attack(0.2)
+            self.continues_normal_attack(self.CHAIN_NA_INTERVAL)
             return
         if self._e_used:
             if self.ready_for_ultimate() and self.click_ultimate():
                 self._e_used = False
                 self.clear_team_skill_records()
                 return
-            self.continues_normal_attack(0.2)
+            self.continues_normal_attack(self.CHAIN_NA_INTERVAL)
+            return
+        if self._chain_cycle == 0 and self._q_cast_time > 0 and self.time_to_next_burst() > self.Q_RECOVERY_MARGIN:
+            self.continues_normal_attack(self.CHAIN_NA_INTERVAL)
             return
         self.task.chain_executor.loop(self._build_next_chain)
 
@@ -117,20 +131,28 @@ class HotoriChain(Hotori):
 
     def _confirm_skill_cd(self):
         start = time.time()
-        while time.time() - start < 0.3:
+        while time.time() - start < self.CD_CONFIRM_TIMEOUT:
             if self.has_cd("skill"):
                 return True
-            self.sleep(0.03)
+            self.sleep(self.CD_CONFIRM_TICK)
+        return False
+
+    def _confirm_q_cd(self):
+        start = time.time()
+        while time.time() - start < self.CD_CONFIRM_TIMEOUT:
+            if self.has_cd("ultimate"):
+                return True
+            self.sleep(self.CD_CONFIRM_TICK)
         return False
 
     def chain_e_start_chain(self):
         self.logger.info(f"chain_e_start_chain: entering, has_intro={self.has_intro}")
         wait_start = time.time()
-        while time.time() - wait_start < 1.0:
+        while time.time() - wait_start < self.SWITCH_TIMEOUT:
             self.task.sleep_check()
             if self.task.is_char_at_index(self.index):
                 break
-            self.sleep(0.05)
+            self.sleep(self.LOOP_TICK)
 
         if self.has_intro:
             start = time.time()
@@ -140,7 +162,7 @@ class HotoriChain(Hotori):
                     self.logger.info("chain_e_start_chain: E cast during intro")
                     break
                 self.click()
-                self.sleep(0.1)
+                self.sleep(self.INTRO_LOOP_INTERVAL)
 
         fail_count = 0
         last_attempt = 0
@@ -152,22 +174,22 @@ class HotoriChain(Hotori):
                 self._e_used = True
                 self._e_lockdown = True
                 self.start_team_skill_window()
-                self.sleep(0.1)
+                self.sleep(self.POST_ACTION_PAUSE)
                 self.task.chain_executor.step_complete()
                 self._send_chain_key()
                 self.switch_next_char()
                 return
 
             now = time.time()
-            if now - last_attempt < 0.5:
-                self.sleep(0.05)
+            if now - last_attempt < self.E_RETRY_INTERVAL:
+                self.sleep(self.LOOP_TICK)
                 continue
 
             available = self.skill_available()
             self.logger.debug(f"chain_e_start_chain: attempt {fail_count+1}, skill_available={available}")
 
             if available:
-                clicked, _, _ = self.click_skill(time_out=1.5)
+                clicked, _, _ = self.click_skill(time_out=self.E_CLICK_TIMEOUT)
                 if clicked:
                     if self._confirm_skill_cd():
                         self.logger.info(f"chain_e_start_chain: E cast confirmed via CD after {fail_count} failures")
@@ -175,14 +197,14 @@ class HotoriChain(Hotori):
                         self.logger.warning("chain_e_start_chain: E interrupted (skill still available), retrying")
                         fail_count += 1
                         last_attempt = now
-                        self.sleep(0.05)
+                        self.sleep(self.LOOP_TICK)
                         continue
                     else:
                         self.logger.info(f"chain_e_start_chain: E cast assumed (no CD but skill unavailable) after {fail_count} failures")
                     self._e_used = True
                     self._e_lockdown = True
                     self.start_team_skill_window()
-                    self.sleep(0.1)
+                    self.sleep(self.POST_ACTION_PAUSE)
                     self.task.chain_executor.step_complete()
                     self._send_chain_key()
                     self.switch_next_char()
@@ -195,7 +217,7 @@ class HotoriChain(Hotori):
                         self._e_used = True
                         self._e_lockdown = True
                         self.start_team_skill_window()
-                        self.sleep(0.1)
+                        self.sleep(self.POST_ACTION_PAUSE)
                         self.task.chain_executor.step_complete()
                         self._send_chain_key()
                         self.switch_next_char()
@@ -204,38 +226,37 @@ class HotoriChain(Hotori):
                 self.logger.debug("chain_e_start_chain: skill not available, waiting")
 
             last_attempt = now
-            self.sleep(0.05)
+            self.sleep(self.LOOP_TICK)
 
     def chain_q_na(self):
         wait_start = time.time()
-        while time.time() - wait_start < 1.0:
+        while time.time() - wait_start < self.SWITCH_TIMEOUT:
             self.task.sleep_check()
             if self.task.is_char_at_index(self.index):
                 break
-            self.sleep(0.05)
+            self.sleep(self.LOOP_TICK)
         
         q_done = False
         if self.has_intro:
             start = time.time()
             while time.time() - start < self.INTRO_MOTION_FREEZE_DURATION:
                 self.click()
-                if self.ultimate_available() and self.click_ultimate(send_click=True):
+                if self.ultimate_available() and self.click_ultimate(send_click=True) and self._confirm_q_cd():
                     q_done = True
                     self._q_cast_time = time.time()
                     break
-                self.sleep(0.1)
+                self.sleep(self.INTRO_LOOP_INTERVAL)
         if not q_done:
-            self.task.sleep(1)
+            self.task.sleep(self.Q_PRE_SLEEP)
             self.task._combat_settle.time = None
             while True:
                 self.task.sleep_check()
                 if self.ultimate_available():
-                    if self.click_ultimate(send_click=True):
-                        self.logger.info("chain_q_na Q done")
+                    if self.click_ultimate(send_click=True) and self._confirm_q_cd():
                         self._q_cast_time = time.time()
                         break
                 self.click()
-                self.sleep(0.1)
+                self.sleep(self.INTRO_LOOP_INTERVAL)
         self._e_used = False
         self.clear_team_skill_records()
         self.task.chain_executor.step_complete()
