@@ -155,6 +155,7 @@ class Hotori(BaseChar):
 
     def on_chain_step_complete(self):
         if self.team_skill_window_start > 0:
+            # 基类中无需处理，由子类 HotoriChain 覆盖实现
             pass
 
     # def skill_available(self, check_color=True):

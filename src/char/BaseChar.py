@@ -603,7 +603,8 @@ class BaseChar:
         pass
 
     def on_chain_step_complete(self):
-        pass
+        """链式步骤完成回调；默认无操作，子类可按需覆盖。"""
+        return None
 
     @property
     def add_freeze_duration(self):

@@ -467,6 +467,20 @@ class BaseCombatTask(CombatCheck):
 
         logger.info(f"{log_prefix} end {(time.time() - start_time):.3f}s")
 
+    def _resolve_switch_target(self, current_char, free_intro):
+        if self.chain_executor.active:
+            switch_to, _ = self.chain_executor.target
+            if switch_to is not None and switch_to != current_char:
+                has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
+                return switch_to, has_intro
+            return None
+        anchor = self.chain_executor.pending_anchor
+        if anchor is not None and anchor != current_char:
+            has_intro = free_intro or (anchor.element != current_char.element and current_char.is_cycle_full())
+            self.chain_executor.set_axis_anchor(None)
+            return anchor, has_intro
+        return self._find_switch_target(current_char, free_intro)
+
     def switch_next_char(self, current_char: "BaseChar", post_action=None, free_intro=False):
         """切换到下一个最优角色。
 
@@ -481,20 +495,10 @@ class BaseCombatTask(CombatCheck):
 
         current_char.wait_switch_cd()
 
-        if self.chain_executor.active:
-            switch_to, _ = self.chain_executor.target
-            if switch_to is not None and switch_to != current_char:
-                has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
-            else:
-                return
-        else:
-            anchor = self.chain_executor.pending_anchor
-            if anchor is not None and anchor != current_char:
-                switch_to = anchor
-                has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
-                self.chain_executor.set_axis_anchor(None)
-            else:
-                switch_to, has_intro = self._find_switch_target(current_char, free_intro)
+        result = self._resolve_switch_target(current_char, free_intro)
+        if result is None:
+            return
+        switch_to, has_intro = result
 
         if switch_to is None or switch_to == current_char:
             logger.warning(f"{current_char} failed to find a valid switch target")

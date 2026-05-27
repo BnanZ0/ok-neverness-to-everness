@@ -30,7 +30,7 @@ class HotoriChain(Hotori):
     CD_CONFIRM_TICK = 0.03          # CD确认轮询间隔
     POST_ACTION_PAUSE = 0.1         # 动作后暂停
     CHAIN_NA_INTERVAL = 0.2         # 链内普攻间隔
-    Q_PRE_SLEEP = 1.0               # Q前等待
+    Q_PRE_SLEEP = 0.3               # Q前等待
     Q_RECOVERY_MARGIN = 0.3         # Q恢复余量
     LOOP_TICK = 0.05                # 通用轮询间隔
     INTRO_LOOP_INTERVAL = 0.1       # 入场动画轮询间隔

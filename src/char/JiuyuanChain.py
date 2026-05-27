@@ -84,15 +84,13 @@ class JiuyuanChain(Jiuyuan):
                         break
                     self.logger.warning("chain_q_e_heavy: Q clicked but CD not detected, retrying")
             self.sleep(self.LOOP_TICK)
-        while True:
-            self.task.sleep_check()
-            clicked, _, _ = self.click_skill()
-            if clicked and self._confirm_e_cd():
-                self.sleep(self.E_POST_CAST_WAIT)
-                self.task.mouse_down()
-                self.sleep(self.HEAVY_CHARGE_TIME)
-                self.task.mouse_up()
-            self.task.chain_executor.step_complete()
-            self._send_chain_key()
-            self.switch_next_char()
-            return
+        self.task.sleep_check()
+        clicked, _, _ = self.click_skill()
+        if clicked and self._confirm_e_cd():
+            self.sleep(self.E_POST_CAST_WAIT)
+            self.task.mouse_down()
+            self.sleep(self.HEAVY_CHARGE_TIME)
+            self.task.mouse_up()
+        self.task.chain_executor.step_complete()
+        self._send_chain_key()
+        self.switch_next_char()
