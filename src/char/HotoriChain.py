@@ -1,5 +1,7 @@
 import time
 
+from src.char.custom.BuiltinComboRegistry import BuiltinComboRegistry
+from src.char.custom.CustomCharManager import CustomCharManager
 from src.char.Hotori import Hotori
 
 
@@ -8,7 +10,7 @@ class HotoriChain(Hotori):
         ("HotoriChain", "chain_e_start_chain"),
         ("ZeroChain", "chain_q_e_wait"),
         ("JiuyuanChain", "chain_intro_only"),
-        ("NanallyChain", "chain_e_q_6s_swap"),
+        ("NanallyChain", "chain_dynamic_standby"),
         ("JiuyuanChain", "chain_q_e_heavy"),
         ("HotoriChain", "chain_q_na"),
     ]
@@ -16,17 +18,36 @@ class HotoriChain(Hotori):
         ("ZeroChain", "chain_nop"),
         ("JiuyuanChain", "chain_intro_only"),
         ("ZeroChain", "chain_e_only"),
-        ("NanallyChain", "chain_intro_e_q_10s_swap"),
+        ("NanallyChain", "chain_dynamic_standby"),
         ("JiuyuanChain", "chain_q_e_heavy"),
     ]
+    STARTUP_DURATION = 15.0
+    WARMUP_DURATION = 20.0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.team_skill_records = {}
-        self.team_skill_window_start = 0
         self._chain_cycle = 0
         self._e_used = False
         self._e_lockdown = False
+
+    def current_axis(self):
+        if self._e_cast_time >= self._q_cast_time:
+            return "STARTUP"
+        return "WARMUP"
+
+    def time_to_next_burst(self):
+        axis = self.current_axis()
+        if axis == "STARTUP":
+            if self._e_cast_time <= 0:
+                return 999
+            elapsed = self.time_elapsed_accounting_for_freeze(self._e_cast_time)
+            return max(0.0, self.STARTUP_DURATION - elapsed)
+        else:
+            if self._q_cast_time <= 0:
+                return 999
+            elapsed = self.time_elapsed_accounting_for_freeze(self._q_cast_time)
+            return max(0.0, self.WARMUP_DURATION - elapsed)
 
     def is_anchor(self) -> bool:
         return True
@@ -63,6 +84,20 @@ class HotoriChain(Hotori):
 
     def do_perform(self):
         self.wait_intro()
+        ft = CustomCharManager().get_fixed_team()
+        if not ft.get("enabled", False):
+            Hotori.do_perform(self)
+            return
+        slots = ft.get("slots", [])
+        if len(slots) < 4:
+            Hotori.do_perform(self)
+            return
+        chain_keys = ["char_chain_hotori", "char_chain_zero", "char_chain_jiuyuan", "char_chain_nanally"]
+        for i, slot in enumerate(slots):
+            key = CustomCharManager().get_builtin_key(slot.get("combo_ref", ""))
+            if key != chain_keys[i]:
+                Hotori.do_perform(self)
+                return
         if self._e_lockdown:
             self.continues_normal_attack(0.2)
             return
@@ -173,6 +208,7 @@ class HotoriChain(Hotori):
                 self.click()
                 if self.ultimate_available() and self.click_ultimate(send_click=True):
                     q_done = True
+                    self._q_cast_time = time.time()
                     break
                 self.sleep(0.1)
         if not q_done:
@@ -183,6 +219,7 @@ class HotoriChain(Hotori):
                 if self.ultimate_available():
                     if self.click_ultimate(send_click=True):
                         self.logger.info("chain_q_na Q done")
+                        self._q_cast_time = time.time()
                         break
                 self.click()
                 self.sleep(0.1)
@@ -198,6 +235,7 @@ class HotoriChain(Hotori):
             self.last_skill_time if self.last_skill_time > 0 else time.time()
         )
         self.team_skill_records.clear()
+        self._e_cast_time = time.time()
 
     def clear_team_skill_records(self):
         self.team_skill_window_start = 0
@@ -271,3 +309,10 @@ class HotoriChain(Hotori):
 
     def on_combat_end(self, chars):
         self.clear_team_skill_records()
+
+    def on_chain_step_complete(self):
+        super().on_chain_step_complete()
+        ce = self.task.chain_executor
+        if ce.active and ce.current_index >= len(ce.steps) and self._chain_cycle == 2:
+            self._e_lockdown = False
+            self.logger.info("Hotori E lock auto-released for next startup")

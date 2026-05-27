@@ -10,17 +10,23 @@ class Hotori(BaseChar):
     TEAM_SKILL_WINDOW = 5
     MAX_TEAM_SKILL_RECORDS = 3
     ULT_ATTACK_DURATION = 6
+    E_RECOVERY = 10
+    Q_RECOVERY = 20
+    SLOP = 0
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.start_combat = True
         self.team_skill_window_start = 0
+        self._e_cast_time = 0
+        self._q_cast_time = 0
 
     def do_perform(self):
         self.wait_intro()
 
         if self.can_ultimate_with_records():
             if self.click_ultimate():
+                self._q_cast_time = time.time()
                 self.clear_team_skill_records()
             else:
                 self.continues_normal_attack(0.2)
@@ -35,6 +41,7 @@ class Hotori(BaseChar):
             return
 
         if self.click_skill(time_out=1.5)[0]:
+            self._e_cast_time = time.time()
             self.start_team_skill_window()
 
     def do_get_switch_priority(self, current_char, has_intro=False):
@@ -58,6 +65,28 @@ class Hotori(BaseChar):
 
     def team_skill_window_elapsed(self):
         return self.time_elapsed_accounting_for_freeze(self.team_skill_window_start)
+
+    @property
+    def e_remaining(self):
+        if self._e_cast_time <= 0:
+            return 0
+        return self.E_RECOVERY + self.TEAM_SKILL_WINDOW + self.SLOP - self.time_elapsed_accounting_for_freeze(self._e_cast_time)
+
+    @property
+    def q_remaining(self):
+        if self._q_cast_time <= 0:
+            return 0
+        return self.Q_RECOVERY + self.SLOP - self.time_elapsed_accounting_for_freeze(self._q_cast_time)
+
+    def time_to_cashout(self):
+        if self._e_cast_time > 0:
+            return self.e_remaining
+        return 999
+
+    def time_to_startup(self):
+        if self._q_cast_time > 0:
+            return self.q_remaining
+        return 999
 
     def expire_team_skill_window(self):
         self.team_skill_window_start = 0
@@ -110,7 +139,7 @@ class Hotori(BaseChar):
     def waiting_for_team_skills(self):
         if self.team_skill_window_start <= 0 or self.ready_for_ultimate():
             return False
-        if self.team_skill_window_elapsed() > self.TEAM_SKILL_WINDOW:
+        if self.time_elapsed_accounting_for_freeze(self.team_skill_window_start) > self.TEAM_SKILL_WINDOW:
             self.expire_team_skill_window()
             return False
         return True
@@ -118,9 +147,15 @@ class Hotori(BaseChar):
     def reset_state(self):
         super().reset_state()
         self.clear_team_skill_records()
+        self._e_cast_time = 0
+        self._q_cast_time = 0
 
     def on_combat_end(self, chars):
         self.clear_team_skill_records()
+
+    def on_chain_step_complete(self):
+        if self.team_skill_window_start > 0:
+            pass
 
     # def skill_available(self, check_color=True):
     #     available = super().skill_available(check_color=check_color)

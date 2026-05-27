@@ -599,6 +599,9 @@ class BaseChar:
         """
         pass
 
+    def on_chain_step_complete(self):
+        pass
+
     @property
     def add_freeze_duration(self):
         """添加冻结持续时间 (代理到 task.add_freeze_duration)。"""

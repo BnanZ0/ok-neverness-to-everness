@@ -51,17 +51,13 @@ class ChainExecutor:
     def step_complete(self):
         import time
         now = time.time()
-        if self.active and self._last_step_time > 0:
-            wait_time = now - self._last_step_time
-            if wait_time > 0.1:
-                self.task.add_freeze_duration(self._last_step_time, wait_time)
         self._last_step_time = now
 
         self.current_index += 1
-        hotori = next((c for c in self.task.chars if c is not None and c.__class__.__name__ == "HotoriChain"), None)
 
-        if hotori and getattr(hotori, 'team_skill_window_start', 0) > 0:
-            hotori.update_team_skill_records()
+        for c in self.task.chars:
+            if c is not None and hasattr(c, 'on_chain_step_complete'):
+                c.on_chain_step_complete()
 
         if self.current_index >= len(self.steps):
             if self._builder:

@@ -55,10 +55,6 @@ class JiuyuanChain(Jiuyuan):
                 self.sleep(0.6)
                 self.task.mouse_up()
                 self.task.unsuppress_dodge()
-                hotori = next((c for c in self.task.chars if c.__class__.__name__ == "HotoriChain"), None)
-                if hotori and hotori._chain_cycle == 2:
-                    hotori._e_lockdown = False
-                    self.logger.info("E lock released by warmup chain Jiuyuan heavy")
                 self.task.chain_executor.step_complete()
                 self._send_chain_key()
                 self.switch_next_char()
