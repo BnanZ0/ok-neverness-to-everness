@@ -17,6 +17,13 @@ class ZeroChain(Zero):
         self.continues_normal_attack(0.5, interval=0.01)
 
     def chain_q_e_wait(self):
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
         if self.has_intro:
             start = time.time()
             while time.time() - start < self.INTRO_MOTION_FREEZE_DURATION:
@@ -47,11 +54,25 @@ class ZeroChain(Zero):
             self.sleep(0.05)
 
     def chain_nop(self):
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
         self.task.chain_executor.step_complete()
         self._send_chain_key()
         self.switch_next_char()
 
     def chain_e_only(self):
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
         if self.has_intro:
             start = time.time()
             while time.time() - start < self.INTRO_MOTION_FREEZE_DURATION:

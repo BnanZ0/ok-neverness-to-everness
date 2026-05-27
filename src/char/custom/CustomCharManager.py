@@ -52,7 +52,7 @@ class CustomCharManager:
 
     @staticmethod
     def _default_fixed_team():
-        return {"enabled": False, "slots": [{"char_name": "", "combo_ref": ""} for _ in range(4)]}
+        return {"enabled": False, "team_strategy": "", "slots": [{"char_name": "", "combo_ref": ""} for _ in range(4)]}
 
     @classmethod
     def _normalize_fixed_team_slot(cls, slot) -> dict:
@@ -73,6 +73,7 @@ class CustomCharManager:
             return normalized
 
         normalized["enabled"] = bool(config.get("enabled", False))
+        normalized["team_strategy"] = str(config.get("team_strategy", "")).strip()
         raw_slots = config.get("slots", [])
         if isinstance(raw_slots, list):
             for i in range(min(4, len(raw_slots))):
@@ -725,17 +726,28 @@ class CustomCharManager:
             fixed_team = self._normalize_fixed_team_config(self.db.get("fixed_team"))
             return {
                 "enabled": fixed_team["enabled"],
+                "team_strategy": fixed_team["team_strategy"],
                 "slots": [dict(slot) for slot in fixed_team["slots"]],
             }
 
-    def set_fixed_team(self, enabled: bool, slots):
+    def set_fixed_team(self, enabled: bool, slots, team_strategy: str = None):
         with self._data_lock:
+            existing = self._normalize_fixed_team_config(self.db.get("fixed_team"))
+            new_team_strategy = existing["team_strategy"] if team_strategy is None else team_strategy
             self.db["fixed_team"] = self._normalize_fixed_team_config(
                 {
                     "enabled": enabled,
+                    "team_strategy": new_team_strategy,
                     "slots": slots,
                 }
             )
+            self.save_db()
+
+    def set_team_strategy(self, team_strategy: str):
+        with self._data_lock:
+            fixed_team = self._normalize_fixed_team_config(self.db.get("fixed_team"))
+            fixed_team["team_strategy"] = team_strategy
+            self.db["fixed_team"] = fixed_team
             self.save_db()
 
     def clear_fixed_team(self):

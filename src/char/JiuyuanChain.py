@@ -16,6 +16,13 @@ class JiuyuanChain(Jiuyuan):
         self.fire_bullets()
 
     def chain_intro_only(self):
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
         if self.has_intro:
             start = time.time()
             while time.time() - start < self.INTRO_MOTION_FREEZE_DURATION:
@@ -49,15 +56,11 @@ class JiuyuanChain(Jiuyuan):
             self.task.sleep_check()
             clicked, _, _ = self.click_skill()
             if clicked:
-                self.task.suppress_dodge()
                 self.sleep(1.3)
                 self.task.mouse_down()
                 self.sleep(0.6)
                 self.task.mouse_up()
-                self.task.unsuppress_dodge()
-                self.task.chain_executor.step_complete()
-                self._send_chain_key()
-                self.switch_next_char()
-                return
-            self.click()
-            self.sleep(0.05)
+            self.task.chain_executor.step_complete()
+            self._send_chain_key()
+            self.switch_next_char()
+            return

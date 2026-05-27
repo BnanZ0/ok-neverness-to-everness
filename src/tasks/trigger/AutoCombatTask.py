@@ -7,10 +7,10 @@ from qfluentwidgets import FluentIcon
 from src.char.CharFactory import get_char_feature_by_pos
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.combat.BaseCombatTask import BaseCombatTask, CharDeadException, NotInCombatException
+from src.combat.ChainLoader import ChainLoader
 
 
 class ScannerSignals(QObject):
-    # Sends list of dicts: {"index": i, "feat_id": tmp_id, "mat": ndarray, "match": str|None}
     scan_done = Signal(list, str)
 
 
@@ -50,18 +50,49 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
         if not self.scene.is_in_team(self.is_in_team):
             return
 
+        manager = CustomCharManager()
+        fixed_team = manager.get_fixed_team()
+        team_strategy = fixed_team.get("team_strategy", "NONE")
+        chain_builder = None
+
         combat_start = time.time()
         while self.in_combat():
             try:
                 if not ret:
                     ret = True
+                    if team_strategy == "NONE":
+                        has_residual_chain = any(
+                            c.__class__.__name__.endswith("Chain") for c in self.chars if c
+                        )
+                        if has_residual_chain:
+                            self.log_info("检测到残留的 Chain 类角色，重新加载基础角色配置。")
+                            self.load_chars()
                     self.switch_to_combat_start_char()
-                self.get_current_char().perform()
+                
+                if team_strategy != "NONE" and self.chain_executor:
+                    if not self.chain_executor.active:
+                        chain_builder = ChainLoader.load_strategy(self, team_strategy)
+                        if chain_builder:
+                            self.log_info(f"启用连携策略：{team_strategy}")
+                            self.chain_executor.reset()
+                            self.chain_executor.loop(chain_builder)
+                
+                if self.chain_executor and self.chain_executor.active:
+                    current_char, _ = self.chain_executor.target
+                    if current_char:
+                        current_char.perform()
+                    else:
+                        self.get_current_char().perform()
+                else:
+                    self.get_current_char().perform()
             except CharDeadException:
                 self.log_error("Characters dead", notify=True)
                 break
             except NotInCombatException as e:
                 logger.info(f"auto_combat_task_out_of_combat {int(time.time() - combat_start)} {e}")
+                ret = False
+                if self.chain_executor:
+                    self.chain_executor.reset()
                 break
         if ret:
             self.combat_end()

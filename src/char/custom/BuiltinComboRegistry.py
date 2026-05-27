@@ -11,8 +11,10 @@ class BuiltinComboRegistry:
     def _get_builtin_entries(cls) -> dict:
         # Late import to avoid module cycles.
         from src.char.CharFactory import char_dict
-
-        return {k: v for k, v in char_dict.items() if k != "char_default"}
+        return {
+            k: v for k, v in char_dict.items() 
+            if k != "char_default" and not k.startswith("char_chain_")
+        }
 
     @classmethod
     def _legacy_prefix(cls) -> str:

@@ -125,6 +125,12 @@ class HotoriChain(Hotori):
 
     def chain_e_start_chain(self):
         self.logger.info(f"chain_e_start_chain: entering, has_intro={self.has_intro}")
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
 
         if self.has_intro:
             start = time.time()
@@ -201,6 +207,13 @@ class HotoriChain(Hotori):
             self.sleep(0.05)
 
     def chain_q_na(self):
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
         q_done = False
         if self.has_intro:
             start = time.time()

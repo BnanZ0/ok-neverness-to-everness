@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QGraphicsDropShadowEffect, QHBoxLayout, QVBoxLayou
 from qfluentwidgets import (
     BodyLabel,
     CardWidget,
+    ComboBox,
     FluentIcon,
     Flyout,
     ImageLabel,
@@ -389,6 +390,27 @@ class TeamManagerTab(CustomTab):
 
         self.vbox.addWidget(self.scan_card)
 
+        self.strategy_card = CardWidget(self)
+        self.strategy_layout = QVBoxLayout(self.strategy_card)
+        self.strategy_layout.setContentsMargins(16, 16, 16, 16)
+        self.strategy_layout.setSpacing(12)
+
+        self.strategy_header = QHBoxLayout()
+        self.strategy_header_text = QVBoxLayout()
+        self.strategy_title = SubtitleLabel(og.app.tr("全局连招策略"))
+        self.strategy_desc = BodyLabel(og.app.tr("选择全局连招策略，将覆盖所有角色的独立连招配置"))
+        self.strategy_header_text.addWidget(self.strategy_title)
+        self.strategy_header_text.addWidget(self.strategy_desc)
+        self.strategy_header.addLayout(self.strategy_header_text, 1)
+
+        self.strategy_combo = ComboBox(self)
+        self.strategy_combo.setMinimumWidth(200)
+        self.strategy_combo.addItem(og.app.tr("默认自由战斗"), userData="NONE")
+        self.strategy_combo.addItem(og.app.tr("浔-零-九原-娜莉 浔创生链式轴"), userData="HOTORI_CREATION_CHAIN")
+        self.strategy_header.addWidget(self.strategy_combo)
+        self.strategy_layout.addLayout(self.strategy_header)
+        self.vbox.addWidget(self.strategy_card)
+
         self.fixed_team_card = CardWidget(self)
         self.fixed_team_layout = QVBoxLayout(self.fixed_team_card)
         self.fixed_team_layout.setContentsMargins(16, 16, 16, 16)
@@ -449,6 +471,7 @@ class TeamManagerTab(CustomTab):
 
         scanner_signals.scan_done.connect(self.on_scan_done)
         char_manager_signals.refresh_tab.connect(self.reload_fixed_team_options)
+        self.strategy_combo.currentIndexChanged.connect(self.on_strategy_changed)
         self.refresh_fixed_team_state()
 
     @property
@@ -510,6 +533,11 @@ class TeamManagerTab(CustomTab):
         for i, card in enumerate(self.fixed_team_slots):
             slot = slots[i] if i < len(slots) else {}
             card.set_data(slot.get("char_name", ""), slot.get("combo_ref", ""))
+        
+        saved_strategy = fixed_team.get("team_strategy", "NONE")
+        idx = self.strategy_combo.findData(saved_strategy)
+        if idx >= 0:
+            self.strategy_combo.setCurrentIndex(idx)
 
         filled_count = sum(1 for slot in slots if slot.get("char_name"))
         if fixed_team.get("enabled") and filled_count:
@@ -524,6 +552,14 @@ class TeamManagerTab(CustomTab):
             self.fixed_team_status.setText(self.tr_fixed_team_empty)
             self.save_fixed_team_btn.setText(self.tr_save_fixed_team)
             self.disable_fixed_team_btn.setEnabled(False)
+
+    def on_strategy_changed(self, index):
+        strategy_data = self.strategy_combo.itemData(index)
+        self.manager.set_team_strategy(strategy_data)
+        if strategy_data != "NONE":
+            self._show_bar(og.app.tr("策略已切换"), og.app.tr(f"已启用全局连招策略：{self.strategy_combo.currentText()}"))
+        else:
+            self._show_bar(og.app.tr("策略已切换"), og.app.tr("已关闭全局连招策略"))    
 
     def on_scan_clicked(self):
         og.app.start_controller.handler.post(self.scan_team)

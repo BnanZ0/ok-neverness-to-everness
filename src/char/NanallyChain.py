@@ -1,6 +1,6 @@
 import time
-
 from src.char.Nanally import Nanally
+from src.combat.ChainLoader import ChainLoader
 
 
 class NanallyChain(Nanally):
@@ -13,7 +13,15 @@ class NanallyChain(Nanally):
         self.click_ultimate()
 
     def chain_dynamic_standby(self):
-        hotori = next((c for c in self.task.chars if c.__class__.__name__ == "HotoriChain"), None)
+        wait_start = time.time()
+        while time.time() - wait_start < 1.0:
+            self.task.sleep_check()
+            if self.task.is_char_at_index(self.index):
+                break
+            self.sleep(0.05)
+        
+        hotori = next((c for c in self.task.chars if ChainLoader._resolve_role(c) == "hotori"), None)
+        
         _last_e_time = 0
 
         if not self.has_cd("skill"):
@@ -32,7 +40,7 @@ class NanallyChain(Nanally):
                 q_deadline = time.time() + 1.0
                 while time.time() < q_deadline:
                     self.task.sleep_check()
-                    if self.ultimate_available() and time.time() - _last_e_time >= 0.4:
+                    if self.ultimate_available() and time.time() - _last_e_time >= 0.5:
                         self.task._combat_settle.time = None
                         self.click_ultimate()
                         self.logger.info("Nanally Q released after E")
@@ -63,7 +71,7 @@ class NanallyChain(Nanally):
                     if self.skill_available():
                         if self.click_skill():
                             _last_e_time = time.time()
-                    if self.ultimate_available() and time.time() - _last_e_time >= 0.4:
+                    if self.ultimate_available() and time.time() - _last_e_time >= 0.5:
                         self.task._combat_settle.time = None
                         self.click_ultimate()
                     self.click()
