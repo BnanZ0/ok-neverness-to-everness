@@ -28,6 +28,10 @@ class ChainExecutor:
     def set_axis_anchor(self, char):
         self._pending_anchor = char
 
+    @property
+    def pending_anchor(self):
+        return self._pending_anchor
+
     def loop(self, builder):
         import time
         self._builder = builder

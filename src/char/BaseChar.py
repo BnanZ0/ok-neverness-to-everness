@@ -911,7 +911,7 @@ class BaseChar:
                 self.task.send_key(target_char.index + 1)
                 return True
         else:
-            anchor = self.task.chain_executor._pending_anchor
+            anchor = self.task.chain_executor.pending_anchor
             if anchor is not None and anchor != self:
                 self.task.send_key(anchor.index + 1)
                 return True
