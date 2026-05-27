@@ -1,4 +1,4 @@
-import ctypes
+﻿import ctypes
 import inspect
 import re
 import threading
@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from typing import Any, Callable, List
 
 import cv2
-import numpy as np
 import win32api
 import win32con
 import win32gui
@@ -18,14 +17,14 @@ from ok import BaseTask, Box, CannotFindException, Logger, og, safe_get
 from src.Labels import Labels
 from src.scene.NTEScene import NTEScene
 from src.scene.ScreenPosition import ScreenPosition
-from src.utils import game_filters as gf
+from src.tasks.CharUIMixin import CharUIMixin
 from src.utils import image_utils as iu
 
 logger = Logger.get_logger(__name__)
 stamina_re = re.compile(r"(\d+)/(\d+)")
 
 
-class BaseNTETask(BaseTask):
+class BaseNTETask(CharUIMixin, BaseTask):
     DEFAULT_MOVE = False
 
     def __init__(self, *args, **kwargs):
@@ -37,7 +36,7 @@ class BaseNTETask(BaseTask):
         self._logged_in = False
         self._rotated_template_cache = {}
         self.default_box = ScreenPosition(self)
-        self.char_ui_offset = False
+        self._init_char_ui_state()
         self.next_monthly_card_start = 0
         self._last_interval_action_time = {}
         self._action_interval_lock = threading.Lock()
@@ -235,20 +234,12 @@ class BaseNTETask(BaseTask):
 
     def get_char_box(self, index: int):
         box = self.get_box_by_name(f"box_char_{index + 1}")
-        if self.char_ui_offset:
-            box = self.shift_char_ui_box(box)
-        return box
-
-    def get_char_text_box(self, index: int):
-        box = self.get_box_by_name(f"char_{index + 1}_text")
+        if self._char_ui_offset:
+            box = self._shift_char_ui_box(box)
         return box
 
     def get_base_char_element_box(self):
-        box = self.box_of_screen_scaled(
-            2560, 1440, 2438, 335, width_original=29, height_original=29
-        )
-        box = self.shift_char_ui_box(box, expend=True)
-        return box
+        return super().get_base_char_element_box()
 
     def is_in_team(self) -> Box | None:
         frame = self.frame
@@ -266,20 +257,6 @@ class BaseNTETask(BaseTask):
         # self.log_debug(f"is_in_team {box}")
         return box
 
-    def shift_char_ui_box(self, box: Box, expend=False):
-        """
-        针对角色UI偏移的box修正
-        :param box:
-        :param expend: 是否扩展box
-        :return:
-        """
-        offset = -9 * self.width / 2560
-        width_offset = 0
-        if expend:
-            width_offset = -offset
-        box = box.copy(x_offset=offset, width_offset=width_offset)
-        return box
-
     def in_team(self):
         if not self.is_in_team():
             return False, -1, 0
@@ -289,7 +266,7 @@ class BaseNTETask(BaseTask):
             if state and (to_sleep := 0.5 - (time.time() - timestamp)) > 0:
                 self.sleep(to_sleep)
 
-        arr = self.update_char_ui_offset()
+        arr = self._update_char_ui_offset()
 
         # self.log_debug(f"in_team {arr}")
         current = self.get_current_char_index()
@@ -306,149 +283,14 @@ class BaseNTETask(BaseTask):
         self._logged_in = True
         return True, current, exist_count
 
-    def update_char_ui_offset(self):
-        # now = time.time()
-        arr = self.multi_stage_char_match()
-        results = [
-            c.x < self.get_char_text_box(idx).x for idx, c in enumerate(arr) if c is not None
-        ]
-
-        if results:
-            self.char_ui_offset = sum(results) > (len(results) / 2)
-        else:
-            self.char_ui_offset = False
-        # logger.debug(f"update_char_ui_offset cost {time.time() - now:.3f}")
-        return arr
-
-    @property
-    def char_vertical_spacing(self):
-        return int(self.height * 176 / 1440)
-
     def get_box_by_char_spacing(self, box: Box, index: int):
-        return box.copy(y_offset=index * self.char_vertical_spacing, name=f"{box.name}_{index}")
-
-    def _get_char_template_data(self):
-        """延迟加载并缓存当前角色模板特征"""
-        if (
-            not hasattr(self, "_char_template_cache")
-            or self._char_template_cache.get("width") != self.width
-            or self._char_template_cache.get("height") != self.height
-        ):
-            feature = self.get_feature_by_name(Labels.is_current_char)
-            mat = feature.mat
-            if len(mat.shape) == 3 and mat.shape[2] != 2:
-                mat = gf.current_char_filter(mat)
-            self._char_template_cache = {
-                "width": self.width,
-                "height": self.height,
-                "mat": mat,
-            }
-
-        return self._char_template_cache["mat"]
-
-    def _match_current_char_feature(self, current_mat, template_mat):
-        th, tw = template_mat.shape[:2]
-        ch, cw = current_mat.shape[:2]
-        if ch < th or cw < tw:
-            return 1.0
-
-        result = cv2.matchTemplate(current_mat, template_mat, cv2.TM_CCOEFF_NORMED)
-        _, max_val, _, _ = cv2.minMaxLoc(result)
-        if np.isnan(max_val):
-            return 1.0
-        return 1.0 - max_val
-
-    def _get_char_match_scores(self, frame=None):
-        """一次计算四个槽位的当前角色匹配分数，分值越小越匹配"""
-        if frame is None:
-            frame = self.frame
-
-        template_mat = self._get_char_template_data()
-        base_box = self.get_box_by_name(Labels.is_current_char)
-        base_box = self.shift_char_ui_box(base_box, expend=True)
-        raw_scores = []
-        boxes = []
-
-        for i in range(4):
-            box = self.get_box_by_char_spacing(base_box, i)
-            boxes.append(box)
-            current_mat = gf.current_char_filter(box.crop_frame(frame))
-            raw_scores.append(self._match_current_char_feature(current_mat, template_mat))
-
-        scores = raw_scores[:]
-        best_idx = int(np.argmin(raw_scores))
-        ordered_scores = sorted(raw_scores)
-        best_score = ordered_scores[0]
-        second_score = ordered_scores[1] if len(ordered_scores) > 1 else 1.0
-        margin = second_score - best_score
-
-        # 当前角色在队伍 UI 中只会有一个。绝对分数会随光照/背景浮动，所以当第一名
-        # 明显优于第二名时使用相对证据：压低第一名，抬高其余槽位，避免单槽误判。
-        if best_score <= 0.85 and margin >= 0.06:
-            for i, score in enumerate(scores):
-                if i == best_idx:
-                    scores[i] = min(score, 0.45)
-                else:
-                    scores[i] = max(score, 0.75)
-
-        self.draw_boxes(boxes=boxes[best_idx], color="red")
-        return scores
+        return super().get_box_by_char_spacing(box, index)
 
     def is_char_at_index(self, index, threshold=0.5, frame=None):
-        """判断指定索引是否为当前角色"""
-        score = self._get_char_match_scores(frame=frame)[index]
-        new = f"idx {index} conf {score:.3f}"
-        if score < threshold:
-            self.info_set("current char", new)
-            return True
-        else:
-            self.run_with_interval(lambda: self.info_set("current char", new), 0.5)
+        return super().is_char_at_index(index, threshold=threshold, frame=frame)
 
     def get_current_char_index(self):
-        """扫描所有槽位，返回匹配度最高的索引"""
-        scores = self._get_char_match_scores()
-        best_idx = int(np.argmin(scores))
-        best_score = scores[best_idx]
-
-        if best_idx != -1:
-            self.log_debug(f"current_char found at {best_idx} with score {best_score:.4f}")
-        return best_idx
-
-    def multi_stage_char_match(self):
-        # 初始化 4 个结果为 None
-        results = [None, None, None, None]
-
-        # 定义对比度阶梯（从低到高）
-        # 低对比度下匹配到的置信度通常更高
-        contrast_steps = [0, 30, 60, 90]
-
-        for c_val in contrast_steps:
-            # 如果 4 个都找齐了，直接跳出大循环，节省计算时间
-            if all(res is not None for res in results):
-                break
-
-            for i in range(4):
-                # 只有还没找到的位置才进行匹配
-                if results[i] is None:
-                    # 构造处理函数
-                    def process(image, current_c=c_val):
-                        return iu.adjust_lightness_contrast_lab(
-                            image, brightness=0, contrast=current_c
-                        )
-
-                    res = self.find_one(
-                        f"char_{i + 1}_text",
-                        threshold=0.7,
-                        frame_processor=process,
-                        mask_function=iu.mask_outside_white_rect,
-                        horizontal_variance=0.005,
-                    )
-
-                    # 只要找到了，就存入结果，后续对比度级别不再处理这个索引
-                    if res:
-                        results[i] = res
-
-        return results
+        return super().get_current_char_index()
 
     def in_world(self) -> bool:
         frame = self.frame

@@ -615,14 +615,14 @@
         {
             "id": 35,
             "image_id": 15,
-            "category_id": 35,
+            "category_id": 59,
             "bbox": [
-                2457,
-                45,
-                57,
-                58
+                2458,
+                46,
+                55,
+                55
             ],
-            "area": 3306,
+            "area": 3025,
             "iscrowd": 0
         },
         {
@@ -1097,11 +1097,6 @@
             "supercategory": ""
         },
         {
-            "id": 35,
-            "name": "map_location_card",
-            "supercategory": ""
-        },
-        {
             "id": 36,
             "name": "teleport",
             "supercategory": ""
@@ -1214,6 +1209,11 @@
         {
             "id": 58,
             "name": "map_city_tycoon_activities",
+            "supercategory": ""
+        },
+        {
+            "id": 59,
+            "name": "close_button",
             "supercategory": ""
         }
     ]

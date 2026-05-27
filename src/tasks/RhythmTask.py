@@ -2,9 +2,10 @@ import threading
 import time
 from collections import deque
 
+from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
 
-from ok import TaskDisabledException
+from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 
@@ -166,12 +167,14 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
 
     def _is_finished(self) -> bool:
         """检测是否出现结算界面（OCR 识别"演奏结果"）"""
-        yellow_box = self.box_of_screen(0.2211, 0.6625, 0.3156, 0.6965, name="finish_yellow")
-        red_box = self.box_of_screen(0.4555, 0.6625, 0.5445, 0.6965, name="finish_red")
-        yellow_pct = self.calculate_color_percentage(finish_yellow_color, yellow_box)
-        red_pct = self.calculate_color_percentage(finish_red_color, red_box)
+        box = self.box_of_screen(0.9383, 0.0576, 0.9621, 0.0986)
+        self.find_one(Labels.close_button, box=box)
+        # yellow_box = self.box_of_screen(0.2211, 0.6625, 0.3156, 0.6965, name="finish_yellow")
+        # red_box = self.box_of_screen(0.4555, 0.6625, 0.5445, 0.6965, name="finish_red")
+        # yellow_pct = self.calculate_color_percentage(finish_yellow_color, yellow_box)
+        # red_pct = self.calculate_color_percentage(finish_red_color, red_box)
         # self.log_debug(f"_is_finished: yellow_pct {yellow_pct} red_pct {red_pct}")
-        return red_pct > 0.5 or yellow_pct > 0.5
+        return self.find_one(Labels.close_button, box=box)
 
     def _handle_finish(self):
         """关闭结算界面"""
@@ -182,7 +185,7 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
 
     def _is_song_select(self) -> bool:
         """检测当前是否在选歌界面（右下角有"开始演奏"按钮）"""
-        pink_box = self.box_of_screen(0.7441, 0.8306, 0.9336, 0.8632, name="song_select_pink")
+        pink_box = self.box_of_screen(0.725, 0.854, 0.939, 0.872, name="song_select_pink")
         pink_pct = self.calculate_color_percentage(song_select_pink_color, pink_box)
         # self.log_debug(f"_is_song_select: pink_pct {pink_pct}")
         return pink_pct > 0.9
@@ -308,7 +311,7 @@ finish_red_color = {
 }
 
 song_select_pink_color = {
-    "r": (180, 220),
-    "g": (35, 50),
-    "b": (100, 120),
+    "r": (160, 210),
+    "g": (30, 50),
+    "b": (85, 120),
 }

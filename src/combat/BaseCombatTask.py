@@ -680,7 +680,7 @@ class BaseCombatTask(CombatCheck):
             if isinstance(char, char_cls):
                 return char
 
-    def _do_load_char(self, index: int, count: int, fixed_slots) -> "BaseChar":
+    def _do_load_char(self, index: int, fixed_slots) -> "BaseChar":
         fixed_slot = safe_get(fixed_slots, index)
         fixed_char_name = ""
         fixed_combo_ref = ""
@@ -696,10 +696,7 @@ class BaseCombatTask(CombatCheck):
                 self, index, fixed_char_name, confidence=1, combo_ref=fixed_combo_ref
             )
 
-        box = self.get_char_box(index)
-        if count == 1:
-            box = self.shift_char_ui_box(box, expend=True)
-        box_scaled = box.scale(1.1, 1.1)
+        box_scaled = self.get_char_box(index).scale(1.1, 1.1)
 
         return get_char_by_pos(self, box_scaled, index, safe_get(self.chars, index))
 
@@ -723,7 +720,7 @@ class BaseCombatTask(CombatCheck):
         new_chars = []
         indices_to_detect = []
         for i in range(count):
-            char = self._do_load_char(i, count, fixed_slots)
+            char = self._do_load_char(i, fixed_slots)
             new_chars.append(char)
             if char.element is Element.DEFAULT:
                 indices_to_detect.append(i)

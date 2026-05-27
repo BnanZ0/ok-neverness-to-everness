@@ -18,6 +18,7 @@ class TestCurrentChar(TaskTestCase):
             self.skipTest(f"{image} not found")
 
         self.set_image(image)
+        self.logger.info(f"target {image}")
         self.task.in_team()
         self.assertEqual(self.task.get_current_char_index(), expected_index)
         for index in range(4):
@@ -34,9 +35,11 @@ class TestCurrentChar(TaskTestCase):
             ("tests/images/01.png", 2),
             ("tests/images/current_char/current_0.png", 0),
             ("tests/images/current_char/current_1.png", 1),
+            ("tests/images/current_char/current_2_covered.png", 2),
             ("tests/images/current_char/current_2_light.png", 2),
             ("tests/images/current_char/current_2_similar_back.png", 2),
-            ("tests/images/current_char/current_3_light_2.png", 3)
+            ("tests/images/current_char/current_2_low_conf.png", 2),
+            ("tests/images/current_char/current_3_light_2.png", 3),
         ]
         for image, expected_index in cases:
             with self.subTest(image=image):

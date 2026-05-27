@@ -231,7 +231,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         try:
             self.run_path()
         except AbortException as e:
-            self.log_warning(f"路线终止: {e}")
+            self.log_error("路线终止", e)
             self.abort_heist()
             return None
 
@@ -726,19 +726,30 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.wait_until(self.has_health_bar)
         deadline = time.time() + 60
         settle = -1
+        in_team_settle = -1
         while time.time() < deadline:
-            self.send_key("space")
-            self.sleep(0.15)
-            self.click()
-            self.sleep(0.15)
+            self.send_key_down("space")
+            self.sleep(0.05)
+            self.mouse_down()
+            self.sleep(0.05)
+            self.send_key_up("space")
+            self.sleep(0.05)
+            self.mouse_up()
+            self.sleep(0.45)
             if not self.is_in_team():
-                self.log_info(f"fighter {_key} dead, try next")
-                self._dead_fighter_keys.append(_key)
-                self.ensure_in_team()
-                _key = self.switch_to_fighter()
+                if in_team_settle < 0:
+                    in_team_settle = time.time()
+                if time.time() - in_team_settle > 1:
+                    self.log_info(f"fighter {_key} dead, try next")
+                    self._dead_fighter_keys.append(_key)
+                    self.ensure_in_team()
+                    _key = self.switch_to_fighter()
             else:
+                in_team_settle = -1
                 _key = self._current_fighter_key or _key
-            self.send_key(_key)
+            self.send_key_down(_key)
+            self.sleep(0.02)
+            self.send_key_up(_key)
             self.next_frame()
             if not self._find_red_health_bar(10):
                 if settle < 0:

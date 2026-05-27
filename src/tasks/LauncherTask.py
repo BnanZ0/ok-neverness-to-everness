@@ -7,8 +7,9 @@ import psutil
 import win32con
 import win32gui
 import win32process
-from ok import TaskDisabledException
-from ok.util.process import execute
+from ok import TaskDisabledException, og
+from ok.gui.Communicate import communicate
+from ok.util.process import execute, is_admin
 from qfluentwidgets import FluentIcon
 
 from src.interaction.NTEInteraction import NTEInteraction
@@ -28,6 +29,7 @@ GAME_CAPTURE_CONFIG = {
         ],
     },
 }
+
 
 class LauncherButtonState(Enum):
     START = "start"
@@ -62,14 +64,15 @@ class LauncherTask(BaseNTETask):
 
     def run(self):
         self.log_info("Launcher task started")
+        if not self._check_admin():
+            return
+
         game_proc = self._find_process(GAME_EXE)
         self.log_info(f"Game process check: {self._format_process(game_proc)}")
         if game_proc:
             self.log_info("Game is already running; preparing game capture")
             self._update_launcher_path_from_game(game_proc.get("exe"))
-            if not self._wait_for_process(GAME_EXE):
-                raise TaskDisabledException("Timed out waiting for game window")
-            self._capture_game()
+            self._wait_for_game_and_capture(time_out=120, settle_window=False)
             return
 
         launcher_proc = self._find_process(LAUNCHER_EXE)
@@ -150,7 +153,7 @@ class LauncherTask(BaseNTETask):
                     "Game process appeared while checking launcher; treating launch as successful"
                 )
                 return True
-            
+
             if self._is_launcher_minimized():
                 self.log_info("Launcher window is minimized; Start Game click succeeded")
                 return True
@@ -255,7 +258,7 @@ class LauncherTask(BaseNTETask):
             Labels.launcher_start_game,
             horizontal_variance=0.1,
             vertical_variance=0.1,
-            threshold=0.85
+            threshold=0.85,
         )
 
     def _click_launcher_start_button(self, start_button):
@@ -263,7 +266,7 @@ class LauncherTask(BaseNTETask):
         self.click(start_button, after_sleep=2)
         if not self._is_launcher_minimized():
             self.click(0.5269, 0.6122, after_sleep=2)  # close popup
-    
+
     def _launcher_button_ready(self):
         box = self.box_of_screen(0.8137, 0.8678, 0.8387, 0.9022, name="launcher_button")
         per = self.calculate_color_percentage(launcher_btn_ready_color, box)
@@ -281,14 +284,11 @@ class LauncherTask(BaseNTETask):
         )
         if not launcher_hwnd:
             return False
-        return bool(
-            win32gui.IsIconic(launcher_hwnd)
-            or not win32gui.IsWindowVisible(launcher_hwnd)
-        )
+        return bool(win32gui.IsIconic(launcher_hwnd) or not win32gui.IsWindowVisible(launcher_hwnd))
 
-    def _wait_for_game_and_capture(self, time_out=600):
+    def _wait_for_game_and_capture(self, time_out=600, settle_window=True):
         self.log_info(f"Waiting for game process for up to {time_out}s")
-        if not self._wait_for_process(GAME_EXE, time_out=time_out, settle_window=True):
+        if not self._wait_for_process(GAME_EXE, time_out=time_out, settle_window=settle_window):
             self.log_error("Timed out waiting for game process")
             raise TaskDisabledException("Timed out waiting for game process")
         self.log_info("Game process found; switching capture to game")
@@ -303,8 +303,15 @@ class LauncherTask(BaseNTETask):
             else:
                 break
         else:
-            self.log_warning(f"try refresh timeout {time_out}s, "
-                             f"executor connect {self.executor.connected()}")
+            self.log_warning(
+                f"try refresh timeout {time_out}s, executor connect {self.executor.connected()}"
+            )
+            return
+
+        resolution_error = og.app.start_controller.check_resolution()
+        if resolution_error:
+            self.log_error(f"resolution_error: {resolution_error}")
+            raise TaskDisabledException(f"Resolution Error: {resolution_error}")
 
     def _wait_for_process(self, exe_name, time_out=120, settle_window=False):
         self.log_info(
@@ -610,6 +617,17 @@ class LauncherTask(BaseNTETask):
         name = proc_info.get("name") or "<unknown>"
         exe = proc_info.get("exe") or "<path unavailable>"
         return f"name={name}, exe={exe}"
+
+    def _check_admin(self):
+        if not is_admin():
+            communicate.starting_emulator.emit(
+                True,
+                "PC version requires admin privileges, Please restart this app with admin privileges!",  # noqa: E501
+                0,
+            )
+            communicate.restart_admin.emit()
+            return False
+        return True
 
 
 launcher_btn_ready_color = {
