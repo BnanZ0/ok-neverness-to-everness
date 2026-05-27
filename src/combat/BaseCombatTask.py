@@ -488,11 +488,11 @@ class BaseCombatTask(CombatCheck):
             else:
                 return
         else:
-            anchor = getattr(self.chain_executor, '_pending_anchor', None)
+            anchor = self.chain_executor.pending_anchor
             if anchor is not None and anchor != current_char:
                 switch_to = anchor
                 has_intro = free_intro or (switch_to.element != current_char.element and current_char.is_cycle_full())
-                self.chain_executor._pending_anchor = None
+                self.chain_executor.set_axis_anchor(None)
             else:
                 switch_to, has_intro = self._find_switch_target(current_char, free_intro)
 
