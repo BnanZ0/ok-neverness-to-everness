@@ -730,20 +730,12 @@ class BaseCombatTask(CombatCheck):
             for i in indices_to_detect:
                 new_chars[i].element = detected_elements.get(i, Element.DEFAULT)
 
-        elements = [char.element for char in new_chars]
         self.chars = new_chars
         from src.combat.ChainLoader import ChainLoader
         team_strategy = fixed_team.get("team_strategy", "NONE")
         if team_strategy != "NONE":
             ChainLoader.replace_chars_with_strategy(self, team_strategy)
-            if hasattr(self, 'chain_executor') and self.chain_executor and self.chain_executor.active:
-                for i in range(len(self.chain_executor.steps)):
-                    old_char, method = self.chain_executor.steps[i]
-                    if 0 <= old_char.index < len(self.chars):
-                        new_char = self.chars[old_char.index]
-                        self.chain_executor.steps[i] = (new_char, method)
-                        if hasattr(old_char, '_chain_method'):
-                            new_char._chain_method = old_char._chain_method
+        elements = [char.element for char in self.chars]
         self.info_set("char elements", elements)
 
         healer_count = 0

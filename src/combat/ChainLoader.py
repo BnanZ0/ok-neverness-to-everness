@@ -69,4 +69,3 @@ class ChainLoader:
         def builder():
             return hotori._build_next_chain()
         return builder
-        
