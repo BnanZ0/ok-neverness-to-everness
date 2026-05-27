@@ -137,14 +137,6 @@ class HotoriChain(Hotori):
             self.sleep(self.CD_CONFIRM_TICK)
         return False
 
-    def _confirm_q_cd(self):
-        start = time.time()
-        while time.time() - start < self.CD_CONFIRM_TIMEOUT:
-            if self.has_cd("ultimate"):
-                return True
-            self.sleep(self.CD_CONFIRM_TICK)
-        return False
-
     def chain_e_start_chain(self):
         self.logger.info(f"chain_e_start_chain: entering, has_intro={self.has_intro}")
         wait_start = time.time()
@@ -251,7 +243,7 @@ class HotoriChain(Hotori):
             start = time.time()
             while time.time() - start < self.INTRO_MOTION_FREEZE_DURATION:
                 self.click()
-                if self.ultimate_available() and self.click_ultimate(send_click=True) and self._confirm_q_cd():
+                if self.ultimate_available() and self.click_ultimate(send_click=True):
                     q_done = True
                     self._q_cast_time = time.time()
                     break
@@ -262,7 +254,7 @@ class HotoriChain(Hotori):
             while True:
                 self.task.sleep_check()
                 if self.ultimate_available():
-                    if self.click_ultimate(send_click=True) and self._confirm_q_cd():
+                    if self.click_ultimate(send_click=True):
                         self._q_cast_time = time.time()
                         break
                 self.click()

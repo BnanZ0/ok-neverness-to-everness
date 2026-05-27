@@ -12,8 +12,6 @@ class NanallyChain(Nanally):
     LOOP_TICK = 0.05            # 通用轮询间隔
     E_CD_CONFIRM_TIMEOUT = 0.5  # E CD确认超时
     E_CD_CONFIRM_TICK = 0.03    # E CD确认轮询间隔
-    Q_CD_CONFIRM_TIMEOUT = 0.5  # Q CD确认超时
-    Q_CD_CONFIRM_TICK = 0.03    # Q CD确认轮询间隔
 
     def do_perform(self):
         if self.task.chain_executor.active:
@@ -29,14 +27,6 @@ class NanallyChain(Nanally):
             if self.has_cd("skill"):
                 return True
             self.sleep(self.E_CD_CONFIRM_TICK)
-        return False
-
-    def _confirm_q_cd(self):
-        start = time.time()
-        while time.time() - start < self.Q_CD_CONFIRM_TIMEOUT:
-            if self.has_cd("ultimate"):
-                return True
-            self.sleep(self.Q_CD_CONFIRM_TICK)
         return False
 
     def _try_initial_e_release(self):
@@ -62,7 +52,7 @@ class NanallyChain(Nanally):
                 self.task.sleep_check()
                 if self.ultimate_available() and time.time() - last_e_time >= self.EQ_MIN_INTERVAL:
                     self.task.allow_ultimate_during_settle()
-                    if self.click_ultimate() and self._confirm_q_cd():
+                    if self.click_ultimate():
                         self.logger.info("Nanally Q released after E")
                         break
                 self.click()
@@ -80,8 +70,7 @@ class NanallyChain(Nanally):
                     last_e_time = time.time()
                 if self.ultimate_available() and time.time() - last_e_time >= self.EQ_MIN_INTERVAL:
                     self.task.allow_ultimate_during_settle()
-                    if self.click_ultimate() and not self._confirm_q_cd():
-                        self.logger.warning("Nanally standby Q CD not detected")
+                    self.click_ultimate()
                 self.click()
             else:
                 self.click()
