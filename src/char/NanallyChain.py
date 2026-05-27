@@ -61,7 +61,7 @@ class NanallyChain(Nanally):
             while time.time() < q_deadline:
                 self.task.sleep_check()
                 if self.ultimate_available() and time.time() - last_e_time >= self.EQ_MIN_INTERVAL:
-                    self.task._combat_settle.time = None
+                    self.task.allow_ultimate_during_settle()
                     if self.click_ultimate() and self._confirm_q_cd():
                         self.logger.info("Nanally Q released after E")
                         break
@@ -79,7 +79,7 @@ class NanallyChain(Nanally):
                 if self.skill_available() and self.click_skill() and self._confirm_e_cd():
                     last_e_time = time.time()
                 if self.ultimate_available() and time.time() - last_e_time >= self.EQ_MIN_INTERVAL:
-                    self.task._combat_settle.time = None
+                    self.task.allow_ultimate_during_settle()
                     if self.click_ultimate() and not self._confirm_q_cd():
                         self.logger.warning("Nanally standby Q CD not detected")
                 self.click()

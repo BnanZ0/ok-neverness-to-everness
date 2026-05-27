@@ -62,7 +62,7 @@ class ZeroChain(Zero):
                 self.sleep(self.INTRO_LOOP_INTERVAL)
         
         q_deadline = time.time() + self.Q_DEADLINE
-        self.task._combat_settle.time = None
+        self.task.allow_ultimate_during_settle()
         while time.time() < q_deadline:
             self.task.sleep_check()
             self.click()

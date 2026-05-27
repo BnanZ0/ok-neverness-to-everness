@@ -122,6 +122,9 @@ class BaseChar:
             return self.name == other.name and self.index == other.index
         return False
 
+    def set_chain_action(self, method_name):
+        self._chain_method = method_name
+
     def perform(self):
         """执行当前角色的主要战斗行动序列。"""
         self.last_perform = time.time()
@@ -908,7 +911,7 @@ class BaseChar:
                 self.task.send_key(target_char.index + 1)
                 return True
         else:
-            anchor = getattr(self.task.chain_executor, '_pending_anchor', None)
+            anchor = self.task.chain_executor._pending_anchor
             if anchor is not None and anchor != self:
                 self.task.send_key(anchor.index + 1)
                 return True

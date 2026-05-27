@@ -90,7 +90,7 @@ class HotoriChain(Hotori):
             self._chain_cycle = 2
             return self._build_steps("warmup")
         self._chain_cycle = 0
-        self.task.chain_executor._pending_anchor = self
+        self.task.chain_executor.set_axis_anchor(self)
         return None
 
     def do_perform(self):
@@ -200,7 +200,17 @@ class HotoriChain(Hotori):
                         self.sleep(self.LOOP_TICK)
                         continue
                     else:
-                        self.logger.info(f"chain_e_start_chain: E cast assumed (no CD but skill unavailable) after {fail_count} failures")
+                        self.sleep(0.3)
+                        if self.has_cd("skill"):
+                            self.logger.info(f"chain_e_start_chain: CD confirmed after wait (ddg/interrupted) after {fail_count} failures")
+                        elif self.skill_available():
+                            self.logger.warning("chain_e_start_chain: skill recovered after wait, retrying")
+                            fail_count += 1
+                            last_attempt = now
+                            self.sleep(self.LOOP_TICK)
+                            continue
+                        else:
+                            self.logger.info(f"chain_e_start_chain: E cast assumed after wait ({fail_count} failures)")
                     self._e_used = True
                     self._e_lockdown = True
                     self.start_team_skill_window()
@@ -248,7 +258,7 @@ class HotoriChain(Hotori):
                 self.sleep(self.INTRO_LOOP_INTERVAL)
         if not q_done:
             self.task.sleep(self.Q_PRE_SLEEP)
-            self.task._combat_settle.time = None
+            self.task.allow_ultimate_during_settle()
             while True:
                 self.task.sleep_check()
                 if self.ultimate_available():

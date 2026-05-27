@@ -642,6 +642,9 @@ class BaseCombatTask(CombatCheck):
         if ctx and ctx.trigger:
             ctx.trigger.dodge_suppressed = False
 
+    def allow_ultimate_during_settle(self):
+        self._combat_settle.time = None
+
     def _apply_sound_config(self):
         if self.sound_config:
             enable = self.sound_config.get("Enable Sound Trigger", True)

@@ -25,6 +25,9 @@ class ChainExecutor:
         self._builder = None
         self._pending_anchor = None
 
+    def set_axis_anchor(self, char):
+        self._pending_anchor = char
+
     def loop(self, builder):
         import time
         self._builder = builder
@@ -44,7 +47,7 @@ class ChainExecutor:
         self.current_index = 0
         self.active = True
         first_char, first_method = self.target
-        first_char._chain_method = first_method
+        first_char.set_chain_action(first_method)
         names = [(c.__class__.__name__, m) for c, m in steps]
         self.task.log_info(f"start_chain with {len(steps)} steps: {names}")
 
@@ -71,7 +74,7 @@ class ChainExecutor:
             self.task.log_info("chain finished, waiting for anchor restart")
             return
         next_char, next_method = self.target
-        next_char._chain_method = next_method
+        next_char.set_chain_action(next_method)
         self.task.log_info(
             f"chain step {self.current_index}: -> {next_char.__class__.__name__}.{next_method}"
         )
