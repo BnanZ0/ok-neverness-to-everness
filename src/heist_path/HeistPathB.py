@@ -8,15 +8,16 @@ class HeistPathB(HeistPathA):
     def run_path(self):
         self.goto_lg1_skip()
         self.wait_team_ui_settle()
-        self.check_current_floor(1)
+        # if not self.check_current_floor_str("办公"):
+        #     self.check_current_floor(1)
         self.switch_to_runner(check_switched=True)
         self.lg1_wp1_safer()
         self.lg1_wp2()
         self.lg1_wp3()
         self.lg1_wp4_buster()
         self.wait_team_ui_settle()
-        if not self.check_current_floor_str("藏品"):
-            self.check_current_floor(2)
+        # if not self.check_current_floor_str("藏品"):
+        #     self.check_current_floor(2)
         self.lg2_wp1_to_exit1() # self.lg2_wp1_to_exit1_safer(False)
         self.lg2_wp1_remains()
         self.lg2_wp2_to_exit2_safer()
@@ -32,7 +33,7 @@ class HeistPathB(HeistPathA):
 
     # 全新大厅到LG1办公层线路，早雾控怪避战，理论最快11分00到办公层
     def goto_lg1_skip(self):
-        self.log_round_info("寻路到LG1")
+        self.log_round_info("大厅前往LG1")
         self.sleep(0.30)
         self.switch_to_runner(check_switched=True)
         self.sleep(0.10)
@@ -76,7 +77,7 @@ class HeistPathB(HeistPathA):
         self.sleep(1.14)
         self.send_key_up("w")
         self.sleep(0.10)
-        self.switch_to_fighter(check_switched=True)  # 切到早雾控怪
+        self.switch_to_fighter(check_switched=True, mode=1)  # 切到早雾控怪
         self.sleep(0.10)
         self.send_key("a", down_time=0.20)
         self.sleep(0.10)
@@ -97,10 +98,12 @@ class HeistPathB(HeistPathA):
         self.sleep(0.32)
         self.send_key("d", down_time=0.32)
         self.sleep(0.32)
-        self.send_key("a", down_time=0.40)
-        self.sleep(0.20)
         self.send_key("a", down_time=0.32)
-        self.sleep(0.52)
+        self.sleep(0.32)
+        self.send_key("a", down_time=0.32)
+        self.sleep(0.32)
+        self.send_key("a", down_time=0.16)
+        self.sleep(0.42)
         self.send_key_up("w")
         self.sleep(0.10)
         self.send_key("a", down_time=3.80)
@@ -139,7 +142,7 @@ class HeistPathB(HeistPathA):
         self.sleep(0.90)
         self.send_key_up("d")
         self.send_key_up("w")
-        self.switch_to_fighter(check_switched=True)  # 切到早雾控怪
+        self.switch_to_fighter(check_switched=True, mode=1)  # 切到早雾控怪
         self.sleep(0.20)
         self.send_key("s", down_time=0.10)
         self.sleep(0.20)
@@ -149,7 +152,19 @@ class HeistPathB(HeistPathA):
         self.send_key_down("w")
         self.wait_and_interact(direction="w", is_lock=True, time_out=7.64)
         if self.find_interac():
-            self.goto_lg1_interrupted()
+            self.clear_current_combat_spec()
+            self.sleep(0.10)
+            self.send_key("f", down_time=0.10)
+            self.sleep(0.10)
+            self.send_key("f", down_time=0.10)
+            self.sleep(0.10)
+            self.send_key("f", down_time=0.10)
+            self.send_key_down("w")
+            self.sleep(0.24)
+            self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
+            self.sleep(0.36)
+            if not self.check_current_floor_str("大厅"):
+                return
         self.send_key_down("w")
         self.sleep(0.32)
         self.send_key("a", down_time=0.28)
@@ -158,6 +173,7 @@ class HeistPathB(HeistPathA):
 
     # LG1部分优化
     def lg1_wp1_safer(self):
+        self.log_round_info("LG1 WP1 Safer")
         self.switch_to_runner(check_switched=True) # 确认切到薄荷跑图
         self.sleep(0.20)
         self.send_key('w', down_time=9.08)
@@ -203,6 +219,7 @@ class HeistPathB(HeistPathA):
         self.sleep(0.12)
 
     def lg1_wp4_buster(self):
+        self.log_round_info("LG1 WP4 Buster")
         self.send_key_down("d")
         self.sleep(0.11)
         self.send_key_down("s")
@@ -308,6 +325,7 @@ class HeistPathB(HeistPathA):
         self.send_key_down("w")
         self.sleep(7.70)
         self.send_key_up("w")
+        self.log_round_info("LG1 WP4 Buster 开始避战路线")
         self.switch_to_avoider(check_switched=True)
         self.sleep(0.5)
         self.perform_avoidance_action()
@@ -325,6 +343,7 @@ class HeistPathB(HeistPathA):
 
     # LG2部分优化
     def lg2_wp1_to_exit1_safer(self, isExit=False):
+        self.log_round_info("LG2 WP1 Safer 搜刮并检测出口1状态")
         self.switch_to_runner(check_switched=True) # 换薄荷
         self.sleep(0.10)
         self.send_key('w', down_time=5.00)
@@ -426,6 +445,7 @@ class HeistPathB(HeistPathA):
             # self.sleep(0.5)
 
     def lg2_wp2_to_exit2_safer(self):
+        self.log_round_info("LG2 WP2 Safer 搜刮并检测出口2状态")
         self.send_key_down("f")  # start pick
         self.sleep(0.11)
         self.send_key_down("d")
@@ -449,26 +469,25 @@ class HeistPathB(HeistPathA):
         self.send_key('w', down_time=3.953)
         self.sleep(0.108)
         self.send_key('a', down_time=0.711)
+        self.sleep(0.108)
+        self.send_key('f', down_time=0.062)
+        self.sleep(0.109)
+        self.send_key('d', down_time=1.606)
+        self.sleep(0.108)
+        self.send_key('f', down_time=0.062)
+        self.sleep(0.109)
+        self.send_key('a', down_time=0.711)
+        self.sleep(1.514)
+        self.send_key('w', down_time=2.45)
+        self.sleep(0.10)
+        self.send_key('d', down_time=2.32)
+        self.sleep(0.11)
         self.send_key_down("f")  # start pick
-        self.sleep(0.31)
-        self.send_key_down("d")
-        self.sleep(1.61)
-        self.send_key_up("d")
-        self.sleep(0.30)
-        self.send_key_down("a")
-        self.sleep(0.72)
-        self.send_key_up("a")
-        self.sleep(0.26)
+        self.sleep(0.10)
+        self.send_key('d', down_time=0.10)
+        self.sleep(0.10)
         self.send_key_down("w")
-        self.sleep(2.60)
-        self.send_key_up("w")
-        self.sleep(0.11)
-        self.send_key_down("d")
-        self.sleep(2.31)
-        self.send_key_up("d")
-        self.sleep(0.11)
-        self.send_key_down("w")
-        self.sleep(4.03)
+        self.sleep(4.04)
         self.send_key_up("w")
         self.sleep(0.11)
         self.send_key_down("s")
@@ -484,16 +503,94 @@ class HeistPathB(HeistPathA):
         self.switch_to_runner()
         self.sleep(0.28)
         self.send_key_down("w")
-        self.sleep(2.56)
-        self.send_key_down("a")
-        self.sleep(0.30)
-        self.send_key_up("a")
-        self.sleep(1.57)
+        self.sleep(3.65)
         self.exit_state[2] = self.try_open_exit(direction="w")
         self.sleep(0.40)
 
     # 尝试兼容1600*900分辨率
-    def check_current_floor_str(self, str):
-        ret = self.wait_ocr(0.04, 0.23, 0.17, 0.28, match=re.compile(str), time_out=10)
+    def check_current_floor_str(self, floor_str):
+        ret = self.wait_ocr(0.04, 0.23, 0.17, 0.28, match=re.compile(floor_str), time_out=5)
         if ret:
             return True
+    
+    # 定制化战斗切人方法
+    def switch_to_fighter(self, check_switched=False, mode="all_desc"):
+        """切换到可用战斗角色。   
+        `mode` 调度策略（配置重新从小到大排序后）：
+        - "all_desc": [默认]按键位从大到小完整尝试（如 ["4", "1"]）
+        - "all_asc" : 按键位从小到大完整尝试（如 ["1", "4"]）
+        -     1     : 只切当前最小的那个键位
+        -    -1     : 只切当前最大的那个键位
+        -     n     : 只切重新排序后的【第 n 个】角色
+        """
+        config_keys = list(self.config.get(self.CONF_FIGHTER, []))
+        if not config_keys:
+            dead_keys = set(self._dead_fighter_keys)
+            config_keys = [item for item in config_keys if item not in dead_keys]
+            return self._begin_character_switch(self.ROLE_FIGHTER, config_keys, check_switched)
+        sorted_keys = sorted(config_keys, key=int)
+        if mode == "all_asc":
+            keys = sorted_keys
+        elif mode == "all_desc":
+            keys = sorted_keys[::-1]
+        elif isinstance(mode, int):   
+            if mode == -1:
+                keys = [sorted_keys[-1]]
+            else:
+                idx = mode - 1
+                if 0 <= idx < len(sorted_keys):
+                    keys = [sorted_keys[idx]]
+                else:
+                    self.log_error(f"切人位置越界！配置排序后只有 {len(sorted_keys)} 个人，你请求切第 {mode} 个，自动切最后一个。")
+                    keys = [sorted_keys[-1]]
+        else:
+            keys = sorted_keys[::-1]
+        dead_keys = set(self._dead_fighter_keys)
+        keys = [item for item in keys if item not in dead_keys]
+        return self._begin_character_switch(self.ROLE_FIGHTER, keys, check_switched)
+    
+    def clear_current_combat_spec(self):
+        """处理并等待当前小战斗结束。
+
+        会切到战斗角色、攻击直到红色血条消失，再切回跑图角色。
+        若战斗超时或所有战斗角色不可用会中断路径。
+        """
+        _key = self.switch_to_fighter(check_switched=True, mode="all_desc")
+        self.wait_until(self.has_health_bar)
+        deadline = time.time() + 60
+        settle = -1
+        in_team_settle = -1
+        while time.time() < deadline:
+            self.send_key_down("space")
+            self.sleep(0.05)
+            self.mouse_down()
+            self.sleep(0.05)
+            self.send_key_up("space")
+            self.sleep(0.05)
+            self.mouse_up()
+            self.sleep(0.45)
+            if not self.is_in_team():
+                if in_team_settle < 0:
+                    in_team_settle = time.time()
+                if time.time() - in_team_settle > 1:
+                    self.log_info(f"fighter {_key} dead, try next")
+                    self._dead_fighter_keys.append(_key)
+                    self.ensure_in_team()
+                    _key = self.switch_to_fighter()
+            else:
+                in_team_settle = -1
+                _key = self._current_fighter_key or _key
+            self.send_key_down(_key)
+            self.sleep(0.02)
+            self.send_key_up(_key)
+            self.next_frame()
+            if not self._find_red_health_bar(10):
+                if settle < 0:
+                    settle = time.time()
+                if time.time() - settle > 2:
+                    break
+            else:
+                settle = -1
+        else:
+            raise AbortException("timeout for clear_current_combat")
+        self.switch_to_runner(check_switched=True)

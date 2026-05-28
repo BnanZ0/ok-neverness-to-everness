@@ -13,12 +13,10 @@ class NTEScene(BaseScene):
         self.cd_refreshed = False
         self._ocr_warm_up = False
         self._is_in_team_record = {"state": None, "timestamp": 0}
-        self._scene_frame = None
 
     def reset(self):
         self._is_in_team = None
         self._in_combat = None
-        self._scene_frame = None
         self.cd_refreshed = False
 
     def in_combat(self):
@@ -42,8 +40,3 @@ class NTEScene(BaseScene):
 
     def get_is_in_team_record(self):
         return self._is_in_team_record["state"], self._is_in_team_record["timestamp"]
-
-    def scene_frame(self, frame):
-        if self._scene_frame is None:
-            self._scene_frame = frame
-        return self._scene_frame

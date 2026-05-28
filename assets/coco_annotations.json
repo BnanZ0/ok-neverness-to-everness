@@ -706,7 +706,7 @@
         {
             "id": 42,
             "image_id": 19,
-            "category_id": 42,
+            "category_id": 35,
             "bbox": [
                 929,
                 126,
@@ -1097,6 +1097,11 @@
             "supercategory": ""
         },
         {
+            "id": 35,
+            "name": "fish_sucess",
+            "supercategory": ""
+        },
+        {
             "id": 36,
             "name": "teleport",
             "supercategory": ""
@@ -1124,11 +1129,6 @@
         {
             "id": 41,
             "name": "stamina_icon",
-            "supercategory": ""
-        },
-        {
-            "id": 42,
-            "name": "fising_sucess",
             "supercategory": ""
         },
         {

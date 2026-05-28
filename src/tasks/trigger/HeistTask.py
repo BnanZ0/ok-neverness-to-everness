@@ -18,7 +18,7 @@ class HeistTask(BaseNTETask, TriggerTask):
     CHECK_INTERVAL = 0.01
     PICK_KEY_HOLD_INTERVAL = 0.35
     QUICK_RUN_HOLD_INTERVAL = 0.5
-    QUICK_RUN_KEY_AFTER_SLEEP = 0.2
+    QUICK_RUN_KEY_AFTER_SLEEP = 0.25
     QUICK_RUN_SHIFT_INTERVAL = 0.3
     QUICK_RUN_SHIFT_AFTER_SLEEP = 0.4
     KEY_MAP = {
@@ -71,7 +71,6 @@ class HeistTask(BaseNTETask, TriggerTask):
         self._loop = True
 
     def run(self):
-        self.scene.scene_frame(self.frame)
         if not self.scene.is_in_team(self.is_in_team):
             self._loop = False
             return
@@ -179,29 +178,29 @@ class HeistTask(BaseNTETask, TriggerTask):
         if not self.is_foreground() or not self._is_key_pressed("shift"):
             self._reset_quick_run()
             return
-
         if self._quick_run_step == 0:
             key = str(self._quick_run_index % char_count + 1)
             self._quick_run_index += 1
-            self.send_key(key)
-            max_time = now + self.QUICK_RUN_KEY_AFTER_SLEEP
-            frame = self._get_scene_frame()
-            if frame is not None:
-                max_time += 1
-            while max_time > time.time():
-                if frame is not None and not self.is_char_at_index(int(key) - 1, frame=frame):
-                    break
-                time.sleep(0.1)
+            max_time = time.time() + 3
+            deadline = time.time() + self.QUICK_RUN_KEY_AFTER_SLEEP
+            while deadline > time.time() and time.time() < max_time:
+                self.send_key(key, action_name="heist_task_run", interval=0.5)
+                frame = self.frame
+                if frame is not None:
+                    deadline += 0.1
+                    if self.is_char_at_index(int(key) - 1, frame=frame):
+                        break
+                time.sleep(0.05)
             self._quick_run_step = 1
-            self._quick_run_time = now
+            self._quick_run_time = time.time()
         elif self._quick_run_step == 1:
             self.send_key("lshift")
             self._quick_run_step = 2
-            self._quick_run_time = now + self.QUICK_RUN_SHIFT_INTERVAL
+            self._quick_run_time = time.time() + self.QUICK_RUN_SHIFT_INTERVAL
         else:
             self.send_key("lshift")
             self._quick_run_step = 0
-            self._quick_run_time = now + self.QUICK_RUN_SHIFT_AFTER_SLEEP
+            self._quick_run_time = time.time() + self.QUICK_RUN_SHIFT_AFTER_SLEEP
 
     def _reset_quick_run(self):
         self._shift_pressed = False
@@ -210,11 +209,6 @@ class HeistTask(BaseNTETask, TriggerTask):
         self._quick_run_index = 0
         self._quick_run_time = 0
         self._quick_run_step = 0
-
-    def _get_scene_frame(self):
-        if self.scene is None or self.scene._scene_frame is None:
-            return None
-        return self.scene._scene_frame
 
     def _is_key_pressed(self, key):
         vk_code = self._get_vk_code(key)

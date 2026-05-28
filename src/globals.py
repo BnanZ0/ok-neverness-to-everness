@@ -16,6 +16,8 @@ class Globals(QObject):
         self._thread_pool_executor_max_workers = 0
         self.thread_pool_executor = None
         self.thread_pool_exit_event = Event()
+        self._periodic_tasks = {}
+        self._periodic_tasks_lock = threading.Lock()
         exit_event.bind_stop(self)
         self._openvino_model_async = None
         self._sound_context_stop_event = Event()
@@ -54,10 +56,37 @@ class Globals(QObject):
     def shutdown_thread_pool_executor(self):
         if self.thread_pool_executor is not None:
             logger.info("Shutting down thread pool executor...")
+            with self._periodic_tasks_lock:
+                for record in self._periodic_tasks.values():
+                    record["stop_event"].set()
+                self._periodic_tasks.clear()
             self.thread_pool_exit_event.set()
             self.thread_pool_executor.shutdown(wait=False, cancel_futures=True)
             self.thread_pool_executor = None
             self._thread_pool_executor_max_workers = 0
+
+    def _get_periodic_task_key(self, task):
+        bound_self = getattr(task, "__self__", None)
+        func = getattr(task, "__func__", task)
+        func_name = getattr(func, "__name__", repr(task))
+
+        if bound_self is not None:
+            cls = bound_self.__class__
+            return ("bound_method", cls.__module__, cls.__qualname__, func_name)
+
+        return (
+            "callable",
+            getattr(func, "__module__", None),
+            getattr(func, "__qualname__", func_name),
+        )
+
+    def _get_periodic_task_name(self, task):
+        bound_self = getattr(task, "__self__", None)
+        func = getattr(task, "__func__", task)
+        func_name = getattr(func, "__name__", repr(task))
+        if bound_self is None:
+            return func_name
+        return f"{bound_self.__class__.__name__}.{func_name}"
 
     def submit_periodic_task(self, delay, task, *args, **kwargs):
         """
@@ -71,29 +100,60 @@ class Globals(QObject):
         """
         executor = self.get_thread_pool_executor()
         exit_event = self.thread_pool_exit_event
+        task_key = self._get_periodic_task_key(task)
+        task_name = self._get_periodic_task_name(task)
+        task_stop_event = Event()
+
+        with self._periodic_tasks_lock:
+            old_record = self._periodic_tasks.get(task_key)
+            if old_record is not None:
+                logger.debug(f"Stopping previous periodic task {task_name}.")
+                old_record["stop_event"].set()
+                old_future = old_record.get("future")
+                if old_future is not None:
+                    old_future.cancel()
+
+            self._periodic_tasks[task_key] = {
+                "stop_event": task_stop_event,
+                "future": None,
+            }
 
         def loop_wrapper():
-            logger.debug(f"Periodic task {task.__name__} started.")
+            logger.debug(f"Periodic task {task_name} started.")
 
-            while not exit_event.is_set():
-                should_stop = False
-                try:
-                    if task(*args, **kwargs) is False:
-                        should_stop = True
-                except Exception as e:
-                    logger.error(f"Error in periodic task {task.__name__}: {e}")
+            try:
+                while not exit_event.is_set() and not task_stop_event.is_set():
+                    should_stop = False
+                    try:
+                        if task(*args, **kwargs) is False:
+                            should_stop = True
+                    except Exception as e:
+                        logger.error(f"Error in periodic task {task_name}: {e}")
 
-                if should_stop:
-                    logger.debug(f"Periodic task {task.__name__} decided to stop.")
-                    break
+                    if should_stop:
+                        logger.debug(f"Periodic task {task_name} decided to stop.")
+                        break
 
-                if exit_event.wait(timeout=delay):
-                    logger.debug(f"Periodic task {task.__name__} received stop signal.")
-                    break
+                    if task_stop_event.wait(timeout=delay) or exit_event.is_set():
+                        logger.debug(f"Periodic task {task_name} received stop signal.")
+                        break
 
-            logger.debug(f"Periodic task {task.__name__} stopped.")
+                logger.debug(f"Periodic task {task_name} stopped.")
+            finally:
+                with self._periodic_tasks_lock:
+                    current_record = self._periodic_tasks.get(task_key)
+                    if (
+                        current_record is not None
+                        and current_record["stop_event"] is task_stop_event
+                    ):
+                        del self._periodic_tasks[task_key]
 
-        executor.submit(loop_wrapper)
+        future = executor.submit(loop_wrapper)
+        with self._periodic_tasks_lock:
+            current_record = self._periodic_tasks.get(task_key)
+            if current_record is not None and current_record["stop_event"] is task_stop_event:
+                current_record["future"] = future
+        return future
 
     @property
     def openvino_model_async(self):

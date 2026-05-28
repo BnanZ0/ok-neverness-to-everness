@@ -36,7 +36,7 @@ class Labels(str, Enum):
     fish_sell = 'fish_sell'
     fish_shop = 'fish_shop'
     fish_start = 'fish_start'
-    fising_sucess = 'fising_sucess'
+    fish_sucess = 'fish_sucess'
     health_bar_slash = 'health_bar_slash'
     heist_interac_lock_pick = 'heist_interac_lock_pick'
     heist_lock_pick = 'heist_lock_pick'

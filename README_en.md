@@ -43,7 +43,6 @@ All issues and consequences arising from the use of this software are not relate
 - **Auto Combat**: Computer vision-based combat algorithm.
 - **Anomaly**: Automate Anomaly challenges.
 - **Auto Drum Rhythm Game**: Automatically complete drum rhythm games.
-- **Owner's Selection**: Automatically loop entering and exiting stages (requires an in-game AFK build).
 - **Skip Dialog**: Rapidly skip through story dialogs.
 - **Fast Travel**: Automatic map teleportation.
 - **Pink Paws Heist Convenience Features**

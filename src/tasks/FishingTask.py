@@ -605,7 +605,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         return not self.has_fish_bait() and self.has_fish_start()
 
     def has_success_overlay(self):
-        return self.find_one(Labels.fising_sucess)
+        return self.find_one(Labels.fish_sucess)
 
     def has_fish_start(self):
         def frame_process(img):

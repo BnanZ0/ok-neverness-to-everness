@@ -80,7 +80,7 @@ class BaseNTETask(CharUIMixin, BaseTask):
         """
         if og.my_app is None:
             return
-        og.my_app.submit_periodic_task(delay, task, *args, **kwargs)
+        return og.my_app.submit_periodic_task(delay, task, *args, **kwargs)
 
     def _openvino_detect(self, frame, sync, box, threshold, force=False, mask_regions=None):
         if og.my_app is None:
@@ -314,6 +314,7 @@ class BaseNTETask(CharUIMixin, BaseTask):
         angle_range=range(-180, 180, 5),
         min_non_zero=20,
         cache_key=None,
+        template_angle=0,
     ):
         start_time = time.time()
         scene_mask = self._first_channel_mask(scene)
@@ -336,7 +337,8 @@ class BaseNTETask(CharUIMixin, BaseTask):
             if best is None or score > best["score"]:
                 best = {
                     "center": (top_left[0] + tw // 2, top_left[1] + th // 2),
-                    "angle": angle,
+                    "angle": self._normalize_angle(angle + template_angle),
+                    "match_angle": angle,
                     "score": score,
                 }
 
@@ -381,6 +383,9 @@ class BaseNTETask(CharUIMixin, BaseTask):
         if mat.ndim == 2:
             return mat
         return mat[:, :, 0]
+
+    def _normalize_angle(self, angle):
+        return (angle + 180) % 360 - 180
 
     def _rotate_mask(self, mask, angle):
         h, w = mask.shape[:2]
