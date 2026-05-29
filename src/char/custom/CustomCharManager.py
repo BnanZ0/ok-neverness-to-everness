@@ -700,6 +700,25 @@ class CustomCharManager:
                         characters[char_name] = char_data
             return characters
 
+    def get_all_character_names(self):
+        with self._data_lock:
+            names = set()
+            for char_id, char_data in self.db["characters"].items():
+                if isinstance(char_data, dict):
+                    names.add(self._character_name_from_record(char_id, char_data))
+                else:
+                    name = self._normalize_char_name(char_id)
+                    if name:
+                        names.add(name)
+
+            from src.char.custom.BuiltinComboRegistry import BuiltinComboRegistry
+
+            for key, meta in BuiltinComboRegistry._get_builtin_entries().items():
+                if isinstance(meta, dict) and meta.get("cn_name"):
+                    names.add(meta["cn_name"])
+
+            return sorted(names)
+
     def get_character_combo_ref(self, char_name: str) -> str:
         info = self.get_character_info(char_name) or {}
         return self.to_combo_ref(info.get("combo_ref", ""))

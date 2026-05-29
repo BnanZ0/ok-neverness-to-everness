@@ -22,6 +22,9 @@ from qfluentwidgets import (
     TransparentToolButton,
 )
 
+import threading
+import time
+
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.tasks.trigger.AutoCombatTask import AutoCombatTask, scanner_signals
 from src.ui.common import (
@@ -31,6 +34,8 @@ from src.ui.common import (
     char_manager_signals,
     cv_to_pixmap,
 )
+
+
 
 
 def tr_fmt(text_id, **kwargs):
@@ -64,7 +69,7 @@ class NewCharDialog(MessageBoxBase):
         )
         self.viewLayout.addWidget(img_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        self.existing_chars = list(self.manager.get_all_characters().keys())
+        self.existing_chars = list(self.manager.get_all_character_names())
         self.char_combo = SearchableComboBox()
         self.char_combo.setPlaceholderText(self.tr_name_ph)
         self.char_combo.addItems([""] + self.existing_chars)
@@ -128,7 +133,7 @@ class SlotCard(CardWidget):
         self.vbox = QVBoxLayout(self)
         self.title = SubtitleLabel(self.tr_slot_title.format(index + 1))
         self.image = ImageLabel()
-        self.image.setFixedSize(120, 120)
+        self.image.setFixedSize(120, 80)
         self.status = BodyLabel(self.tr_scan_prompt)
         self.btn_act = PrimaryPushButton(self.tr_action_btn, self)
         self.btn_act.hide()
@@ -137,6 +142,7 @@ class SlotCard(CardWidget):
         self.vbox.addWidget(self.image, alignment=Qt.AlignmentFlag.AlignCenter)
         self.vbox.addWidget(self.status, alignment=Qt.AlignmentFlag.AlignCenter)
         self.vbox.addWidget(self.btn_act, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.vbox.addSpacing(2)
 
         self.btn_act.clicked.connect(self.on_action)
         self.current_mat = None
@@ -152,13 +158,13 @@ class SlotCard(CardWidget):
             self.image.setImage(
                 pixmap.scaled(
                     120,
-                    120,
+                    80,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
             )
         else:
-            empty_pixmap = QPixmap(120, 120)
+            empty_pixmap = QPixmap(120, 80)
             empty_pixmap.fill(Qt.GlobalColor.transparent)
             self.image.setImage(empty_pixmap)
 
@@ -220,6 +226,7 @@ class FixedTeamSlotCard(CardWidget):
         self.combo_list.setPlaceholderText(self.tr_combo_ph)
 
         self.vbox.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.vbox.addSpacing(6)
         self.vbox.addWidget(self.char_combo)
         self.vbox.addWidget(self.combo_list)
 
@@ -252,7 +259,7 @@ class FixedTeamSlotCard(CardWidget):
         self.char_combo.blockSignals(True)
         self.char_combo.clear()
         self.char_combo.addItem("")
-        for name in self.manager.get_all_characters().keys():
+        for name in self.manager.get_all_character_names():
             self.char_combo.addItem(name)
         self.char_combo.setCurrentText(current_char)
         self.char_combo.blockSignals(False)
@@ -302,7 +309,12 @@ class TeamManagerTab(CustomTab):
         self._executor = None
         self.tr_scan_btn = og.app.tr("扫描队伍")
         self.tr_scanning = og.app.tr("扫描中...")
+        self.tr_rematch_btn = og.app.tr("重新关联角色")
+        self.tr_rematch_confirm_title = og.app.tr("确认重新关联")
+        self.tr_rematch_confirm_desc = og.app.tr("重新关联将清空当前匹配到的4位角色归属，你可以重新修正角色归属。")
+        self.tr_rematch_disabled_tooltip = og.app.tr("请先扫描队伍后再重新关联角色")
         self.tr_no_feature = og.app.tr("未获取到特征")
+        self.tr_scan_prompt = og.app.tr("点击上方按钮扫描...")
         self.tr_name_tab = TEAM_MANAGEMENT
         self.tr_scan_desc = og.app.tr("不扫描也可自动战斗，将使用通用脚本")
         self.tr_fixed_team_title = og.app.tr("固定队伍")
@@ -351,6 +363,7 @@ class TeamManagerTab(CustomTab):
         self.manager = manager or CustomCharManager()
         self.icon = FluentIcon.CAMERA
         self.last_scan_results = []
+        self._capture_started = False
         self.logger.info("Init TeamManagerTab")
 
         self.vbox = QVBoxLayout(self)
@@ -370,6 +383,12 @@ class TeamManagerTab(CustomTab):
         self.scan_info_btn.clicked.connect(self.show_scan_flyout)
         self.scan_header.addWidget(self.scan_info_btn, alignment=Qt.AlignmentFlag.AlignLeft)
         self.scan_header.addStretch(1)
+
+        self.rematch_btn = PrimaryPushButton(FluentIcon.UPDATE, self.tr_rematch_btn)
+        self.rematch_btn.clicked.connect(self.on_rematch_clicked)
+        self.rematch_btn.setEnabled(False)
+        self.rematch_btn.setToolTip(self.tr_rematch_disabled_tooltip)
+        self.scan_header.addWidget(self.rematch_btn)
 
         self.scan_btn = PrimaryPushButton(FluentIcon.SYNC, self.tr_scan_btn)
         self.scan_btn.clicked.connect(self.on_scan_clicked)
@@ -562,16 +581,22 @@ class TeamManagerTab(CustomTab):
             self._show_bar(og.app.tr("策略已切换"), og.app.tr("已关闭全局连招策略"))    
 
     def on_scan_clicked(self):
-        og.app.start_controller.handler.post(self.scan_team)
-
-    def scan_team(self):
-        og.app.start_controller.do_start()
         self.scan_btn.setEnabled(False)
         self.scan_btn.setText(self.tr_scanning)
+        self.rematch_btn.setEnabled(False)
+        self.rematch_btn.setToolTip(self.tr_rematch_disabled_tooltip)
         for card in self.slots:
-            # card.status.setText(self.tr_analyzing)
             card.btn_act.hide()
-        self.get_task(AutoCombatTask).scan_team()
+
+        if not self._capture_started:
+            self._capture_started = True
+            threading.Thread(target=og.app.start_controller.do_start, daemon=True).start()
+
+        def _scan_worker():
+            time.sleep(0.5)
+            self.get_task(AutoCombatTask).scan_team()
+
+        threading.Thread(target=_scan_worker, daemon=True).start()
 
     def on_fill_from_scan(self):
         if not self.last_scan_results:
@@ -620,10 +645,36 @@ class TeamManagerTab(CustomTab):
         char_manager_signals.refresh_tab.emit()
         self._show_bar(self.tr_clear_success_title, self.tr_clear_success_desc)
 
+    def on_rematch_clicked(self):
+        if not self.last_scan_results:
+            self._show_bar(
+                self.tr_rematch_confirm_title,
+                self.tr_rematch_disabled_tooltip,
+                success=False,
+            )
+            return
+
+        dialog = MessageBoxBase(self.window())
+        dialog.viewLayout.addWidget(SubtitleLabel(self.tr_rematch_confirm_title))
+        content_label = BodyLabel(self.tr_rematch_confirm_desc)
+        content_label.setWordWrap(True)
+        dialog.viewLayout.addWidget(content_label)
+        dialog.yesButton.setText(og.app.tr("确认重新关联"))
+        dialog.cancelButton.setText(og.app.tr("取消"))
+        if not dialog.exec():
+            return
+
+        for res in self.last_scan_results:
+            res["match"] = None
+
+        self.on_scan_done(self.last_scan_results)
+
     def on_scan_done(self, results, error_msg=""):
         self.last_scan_results = results or []
         self.scan_btn.setEnabled(True)
         self.scan_btn.setText(self.tr_scan_btn)
+        self.rematch_btn.setEnabled(True)
+        self.rematch_btn.setToolTip("")
 
         if error_msg:
             self._show_bar("", error_msg, success=False)
