@@ -185,7 +185,7 @@ class HeistPathB(HeistPathA):
             if self.find_interac():
                 is_open_door = self.lobby_open_door_check()
                 if not is_open_door:
-                    return # 考虑之后加复位或其他
+                    raise AbortException("timeout for wait_and_interact") # 考虑之后加复位或其他
                 else:
                     self.sleep(0.10)
                     self.send_key("f", down_time=0.10)
@@ -319,11 +319,9 @@ class HeistPathB(HeistPathA):
         self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
         self.sleep(0.30)
 
-    def lobby_open_door_check(self,check_time):
+    def lobby_open_door_check(self, check_time = 3):
         open_door = False
         open_loop =0
-        if not check_time:
-            check_time = 3
         while not open_door and open_loop < check_time:
             if self.wait_ocr(x=0.60, y=0.52, to_x=0.70, to_y=0.57, match=re.compile("开门"), time_out=1.14):
                 open_door = True

@@ -196,4 +196,9 @@ config = {
         # ['src.ui.MyTab', 'MyTab'], #可选, 自定义UI, 显示在侧边栏
     ],
     "scene": ["src.scene.NTEScene", "NTEScene"],
+    'update_pyappify': {
+        'to_version': '1.1.3',
+        'zip_url': 'https://github.com/BnanZ0/ok-nte/releases/download/v0.0.53/ok-nte-win32.zip',
+        'sha256': '2d7aef33111d0db8f722dc69af528f6bf29df2b5411010dc9bea1c646eec22ce',
+    }
 }
