@@ -142,40 +142,58 @@ class HeistPathB(HeistPathA):
         self.send_key_up("d")
         self.send_key_up("w")
         self.switch_to_fighter(check_switched=True, mode=1)  # 切到早雾控怪
-        self.sleep(0.42)
+        self.sleep(0.24)
         self.send_key("s", down_time=0.10)
-        self.sleep(0.72)
+        self.sleep(1.14)
         self.send_key("e", down_time=2.60)
         self.sleep(0.10)
         self.send_key_down("w")
+        self.sleep(0.14)
+        self.send_key_down("d")
+        self.wait_and_interact(direction="d", is_lock=True, time_out=7.64)
         self.sleep(0.10)
-        self.wait_and_interact(direction="w", is_lock=True, time_out=7.64)
+        self.send_key_up("w")
         if self.wait_ocr(x=0.60, y=0.52, to_x=0.70, to_y=0.57, match=re.compile("开门"), time_out=1.14):
             self.sleep(0.10)
             self.send_key("f", down_time=0.10)
             self.sleep(0.10)
         elif self.find_interac():
+            self.sleep(0.20)
             self.clear_current_combat()
             self.sleep(0.10)
-            isOpenDoor = False
-            isOpenLoop =0
-            while isOpenDoor == False and isOpenLoop <3:
-                if not self.wait_ocr(x=0.60, y=0.52, to_x=0.70, to_y=0.57, match=re.compile("开门"), time_out=1.14):
-                    self.send_key("f", down_time=0.10)
-                    self.sleep(0.32)
-                    isOpenLoop += 1
-                    isOpenDoor = False
+            self.send_key("w", down_time=0.32)
+            self.sleep(0.10)
+            self.send_key_down('d')
+            self.sleep(0.05)
+            self.wait_and_interact(direction="d", is_lock=False, time_out=3.65)
+            if self.find_interac():
+                is_open_door = self.lobby_open_door_check()
+                if not is_open_door:
+                    return # 考虑之后加复位或其他
                 else:
-                    isOpenDoor = True
-            self.send_key_down("w")
-            self.sleep(0.10)
-            self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
-            self.sleep(0.10)
+                    self.sleep(0.10)
+                    self.send_key("f", down_time=0.10)
+                    self.sleep(0.10)
         self.send_key_down("w")
         self.sleep(0.24)
         self.send_key("a", down_time=0.36)
         self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
         self.sleep(0.30)
+
+    def lobby_open_door_check(self,check_time):
+        open_door = False
+        open_loop =0
+        if not check_time:
+            check_time = 3
+        while not open_door and open_loop < check_time:
+            if self.wait_ocr(x=0.60, y=0.52, to_x=0.70, to_y=0.57, match=re.compile("开门"), time_out=1.14):
+                open_door = True
+            else:
+                self.sleep(0.10)
+                self.send_key("f", down_time=0.10)
+                self.sleep(0.20)
+                open_loop += 1
+        return open_door
 
     # LG1部分优化
     def lg1_wp1_safer(self):
