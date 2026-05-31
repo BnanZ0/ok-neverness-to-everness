@@ -63,7 +63,8 @@ INST = "<br>".join(
         _inst_line("避战角色(可选): 翳 / 浔", indent=1),
         _inst_gap(),
         _inst_line("路径2推荐设置", bold=True),
-        _inst_line("画质：性能 | 分辨率: 1080P | FPS: 60", indent=1),
+        _inst_line("⚙️ 镜头设置：控制 ➔ 摄像机设置 ➔ 按下锁定镜头回正 ➔ 启用", "#FF5555", bold=True, indent=1),
+        _inst_line("画质：性能 | 分辨率: 1080P | FPS: 60 | 插帧: 关闭", indent=1),
         _inst_line("跑图角色: 薄荷", indent=1),
         _inst_line("早雾避战：", indent=1),
         _inst_line(

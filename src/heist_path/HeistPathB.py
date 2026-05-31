@@ -48,9 +48,9 @@ class HeistPathB(HeistPathA):
         else:
             self.lg2_wp4_to_exit3()
 
-    # 全新大厅到LG1办公层线路，早雾控怪避战，理论正常11分00到办公层（实际耗时60s）
+    # 全新大厅到LG1办公层线路，早雾控怪避战，理论正常剩余11分00秒到办公层（实际耗时60s）
     def goto_lg1_skip_Sakiri(self):
-        self.log_round_info("大厅前往LG1")
+        self.log_round_info("早雾、大厅前往LG1")
         self.sleep(0.30)
         self.switch_to_runner(check_switched=True)
         self.sleep(0.10)
@@ -185,6 +185,7 @@ class HeistPathB(HeistPathA):
             if self.find_interac():
                 is_open_door = self.lobby_open_door_check()
                 if not is_open_door:
+                    from src.tasks.AutoHeistTask import AbortException
                     raise AbortException("timeout for wait_and_interact") # 考虑之后加复位或其他
                 else:
                     self.sleep(0.10)
@@ -196,9 +197,9 @@ class HeistPathB(HeistPathA):
         self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
         self.sleep(0.30)
 
-    # 全新大厅到LG1办公层线路，浔时停避战，理论正常11分12到办公层（实际耗时65s）
+    # 全新大厅到LG1办公层线路，浔时停避战，理论正常剩余11分15秒到办公层（实际耗时60s）
     def goto_lg1_skip_Hotori(self):
-        self.log_round_info("大厅前往LG1")
+        self.log_round_info("浔、大厅前往LG1")
         self.sleep(0.30)
         self.switch_to_avoider(check_switched=True)
         self.sleep(0.10)
@@ -245,13 +246,9 @@ class HeistPathB(HeistPathA):
         self.send_key('space', down_time=0.24)
         self.sleep(0.64)
         self.send_key('space', down_time=0.24)
-        self.sleep(0.64)
-        self.send_key('space', down_time=0.24)
-        self.sleep(0.64)
-        self.send_key('space', down_time=0.24)
-        self.sleep(0.64)
-        self.send_key('space', down_time=0.24)
-        self.sleep(0.64)
+        self.sleep(0.84)
+        self.send_key('lshift', down_time=0.24)
+        self.sleep(0.84)
         self.send_key_up("w")
         self.sleep(0.10)
         self.click(down_time=0.64)
@@ -303,19 +300,29 @@ class HeistPathB(HeistPathA):
         self.click(down_time=0.64)
         self.sleep(0.10)
         self.send_key_down('w')
-        self.sleep(5.14)
+        self.sleep(1.14)
+        self.send_key('lshift', down_time=0.24)
+        self.sleep(0.42)
+        self.send_key('lshift', down_time=0.24)
+        self.sleep(0.42)
+        self.send_key('lshift', down_time=0.24)
+        self.sleep(0.42)
         self.send_key_down("d")
-        self.sleep(0.36)
+        self.sleep(0.42)
         self.send_key_up('d')
-        self.sleep(3.60)
+        self.sleep(0.42)
+        self.send_key('lshift', down_time=0.24)
+        self.sleep(0.76)
         self.send_key_up('w')
         self.sleep(0.10)
         self.click(down_time=0.64)
+        self.sleep(0.10)
+        self.send_key_down('w')
         self.wait_and_interact(direction="w", is_lock=True, time_out=7.64)
         self.sleep(0.10)
         self.send_key_down("w")
         self.sleep(0.24)
-        self.send_key("a", down_time=0.36)
+        self.send_key("a", down_time=0.42)
         self.wait_and_interact(direction="w", is_lock=False, time_out=3.65)
         self.sleep(0.30)
 
