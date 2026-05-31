@@ -52,7 +52,10 @@ def _inst_gap():
 INST = "<br>".join(
     [
         _inst_line("📍 步骤起点：站在可互动小吱的位置开始", "#FF5555", bold=True),
-        _inst_line("⚙️ 镜头设置：控制 ➔ 移动镜头修正 ➔ 禁用", "#FF5555", bold=True),
+        _inst_line("⚙️ 镜头设置", "#FF5555", bold=True),
+        _inst_line("└─ 控制 ➔ 摄像机设置", "#FE821D", bold=True, indent=1),
+        _inst_line("├─ 移动镜头修正：禁用", "#FE821D", bold=True, indent=2),
+        _inst_line("└─ 按下锁定镜头回正：启用", "#FE821D", bold=True, indent=2),
         _inst_line("⚠️ 必备条件：至少有一个复活道具", "#FF5555", bold=True),
         _inst_line("🥷 避战方式：翳【长按 Shift】/ 浔【长按攻击】", "#FF5555", bold=True),
         _inst_gap(),
@@ -63,7 +66,6 @@ INST = "<br>".join(
         _inst_line("避战角色(可选): 翳 / 浔", indent=1),
         _inst_gap(),
         _inst_line("路径2推荐设置", bold=True),
-        _inst_line("⚙️ 镜头设置：控制 ➔ 摄像机设置 ➔ 按下锁定镜头回正 ➔ 启用", "#FF5555", bold=True, indent=1),
         _inst_line("画质：性能 | 分辨率: 1080P | FPS: 60 | 插帧: 关闭", indent=1),
         _inst_line("跑图角色: 薄荷", indent=1),
         _inst_line("早雾避战：", indent=1),
