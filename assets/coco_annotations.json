@@ -167,6 +167,12 @@
             "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
+        },
+        {
+            "id": 30,
+            "file_name": "images/DarkRacing.png",
+            "width": 1920,
+            "height": 1080
         }
     ],
     "annotations": [
@@ -936,6 +942,19 @@
             ],
             "area": 9025,
             "iscrowd": 0
+        },
+        {
+            "id": 61,
+            "image_id": 30,
+            "category_id": 62,
+            "bbox": [
+                88,
+                708,
+                160,
+                58
+            ],
+            "area": 9280,
+            "iscrowd": 0
         }
     ],
     "categories": [
@@ -1232,6 +1251,11 @@
         {
             "id": 61,
             "name": "confirm_btn_2",
+            "supercategory": ""
+        },
+        {
+            "id": 62,
+            "name": "DarkRacing",
             "supercategory": ""
         }
     ]

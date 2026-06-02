@@ -4,6 +4,7 @@ import time
 from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
 
+from src.Labels import Labels
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.tasks.RecordTask import RecordTask
 
@@ -62,7 +63,7 @@ class DarkTask(NTEOneTimeTask, RecordTask):
 
     def one_time(self):
         self.send_key("f4", after_sleep=3)
-        self.record_or_replay_operations(2, instruction_text=self.tr(RECORD_INS))
+        self.wait_click_feature(Labels.dark_racing, threshold=0.8, time_out=10, after_sleep=1)
         self.sleep(2)
         self.operate_click(0.8995, 0.9546, after_sleep=2)
         self.go()
