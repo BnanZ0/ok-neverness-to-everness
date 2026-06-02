@@ -528,3 +528,94 @@ msgstr "启动游戏"
 
 msgid "Launcher Path"
 msgstr "启动器路径"
+
+msgid "目标消耗体力"
+msgstr ""
+
+msgid "声音闪避反击"
+msgstr ""
+
+msgid "未处于自动战斗时, 响应声音闪避或反击"
+msgstr ""
+
+msgid ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+msgstr ""
+"所有字母/数字按键，包括上方所有热键，都会按照美式 QWERTY\n"
+"物理位置替换，而不是当前键盘布局上印刷的按键。"
+
+msgid "Use QWERTY Physical Keys"
+msgstr "使用 QWERTY 物理按键"
+
+msgid "店长特供"
+msgstr ""
+
+msgid "抢钱流"
+msgstr ""
+
+msgid "游戏启动后自动登录游戏"
+msgstr ""
+
+msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
+msgstr ""
+
+msgid "自动登录游戏"
+msgstr ""
+
+msgid "领取/补货一咖舍"
+msgstr ""
+
+msgid "一咖舍任务"
+msgstr ""
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr ""
+
+msgid "不执行"
+msgstr "不执行"
+
+msgid ""
+"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 确保您已配置好游戏内的挂机流派。\n"
+"2. 站在咖啡店可进行 F 交互的位置。\n"
+"3. 首次启动需录制目标, 点击[开始]后请跟随指示操作。"
+msgstr ""
+
+msgid "循环次数(0为无限次)"
+msgstr ""
+
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr ""
+
+msgid "清空已记录的操作"
+msgstr ""
+
+msgid "自动执行黑暗赛车,请在大世界开始执行"
+msgstr ""
+
+msgid "重置记录"
+msgstr ""
+
+msgid "黑暗赛车"
+msgstr ""
+
+msgid "Record has been reset"
+msgstr "记录已重置"
+
+msgid "Updated successfully"
+msgstr "更新成功"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 使用滚轮滚动至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 点击滚动条至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""

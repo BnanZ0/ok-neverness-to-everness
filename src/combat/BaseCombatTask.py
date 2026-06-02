@@ -208,7 +208,10 @@ class BaseCombatTask(CombatCheck):
                     continue
                 to_minus += duration - freeze_time
         if to_minus != 0:
-            self.log_debug(f"time_elapsed_accounting_for_freeze to_minus {to_minus}")
+            self.run_with_interval(
+                lambda: self.log_debug(f"time_elapsed_accounting_for_freeze to_minus {to_minus}"),
+                0.5,
+            )
         return time.time() - start - to_minus
 
     def refresh_cd(self):
@@ -583,7 +586,7 @@ class BaseCombatTask(CombatCheck):
 
     def combat_end(self):
         """战斗结束时调用的清理方法。"""
-        SoundCombatContext().update_task(None)
+        SoundCombatContext().clear_task_if(self)
 
         current_char = self.get_current_char(raise_exception=False)
         if current_char:
@@ -592,7 +595,7 @@ class BaseCombatTask(CombatCheck):
     def sleep_check(self):
         if self.skip_sleep_check:
             return
-        
+
         if SoundCombatContext.should_interrupt_combat():
             self.log_info("Combat sleep interrupted by sound action")
             SoundCombatContext().execute_pending_action()
@@ -641,7 +644,7 @@ class BaseCombatTask(CombatCheck):
             if isinstance(char, char_cls):
                 return char
 
-    def _do_load_char(self, index: int, count: int, fixed_slots) -> "BaseChar":
+    def _do_load_char(self, index: int, fixed_slots) -> "BaseChar":
         fixed_slot = safe_get(fixed_slots, index)
         fixed_char_name = ""
         fixed_combo_ref = ""
@@ -657,10 +660,7 @@ class BaseCombatTask(CombatCheck):
                 self, index, fixed_char_name, confidence=1, combo_ref=fixed_combo_ref
             )
 
-        box = self.get_char_box(index)
-        if count == 1:
-            box = self.shift_char_ui_box(box, expend=True)
-        box_scaled = box.scale(1.1, 1.1)
+        box_scaled = self.get_char_box(index).scale(1.1, 1.1)
 
         return get_char_by_pos(self, box_scaled, index, safe_get(self.chars, index))
 
@@ -684,7 +684,7 @@ class BaseCombatTask(CombatCheck):
         new_chars = []
         indices_to_detect = []
         for i in range(count):
-            char = self._do_load_char(i, count, fixed_slots)
+            char = self._do_load_char(i, fixed_slots)
             new_chars.append(char)
             if char.element is Element.DEFAULT:
                 indices_to_detect.append(i)
@@ -892,7 +892,7 @@ class BaseCombatTask(CombatCheck):
             self.send_key_down(direction)
             if run:
                 self.sleep(0.1)
-                self.send_key_down("shift")
+                self.send_key_down("lshift")
             ret = bool(
                 self.wait_until(
                     self.in_combat,
@@ -903,7 +903,7 @@ class BaseCombatTask(CombatCheck):
             self.sleep(delay)
         finally:
             if run:
-                self.send_key_down("shift")
+                self.send_key_up("lshift")
                 self.sleep(0.1)
             self.send_key_up(direction)
         return ret

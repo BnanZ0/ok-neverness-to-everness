@@ -10,7 +10,7 @@ class Jiuyuan(BaseChar):
         self.click_ultimate()
         if self.click_skill()[0]:
             self.continues_normal_attack(1.4)
-            self.sleep(0.1)
+            self.sleep(0.5)
         self.fire_bullets()
 
     def fire_bullets(self):

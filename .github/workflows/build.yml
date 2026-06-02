@@ -75,17 +75,32 @@ jobs:
           gitignore_file: '.update_repo_gitignore'
           show_author: true #在更新日志中加入作者
 
+      - name: Check release version
+        id: release-version
+        shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          $tag = $env:REF_NAME
+          $isRelease = $tag -match '^v?\d+\.\d+\.\d+$'
+          "is_release=$($isRelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
+          Write-Host "Release version: $isRelease"
+          Write-Host "Release version: $isRelease"
+
       - name: Build with PyAppify Action
+        if: steps.release-version.outputs.is_release == 'true'
         id: build-app
         uses: ok-oldking/pyappify-action@master #使用pyappify打包exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           build_exe_only: false
           # 使用上一个稳定版本的 Release 来获取已打包的启动器，从而跳过耗时的打包过程
-          use_release: https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v0.0.21
+          # use_release: https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v0.0.53
 
       - name: Release
         uses: softprops/action-gh-release@v3
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.release-version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -107,7 +122,7 @@ jobs:
           files: pyappify_dist/*
 
       - name: Trigger MirrorChyanUploading
-        if: startsWith(github.ref, 'refs/tags/')
+        if: steps.release-version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release.yml -f tag=${{ github.ref_name }}

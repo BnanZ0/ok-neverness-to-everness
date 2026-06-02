@@ -21,27 +21,32 @@ This software is an open-source, free external tool intended for learning and ex
 
 All issues and consequences arising from the use of this software are not related to this project or its development team. The development team reserves the final right of interpretation for this project. If you encounter vendors using this software for services and charging a fee, this may cover their costs for equipment and time; any resulting problems or consequences are not associated with this software.
 
-> **Please Note: According to the [*Neverness To Everness* Fair Play Declaration](https://nte.perfectworld.com/en/article/news/gamebroad/20260206/260828.html):**
+**Please Note: According to the [*Neverness To Everness* Fair Play Declaration](https://nte.perfectworld.com/en/article/news/gamebroad/20260206/260828.html):**
 >
-> > ""
-> > The use of any third-party tools that undermine fair gameplay is strictly prohibited. We will take strong action against violations involving illegal tools such as cheats, speed hacks, macro scripts, and similar software.
-> >
-> > Prohibited behaviors include, but are not limited to: auto-farming, skill acceleration, god mode, teleportation, and game data manipulation. Any account found to be involved in such activities will be banned upon verification.
-> > ""
+> The use of any third-party tools that undermine fair gameplay is strictly prohibited. We will take strong action against violations involving illegal tools such as cheats, speed hacks, macro scripts, and similar software.
+> 
+> Prohibited behaviors include, but are not limited to: auto-farming, skill acceleration, god mode, teleportation, and game data manipulation. Any account found to be involved in such activities will be banned upon verification.
 >
-> **You should fully understand and voluntarily assume all potential risks associated with using this tool.**
+**You should fully understand and voluntarily assume all potential risks associated with using this tool.**
 
 ## ✨ Main Features
 
 <p align="center">
-  <img width="950" alt="demo_en" src="https://github.com/user-attachments/assets/30aabf6c-4b19-46b7-b835-7bcd9298f966" />
+  <img width="950" alt="ok-nte-gif-en" src="https://github.com/user-attachments/assets/f2d228f6-3162-419e-a94a-29702cfb2f9e" />
 </p>
 
 - **Background Operation**: Automate game actions while in the background.
+- **One-click Dailies**: Automatically complete daily routines.
 - **Auto Fishing**: Fully automated fishing process.
 - **Auto Combat**: Computer vision-based combat algorithm.
+- **Anomaly**: Automate Anomaly challenges.
+- **Auto Drum Rhythm Game**: Automatically complete drum rhythm games.
+- **Owner's Selection**: Automatically loop entering and exiting stages (requires an in-game AFK build).
 - **Skip Dialog**: Rapidly skip through story dialogs.
 - **Fast Travel**: Automatic map teleportation.
+- **Pink Paws Heist Convenience Features**
+  - **Quick Pickup**: Quickly pick up items in stages.
+  - **Auto Character Switch for Sprinting**: Automatically switch characters to maintain fast running.
 - **Character Center**
   - **Character Management**: Supports custom combo lists.
   - **Feature Management**: Adapts to different character skins.

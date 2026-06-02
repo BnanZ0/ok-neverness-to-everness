@@ -9,12 +9,13 @@
 import threading
 import time
 import warnings
-from typing import Optional
+from typing import Optional, cast
 
 import librosa
 import numpy as np
 import soundcard as sc
-from ok import Logger
+from ok import Logger, og
+from ok.gui.Communicate import communicate
 from scipy.signal import butter, correlate, filtfilt
 from sklearn.preprocessing import scale
 
@@ -63,13 +64,21 @@ class SoundListener:
 
         self.on_dodge_triggered = None
         self.on_counter_triggered = None
+        self._fallback_notification_started = False
 
         self._load_samples()
 
     def _load_samples(self):
         try:
-            self._b, self._a = butter(
-                self.degree, self.cut_off, btype="highpass", output="ba", fs=self.used_sr
+            self._b, self._a = cast(
+                tuple[np.ndarray, np.ndarray],
+                butter(
+                    self.degree,
+                    self.cut_off,
+                    btype="highpass",
+                    output="ba",
+                    fs=self.used_sr,
+                ),
             )
 
             self._sample_waveform = self._load_and_cache(self.sample_path)
@@ -140,85 +149,236 @@ class SoundListener:
         try:
             logger.info("Initializing audio loopback device...")
 
-            default_speaker = sc.default_speaker()
-            logger.info(f"Default speaker: {default_speaker.name}")
-
-            loopback = sc.get_microphone(id=str(default_speaker.name), include_loopback=True)
-            logger.info(f"Using loopback device: {loopback.name}")
-
-            audio_instance = loopback.recorder(samplerate=self.used_sr, channels=self.used_channel)
-
             check_count = 0
-            with audio_instance as audio_recorder:
-                logger.info("Audio recording started, monitoring for triggers...")
+            current_speaker_name = None
 
-                max_samples = int(self.used_sr * self.sample_len)
-                chunks_per_interval = int(self.used_sr * self.detection_interval / self.chunk_size)
-                new_samples_per_interval = chunks_per_interval * self.chunk_size
+            while self._running:
+                default_speaker = sc.default_speaker()
+                default_speaker_name = str(default_speaker.name)
+                if default_speaker_name != current_speaker_name:
+                    logger.info(f"Default speaker: {default_speaker_name}")
+                    current_speaker_name = default_speaker_name
 
-                ring_buffer = np.zeros(max_samples * 2, dtype=np.float64)
-                buffer_pos = 0
-                total_written = 0
+                loopback = self._get_loopback_microphone(default_speaker)
+                if loopback is None:
+                    logger.warning(
+                        "No strict loopback device found for default speaker, "
+                        "falling back to soundcard fuzzy matching: "
+                        f"{default_speaker_name}"
+                    )
+                    try:
+                        loopback = sc.get_microphone(
+                            id=default_speaker_name,
+                            include_loopback=True,
+                        )
+                    except Exception as e:
+                        logger.warning(f"Fallback audio device lookup failed: {e}")
+                        time.sleep(1.0)
+                        continue
+                    self._notify_loopback_fallback(default_speaker_name, str(loopback.name))
 
-                while self._running:
-                    current_frame = np.empty(new_samples_per_interval, dtype=np.float64)
-                    idx = 0
-                    for _ in range(chunks_per_interval):
-                        stream_data = audio_recorder.record(numframes=self.chunk_size)
-                        read_chunks = librosa.to_mono(stream_data.T)
-                        current_frame[idx : idx + self.chunk_size] = read_chunks
-                        idx += self.chunk_size
+                logger.info(f"Using loopback device: {loopback.name}")
 
-                    end_pos = buffer_pos + new_samples_per_interval
-                    if end_pos <= max_samples * 2:
-                        ring_buffer[buffer_pos:end_pos] = current_frame
-                    else:
-                        first_part = max_samples * 2 - buffer_pos
-                        ring_buffer[buffer_pos:] = current_frame[:first_part]
-                        ring_buffer[: end_pos - max_samples * 2] = current_frame[first_part:]
+                audio_instance = loopback.recorder(
+                    samplerate=self.used_sr,
+                    channels=self.used_channel,
+                )
 
-                    buffer_pos = end_pos % (max_samples * 2)
-                    total_written += new_samples_per_interval
+                with audio_instance as audio_recorder:
+                    logger.info("Audio recording started, monitoring for triggers...")
 
-                    if total_written >= max_samples:
-                        if buffer_pos >= max_samples:
-                            window = ring_buffer[buffer_pos - max_samples : buffer_pos]
-                        else:
-                            window = np.concatenate(
-                                [
-                                    ring_buffer[-(max_samples - buffer_pos) :],
-                                    ring_buffer[:buffer_pos],
-                                ]
-                            )
+                    max_samples = int(self.used_sr * self.sample_len)
+                    chunks_per_interval = int(
+                        self.used_sr * self.detection_interval / self.chunk_size
+                    )
+                    new_samples_per_interval = chunks_per_interval * self.chunk_size
 
-                        if self.is_computation_required and not self.is_computation_required():
-                            continue
+                    ring_buffer = np.zeros(max_samples * 2, dtype=np.float64)
+                    buffer_pos = 0
+                    total_written = 0
 
-                        dodge_score = self.matching(window, self._sample_waveform)
-                        counter_score = 0.0
-                        if self._counter_sample_waveform is not None:
-                            counter_score = self.matching(window, self._counter_sample_waveform)
-
-                        self._check_triggers(dodge_score, counter_score)
-
-                        # self._draw_debug_visual(dodge_score, counter_score)
-
-                        check_count += 1
-                        if check_count % self.log_interval == 0:
+                    while self._running:
+                        next_speaker_name = str(sc.default_speaker().name)
+                        if next_speaker_name != current_speaker_name:
                             logger.info(
-                                "Audio monitoring - dodge_score: {:.4f} (threshold: {}), "
-                                "counter_score: {:.4f} (threshold: {})".format(
-                                    dodge_score,
-                                    self.threshold,
-                                    counter_score,
-                                    self.counter_attack_threshold,
+                                "Default speaker changed: {} -> {}, switching loopback device"
+                                .format(
+                                    current_speaker_name,
+                                    next_speaker_name,
                                 )
                             )
+                            break
+
+                        current_frame = np.empty(new_samples_per_interval, dtype=np.float64)
+                        idx = 0
+                        for _ in range(chunks_per_interval):
+                            stream_data = audio_recorder.record(numframes=self.chunk_size)
+                            read_chunks = librosa.to_mono(stream_data.T)
+                            current_frame[idx : idx + self.chunk_size] = read_chunks
+                            idx += self.chunk_size
+
+                        end_pos = buffer_pos + new_samples_per_interval
+                        if end_pos <= max_samples * 2:
+                            ring_buffer[buffer_pos:end_pos] = current_frame
+                        else:
+                            first_part = max_samples * 2 - buffer_pos
+                            ring_buffer[buffer_pos:] = current_frame[:first_part]
+                            ring_buffer[: end_pos - max_samples * 2] = current_frame[first_part:]
+
+                        buffer_pos = end_pos % (max_samples * 2)
+                        total_written += new_samples_per_interval
+
+                        if total_written >= max_samples:
+                            if buffer_pos >= max_samples:
+                                window = ring_buffer[buffer_pos - max_samples : buffer_pos]
+                            else:
+                                window = np.concatenate(
+                                    [
+                                        ring_buffer[-(max_samples - buffer_pos) :],
+                                        ring_buffer[:buffer_pos],
+                                    ]
+                                )
+
+                            if self.is_computation_required and not self.is_computation_required():
+                                continue
+
+                            dodge_score = self.matching(window, self._sample_waveform)
+                            counter_score = 0.0
+                            if self._counter_sample_waveform is not None:
+                                counter_score = self.matching(
+                                    window,
+                                    self._counter_sample_waveform,
+                                )
+
+                            self._check_triggers(dodge_score, counter_score)
+
+                            # self._draw_debug_visual(dodge_score, counter_score)
+
+                            check_count += 1
+                            if check_count % self.log_interval == 0:
+                                logger.info(
+                                    "Audio monitoring - dodge_score: {:.4f} (threshold: {}), "
+                                    "counter_score: {:.4f} (threshold: {})".format(
+                                        dodge_score,
+                                        self.threshold,
+                                        counter_score,
+                                        self.counter_attack_threshold,
+                                    )
+                                )
         except Exception as e:
             logger.error("Listener error", e)
         finally:
             self._running = False
             logger.info("Audio listener stopped")
+
+    @staticmethod
+    def _get_loopback_microphone(speaker):
+        speaker_id = getattr(speaker, "id", None)
+        speaker_name = str(getattr(speaker, "name", ""))
+
+        loopbacks = [
+            microphone
+            for microphone in sc.all_microphones(include_loopback=True)
+            if getattr(microphone, "isloopback", False)
+        ]
+
+        for microphone in loopbacks:
+            if getattr(microphone, "id", None) == speaker_id:
+                return microphone
+
+        for microphone in loopbacks:
+            if str(getattr(microphone, "name", "")) == speaker_name:
+                return microphone
+
+        normalized_speaker_name = SoundListener._normalize_device_name(speaker_name)
+        for microphone in loopbacks:
+            normalized_microphone_name = SoundListener._normalize_device_name(
+                str(getattr(microphone, "name", ""))
+            )
+            if (
+                normalized_speaker_name
+                and (
+                    normalized_speaker_name in normalized_microphone_name
+                    or normalized_microphone_name in normalized_speaker_name
+                )
+            ):
+                return microphone
+
+        return None
+
+    @staticmethod
+    def _normalize_device_name(device_name: str) -> str:
+        normalized_name = device_name.casefold().strip()
+        for prefix in ("monitor of ",):
+            if normalized_name.startswith(prefix):
+                normalized_name = normalized_name[len(prefix) :]
+        return normalized_name
+
+    def _notify_loopback_fallback(self, speaker_name: str, fallback_name: str):
+        if self._fallback_notification_started:
+            return
+
+        self._fallback_notification_started = True
+        logger.warning(
+            "Sound listener fallback notification queued. speaker={}, fallback={}".format(
+                speaker_name,
+                fallback_name,
+            )
+        )
+
+        def notify_when_ready():
+            while self._running:
+                if self._is_notification_connected():
+                    try:
+                        message = self._loopback_fallback_notification_message()
+                        logger.warning(message)
+                        communicate.notification.emit(message, None, False, True, None, None)
+                    except Exception as e:
+                        logger.warning(f"Failed to show sound listener fallback notification: {e}")
+                    return
+                time.sleep(0.5)
+
+        threading.Thread(target=notify_when_ready, daemon=True).start()
+
+    @staticmethod
+    def _is_notification_connected() -> bool:
+        try:
+            return (
+                communicate.receivers(
+                    "2notification(QString,QString,bool,bool,QString,PyObject)"
+                )
+                > 0
+            )
+        except Exception as e:
+            logger.warning(f"Failed to check notification receivers: {e}")
+            return False
+
+    @staticmethod
+    def _loopback_fallback_notification_message() -> str:
+        locale_name = SoundListener._locale_name()
+        if locale_name.startswith("zh_"):
+            return (
+                "声音监听未找到严格匹配的系统声音回环设备，已使用兼容模式监听。"
+                "如果你使用蓝牙耳机并发现音质变差，请在 Windows 声音设置中选择 "
+                "Stereo/Headphones 输出，避免使用 Hands-Free/AG Audio。"
+            )
+        return (
+            "Sound listening could not find a strictly matched system audio loopback device, "
+            "so compatibility mode is being used. If Bluetooth headset audio quality drops, "
+            "select the Stereo/Headphones output in Windows sound settings and avoid "
+            "Hands-Free/AG Audio."
+        )
+
+    @staticmethod
+    def _locale_name() -> str:
+        app = getattr(og, "app", None)
+        locale = getattr(app, "locale", None) if app is not None else None
+        if locale is not None:
+            try:
+                return locale.name()
+            except Exception as e:
+                logger.warning(f"Failed to get app locale: {e}")
+        return "en_US"
 
     def _check_triggers(self, dodge_score, counter_score):
         now = time.time()

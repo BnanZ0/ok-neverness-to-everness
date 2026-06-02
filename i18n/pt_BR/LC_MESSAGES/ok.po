@@ -496,8 +496,8 @@ msgstr "Tecla de Cliques Automáticos (Ativo ao segurar)"
 msgid "自动补饵卖鱼"
 msgstr "Recarga Automática de Isca e Venda de Peixes"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Recarregar isca padrão e vender os peixes capturados quando o primeiro lançamento falhar"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "Se a arremessada falhar, reabastece a isca padrão, vende a captura e tenta novamente"
 
 msgid "4列对应的键盘按键"
 msgstr "Teclas do teclado para 4 colunas"
@@ -534,3 +534,109 @@ msgstr "Digite ou selecione o nome do personagem associado"
 
 msgid "键位"
 msgstr "Teclas"
+
+msgid "目标消耗体力"
+msgstr "Consumo de vigor alvo"
+
+msgid "声音闪避反击"
+msgstr "Esquiva e contra-ataque por som"
+
+msgid "未处于自动战斗时, 响应声音闪避或反击"
+msgstr "Quando o combate automático não está ativo, responde a esquivas ou contra-ataques por som"
+
+msgid ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+msgstr ""
+"Todas as teclas de letras/números, incluindo todas as teclas de atalho acima, são substituídas pelas posições físicas do QWERTY dos EUA,\n"
+"não pelas teclas impressas no layout atual."
+
+msgid "Use QWERTY Physical Keys"
+msgstr "Usar teclas físicas QWERTY"
+
+msgid "店长特供"
+msgstr "Seleção do dono"
+
+msgid "抢钱流"
+msgstr "Build de roubo"
+
+msgid "游戏启动后自动登录游戏"
+msgstr "Entrar automaticamente após iniciar o jogo"
+
+msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
+msgstr "Repetir automaticamente a entrada e saída de fases (requer uma build AFK dentro do jogo)"
+
+msgid "自动登录游戏"
+msgstr "Login automático"
+
+msgid "领取/补货一咖舍"
+msgstr "Resgatar/reabastecer café"
+
+msgid ""
+"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 确保您已配置好游戏内的挂机流派。\n"
+"2. 站在咖啡店可进行 F 交互的位置。\n"
+"3. 首次启动需录制目标, 点击[开始]后请跟随指示操作。"
+msgstr ""
+"Notas da função: esta função cuida apenas do ciclo de cliques para \"sair automaticamente da fase\" e \"reiniciar a fase\". Ela não inclui ações dentro da fase, como preparar comida ou atender clientes.\n"
+"\n"
+"Como usar:\n"
+"1. Certifique-se de que sua build AFK dentro do jogo já está configurada.\n"
+"2. Fique em uma posição no café onde seja possível interagir com F.\n"
+"3. Na primeira execução, é necessário gravar o alvo. Clique em [Iniciar] e siga as instruções."
+
+msgid "一咖舍任务"
+msgstr "Tarefas do café"
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr "Escolha como lidar com as tarefas diárias do café"
+
+msgid "不执行"
+msgstr "Não executar"
+
+msgid "Launcher Path"
+msgstr "Caminho do launcher"
+
+msgid "Start Game"
+msgstr "Iniciar jogo"
+
+msgid "循环次数(0为无限次)"
+msgstr "Número de repetições (0 para ilimitado)"
+
+msgid "清空已记录的操作"
+msgstr "Limpar operações gravadas"
+
+msgid "自动执行黑暗赛车,请在大世界开始执行"
+msgstr "Executar Corrida Sombria automaticamente; inicie no mundo aberto"
+
+msgid "重置记录"
+msgstr "Redefinir gravação"
+
+msgid "黑暗赛车"
+msgstr "Corrida Sombria"
+
+msgid "Record has been reset"
+msgstr "A gravação foi redefinida"
+
+msgid "Updated successfully"
+msgstr "Atualizado com sucesso"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 使用滚轮滚动至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"Grave as operações para clicar na fase alvo em duas etapas:\n"
+"1. Use a roda do mouse para rolar até que o alvo fique visível (se não for necessário, clique no alvo)\n"
+"2. Clique no alvo"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 点击滚动条至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"Grave as operações para clicar na fase alvo em duas etapas:\n"
+"1. Clique na barra de rolagem até que o alvo fique visível (se não for necessário, clique no alvo)\n"
+"2. Clique no alvo"

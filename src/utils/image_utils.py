@@ -1,9 +1,9 @@
+import unicodedata
 from dataclasses import dataclass
 from typing import Tuple
 
 import cv2
 import numpy as np
-
 from ok import color_range_to_bound
 
 
@@ -267,6 +267,24 @@ def create_color_mask(
     return output_image
 
 
+def _estimate_window_title_width(title: str) -> int:
+    title_units = sum(2 if unicodedata.east_asian_width(ch) in "WF" else 1 for ch in title)
+    return title_units * 9 + 160
+
+
+def _pad_image_to_width(image: np.ndarray, width: int) -> np.ndarray:
+    image_width = image.shape[1]
+    if image_width >= width:
+        return image
+
+    pad_width = width - image_width
+    if image.ndim == 2:
+        pad_shape = ((0, 0), (0, pad_width))
+    else:
+        pad_shape = ((0, 0), (0, pad_width), (0, 0))
+    return np.pad(image, pad_shape, mode="constant")
+
+
 def show_images(images, names=None, scale=None, wait_key=0):
     if not isinstance(images, list):
         images = [images]
@@ -281,9 +299,10 @@ def show_images(images, names=None, scale=None, wait_key=0):
         ]
     for i, image in enumerate(images):
         win_name = f"{names[i]}_{i}"
+        display_image = _pad_image_to_width(image, _estimate_window_title_width(win_name))
         cv2.namedWindow(win_name, cv2.WINDOW_AUTOSIZE)
         cv2.moveWindow(win_name, 100 * i, 100 * i)
-        cv2.imshow(win_name, image)
+        cv2.imshow(win_name, display_image)
     cv2.waitKey(wait_key)
 
 

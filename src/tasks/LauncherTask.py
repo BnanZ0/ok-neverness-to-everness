@@ -1,15 +1,17 @@
 import os
 import re
 import time
+from enum import Enum
 
 import psutil
 import win32con
 import win32gui
 import win32process
+from ok import TaskDisabledException, og
+from ok.gui.Communicate import communicate
+from ok.util.process import execute, is_admin
 from qfluentwidgets import FluentIcon
 
-from ok import TaskDisabledException
-from ok.util.process import execute
 from src.interaction.NTEInteraction import NTEInteraction
 from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask
@@ -27,6 +29,14 @@ GAME_CAPTURE_CONFIG = {
         ],
     },
 }
+
+
+class LauncherButtonState(Enum):
+    START = "start"
+    READY_OTHER = "ready_other"
+    NOT_READY = "not_ready"
+
+
 LAUNCHER_CAPTURE_CONFIG = {
     "windows": {
         "exe": LAUNCHER_EXE,
@@ -42,24 +52,27 @@ LAUNCHER_CAPTURE_CONFIG = {
 
 
 class LauncherTask(BaseNTETask):
+    CONF_PATH = "Launcher Path"
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "Start Game"
         self.icon = FluentIcon.SYNC
-        self.default_config.update({"Launcher Path": ""})
+        self.default_config.update({self.CONF_PATH: ""})
         self.enable_after_start = True  # auto run after start
         self.visible = False  # False to hide from the UI
 
     def run(self):
         self.log_info("Launcher task started")
+        if not self._check_admin():
+            return
+
         game_proc = self._find_process(GAME_EXE)
         self.log_info(f"Game process check: {self._format_process(game_proc)}")
         if game_proc:
             self.log_info("Game is already running; preparing game capture")
             self._update_launcher_path_from_game(game_proc.get("exe"))
-            if not self._wait_for_process(GAME_EXE):
-                raise TaskDisabledException("Timed out waiting for game window")
-            self._capture_game()
+            self._wait_for_game_and_capture(time_out=120, settle_window=False)
             return
 
         launcher_proc = self._find_process(LAUNCHER_EXE)
@@ -127,36 +140,44 @@ class LauncherTask(BaseNTETask):
 
     def _click_start_game(self, time_out=120):
         self.log_info(f"Looking for launcher Start Game button for up to {time_out}s")
-        start = time.time()
+        deadline = time.time() + time_out
         last_log_time = 0
-        clicked_start_game = False
-        while time.time() - start < time_out:
+        last_update_click_time = 0
+        ready_other_count = 0
+        update_in_progress = False
+        start_click_pending = False
+        while time.time() < deadline:
+            loop_start = time.time()
+            if self._find_process(GAME_EXE):
+                self.log_info(
+                    "Game process appeared while checking launcher; treating launch as successful"
+                )
+                return True
+
             if self._is_launcher_minimized():
                 self.log_info("Launcher window is minimized; Start Game click succeeded")
                 return True
 
             try:
-                start_button = self.find_one(
-                    Labels.launcher_start_game,
-                    horizontal_variance=0.1,
-                    vertical_variance=0.1,
-                )
+                button_state, button = self._launcher_button_state()
             except AttributeError as e:
                 self.log_warning(
-                    f"Launcher frame was unavailable while finding Start Game button {e}"
+                    f"Launcher frame was unavailable while checking launcher button {e}"
                 )
                 if self._is_launcher_minimized():
                     self.log_info("treating as success")
                     return True
                 else:
                     self.sleep(1)
+                    if update_in_progress:
+                        deadline = self._extend_deadline_for_update(deadline, loop_start)
                     continue
-            if start_button:
-                self.log_info(f"Found launcher Start Game button: {start_button}")
-                self.click(start_button, after_sleep=2)
-                if not self._is_launcher_minimized():
-                    self.click(0.5269, 0.6122, after_sleep=2)  # close popup
-                clicked_start_game = True
+
+            if button_state == LauncherButtonState.START:
+                ready_other_count = 0
+                update_in_progress = False
+                self._click_launcher_start_button(button)
+                start_click_pending = True
                 if self._is_launcher_minimized():
                     self.log_info("Launcher minimized after Start Game click")
                     return True
@@ -165,11 +186,50 @@ class LauncherTask(BaseNTETask):
                 )
                 continue
 
-            if clicked_start_game:
-                self.log_info(
-                    "Launcher Start Game button disappeared; treating click as successful"
-                )
+            if start_click_pending and self._is_launcher_minimized():
+                self.log_info("Launcher minimized after Start Game click")
                 return True
+
+            if button_state == LauncherButtonState.READY_OTHER:
+                if update_in_progress:
+                    self.log_info(
+                        "Launcher button is ready while update is in progress; "
+                        "waiting for Start Game button"
+                    )
+                    self.sleep(1)
+                    deadline = self._extend_deadline_for_update(deadline, loop_start)
+                    continue
+
+                ready_other_count += 1
+                now = time.time()
+                if ready_other_count < 2:
+                    self.log_info(
+                        "Launcher button is ready but Start Game was not detected; "
+                        "confirming before clicking possible update button"
+                    )
+                elif now - last_update_click_time >= 10:
+                    self.log_info(
+                        "Launcher button is ready but Start Game was not detected; "
+                        "clicking it as a possible update button"
+                    )
+                    self.click(button, after_sleep=2)
+                    last_update_click_time = now
+                    update_in_progress = True
+                else:
+                    self.log_info(
+                        "Launcher button is ready but Start Game was not detected; "
+                        "waiting for update flow to finish"
+                    )
+                self.sleep(1)
+                if update_in_progress:
+                    deadline = self._extend_deadline_for_update(deadline, loop_start)
+                continue
+
+            ready_other_count = 0
+            if update_in_progress:
+                self.sleep(1)
+                deadline = self._extend_deadline_for_update(deadline, loop_start)
+                continue
 
             now = time.time()
             if now - last_log_time >= 5:
@@ -179,54 +239,79 @@ class LauncherTask(BaseNTETask):
         self.log_warning("Launcher did not minimize after Start Game attempts")
         return False
 
+    def _launcher_button_state(self):
+        start_button = self._find_launcher_start_button()
+        if start_button:
+            return LauncherButtonState.START, start_button
+
+        is_ready, button = self._launcher_button_ready()
+        if is_ready:
+            return LauncherButtonState.READY_OTHER, button
+
+        return LauncherButtonState.NOT_READY, None
+
+    def _extend_deadline_for_update(self, deadline, start_time):
+        return deadline + time.time() - start_time
+
+    def _find_launcher_start_button(self):
+        return self.find_one(
+            Labels.launcher_start_game,
+            horizontal_variance=0.1,
+            vertical_variance=0.1,
+            threshold=0.85,
+        )
+
+    def _click_launcher_start_button(self, start_button):
+        self.log_info(f"Found launcher Start Game button: {start_button}")
+        self.click(start_button, after_sleep=2)
+        if not self._is_launcher_minimized():
+            self.click(0.5269, 0.6122, after_sleep=2)  # close popup
+
+    def _launcher_button_ready(self):
+        box = self.box_of_screen(0.8137, 0.8678, 0.8387, 0.9022, name="launcher_button")
+        per = self.calculate_color_percentage(launcher_btn_ready_color, box)
+        self.log_info(f"launcher_button color {per}")
+        return per > 0.8, box
+
     def _is_launcher_minimized(self):
         launcher_proc = self._find_process(LAUNCHER_EXE)
         if not launcher_proc:
             return False
-        launcher_hwnd = self._find_window_for_process(launcher_proc)
-        return bool(launcher_hwnd and win32gui.IsIconic(launcher_hwnd))
+        launcher_hwnd = self._find_window_for_process(
+            launcher_proc,
+            hwnd_class=LAUNCHER_CAPTURE_CONFIG["windows"]["hwnd_class"],
+            require_title=True,
+        )
+        if not launcher_hwnd:
+            return False
+        return bool(win32gui.IsIconic(launcher_hwnd) or not win32gui.IsWindowVisible(launcher_hwnd))
 
-    def _wait_for_game_and_capture(self, time_out=600):
+    def _wait_for_game_and_capture(self, time_out=600, settle_window=True):
         self.log_info(f"Waiting for game process for up to {time_out}s")
-        if not self._wait_for_process(GAME_EXE, time_out=time_out, settle_window=True):
+        if not self._wait_for_process(GAME_EXE, time_out=time_out, settle_window=settle_window):
             self.log_error("Timed out waiting for game process")
             raise TaskDisabledException("Timed out waiting for game process")
         self.log_info("Game process found; switching capture to game")
         self._capture_game()
-        if not self._wait_for_foreground_to_settle(time_out=10):
-            self.log_warning("Game window did not stay in foreground after launch")
-
-    def _wait_for_foreground_to_settle(self, time_out=8, settle_time=1):
-        self.log_info(
-            f"Waiting for game window to stay foreground for {settle_time}s "
-            f"(timeout={time_out}s)"
-        )
+        time_out = 10
         deadline = time.time() + time_out
-        foreground_since = 0
-        last_log_time = 0
-
         while time.time() < deadline:
-            if self.bring_to_front() and self.is_foreground():
-                if not foreground_since:
-                    foreground_since = time.time()
-                if time.time() - foreground_since >= settle_time:
-                    self.log_info("Game window foreground settled")
-                    return True
+            if not self.executor.connected():
+                self.log_info("executor not connected try refresh")
+                self.executor.device_manager.refresh()
+                time.sleep(1.5)
             else:
-                foreground_since = 0
+                break
+        else:
+            self.log_warning(
+                f"try refresh timeout {time_out}s, executor connect {self.executor.connected()}"
+            )
+            return
 
-            now = time.time()
-            if now - last_log_time >= 2:
-                stable_for = max(0, now - foreground_since) if foreground_since else 0
-                self.log_info(
-                    f"Waiting for game foreground settle; "
-                    f"stable_for={stable_for:.1f}s/{settle_time}s, "
-                    f"timeout_remain={deadline - now:.1f}s"
-                )
-                last_log_time = now
-            time.sleep(1)
-
-        return False
+        resolution_error = og.app.start_controller.check_resolution()
+        if resolution_error:
+            self.log_error(f"resolution_error: {resolution_error}")
+            raise TaskDisabledException(f"Resolution Error: {resolution_error}")
 
     def _wait_for_process(self, exe_name, time_out=120, settle_window=False):
         self.log_info(
@@ -255,7 +340,7 @@ class LauncherTask(BaseNTETask):
 
                     if settle_window:
                         if not self._wait_for_window_size_to_settle(
-                                hwnd, exe_name, start, time_out
+                            hwnd, exe_name, start, time_out
                         ):
                             return False
                         size = self._get_window_size(hwnd)
@@ -290,7 +375,7 @@ class LauncherTask(BaseNTETask):
                 continue
         return None
 
-    def _find_window_for_process(self, proc_info):
+    def _find_window_for_process(self, proc_info, hwnd_class=None, require_title=False):
         pid = proc_info.get("pid")
         if not pid:
             return 0
@@ -304,8 +389,14 @@ class LauncherTask(BaseNTETask):
                 _, window_pid = win32process.GetWindowThreadProcessId(hwnd)
             except Exception:
                 return True
-            if window_pid == pid:
-                matches.append(hwnd)
+            if window_pid != pid:
+                return True
+            if hwnd_class and win32gui.GetClassName(hwnd) != hwnd_class:
+                return True
+            if require_title and not win32gui.GetWindowText(hwnd):
+                return True
+
+            matches.append(hwnd)
             return True
 
         win32gui.EnumWindows(callback, None)
@@ -372,7 +463,7 @@ class LauncherTask(BaseNTETask):
             win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
 
     def _get_launcher_path(self):
-        configured_path = self.config.get("Launcher Path", "").strip()
+        configured_path = self.config.get(self.CONF_PATH, "").strip()
         self.log_info(f"Configured Launcher Path: {configured_path or '<empty>'}")
         launcher_path = configured_path
         launcher_path = self._extract_launcher_path(launcher_path)
@@ -385,7 +476,7 @@ class LauncherTask(BaseNTETask):
             self.log_warning(
                 f"Configured Launcher Path does not exist; clearing it: {configured_path}"
             )
-            self.config["Launcher Path"] = "" # type: ignore
+            self.config[self.CONF_PATH] = ""  # type: ignore
 
         self.log_info("Launcher Path config is empty or invalid; checking Windows registry")
         launcher_path = self._find_launcher_path_from_registry()
@@ -399,10 +490,10 @@ class LauncherTask(BaseNTETask):
 
     def _update_launcher_path(self, path):
         if path and os.path.basename(path).lower() == LAUNCHER_EXE.lower() and os.path.exists(path):
-            old_path = self.config.get("Launcher Path", "")
+            old_path = self.config.get(self.CONF_PATH, "")
             if old_path != path:
                 self.log_info(f"Updating Launcher Path config: {path}")
-                self.config["Launcher Path"] = path # type: ignore
+                self.config[self.CONF_PATH] = path  # type: ignore
             else:
                 self.log_info(f"Launcher Path config is already current: {path}")
         elif path:
@@ -526,3 +617,21 @@ class LauncherTask(BaseNTETask):
         name = proc_info.get("name") or "<unknown>"
         exe = proc_info.get("exe") or "<path unavailable>"
         return f"name={name}, exe={exe}"
+
+    def _check_admin(self):
+        if not is_admin():
+            communicate.starting_emulator.emit(
+                True,
+                "PC version requires admin privileges, Please restart this app with admin privileges!",  # noqa: E501
+                0,
+            )
+            communicate.restart_admin.emit()
+            return False
+        return True
+
+
+launcher_btn_ready_color = {
+    "r": (215, 225),
+    "g": (215, 225),
+    "b": (215, 225),
+}

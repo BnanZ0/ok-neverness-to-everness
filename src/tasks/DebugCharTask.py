@@ -1,4 +1,5 @@
 
+from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
 
 from src.char.CharFactory import char_dict
@@ -26,6 +27,18 @@ class DebugCharTask(BaseCombatTask):
 
     def run(self):
         super().run()
+        try:
+            return self.do_run()
+        except TaskDisabledException:
+            pass
+        except Exception as e:
+            self.log_error("自动银行差事出错", e)
+            raise
+        
+    def do_run(self):
+        while True:
+            # self.log_info(self.has_team_skill_records())
+            self.sleep(0.1)
 
     def init_char(self):
         self.current_char = self.config["char"]
@@ -39,9 +52,12 @@ class DebugCharTask(BaseCombatTask):
         """
         try:
             if self.char is None or self.current_char != self.config["char"]:
+                self.is_char_loaded = False
                 self.init_char()
             if hasattr(self.char, name):
-                self.load_chars()
+                if not self.is_char_loaded:
+                    self.is_char_loaded = True
+                    self.load_chars()
                 return getattr(self.char, name)
         except AttributeError:
             raise AttributeError(

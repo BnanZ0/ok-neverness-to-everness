@@ -1,8 +1,8 @@
+# ruff: noqa: E501
+
 import os
 
-import numpy as np
-
-from ok import ConfigOption
+from ok import Box, ConfigOption
 from src.interaction.NTEInteraction import NTEInteraction
 from src.process_feature import process_feature
 
@@ -15,8 +15,15 @@ key_config_option = ConfigOption(
         "Skill Key": "e",
         "Ultimate Key": "q",
         "Arc Key": "r",
+        "Use QWERTY Physical Keys": False,
     },
     description="In Game Hotkey for Skills",
+    config_description={
+        "Use QWERTY Physical Keys": (
+            "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+            "physical positions, not your current layout's printed keys."
+        ),
+    },
 )
 
 monthly_card_config_option = ConfigOption(
@@ -47,41 +54,8 @@ sound_trigger_config_option = ConfigOption(
 )
 
 
-def make_bottom_left_black(frame):  # 可选. 某些游戏截图时遮挡UID使用
-    """
-    Changes a portion of the frame's pixels at the bottom left to black.
-
-    Args:
-        frame: The input frame (NumPy array) from OpenCV.
-
-    Returns:
-        The modified frame with the bottom-left corner blackened.  Returns the original frame
-        if there's an error (e.g., invalid frame).
-    """
-    try:
-        original_frame = frame
-        height, width = frame.shape[:2]  # Get height and width
-
-        # Calculate the size of the black rectangle
-        black_width = int(0.13 * width)
-        black_height = int(0.025 * height)
-
-        # Calculate the starting coordinates of the rectangle
-        start_x = 0
-        start_y = height - black_height
-
-        # Create a black rectangle (NumPy array of zeros)
-        black_rect = np.zeros(
-            (black_height, black_width, frame.shape[2]), dtype=frame.dtype
-        )  # Ensure same dtype
-
-        # Replace the bottom-right portion of the frame with the black rectangle
-        frame[start_y:height, start_x:black_width] = black_rect
-
-        return frame
-    except Exception as e:
-        print(f"Error processing frame: {e}")
-        return original_frame
+def blur_area(width, height):
+    return Box(width * 0, height * 0.9769, to_x=width * 0.0943, to_y=height * 1)
 
 
 config = {
@@ -90,7 +64,8 @@ config = {
     "use_gui": True,  # 目前只支持True
     "config_folder": "configs",  # 最好不要修改
     "global_configs": [key_config_option, monthly_card_config_option, sound_trigger_config_option],
-    "screenshot_processor": make_bottom_left_black,  # 在截图的时候对frame进行修改, 可选
+    # "screenshot_processor": make_bottom_left_black,  # 在截图的时候对frame进行修改, 可选
+    "blur_area": blur_area,
     "gui_icon": "icons/icon.png",  # 窗口图标, 最好不需要修改文件名
     "wait_until_before_delay": 0,
     "wait_until_check_delay": 0,
@@ -114,9 +89,7 @@ config = {
     "windows": {  # Windows游戏请填写此设置
         "exe": "HTGame.exe",
         "hwnd_class": "UnrealWindow",
-        "interaction": [
-            NTEInteraction
-        ],
+        "interaction": [NTEInteraction],
         # Genshin:某些操作可以后台, 部分游戏支持 PostMessage:可后台点击, 极少游戏支持 ForegroundPostMessage:前台使用PostMessage Pynput/PyDirect:仅支持前台使用
         "capture_method": [
             "WGC",
@@ -125,7 +98,7 @@ config = {
         "check_hdr": False,  # 当用户开启AutoHDR时候提示用户, 但不禁止使用
         "force_no_hdr": False,  # True=当用户开启AutoHDR时候禁止使用
         "require_bg": True,  # 要求使用后台截图
-        'start_exe': False,
+        "start_exe": False,
     },
     # 'adb': {  # Windows游戏请填写此设置, mumu模拟器使用原生截图和input,速度极快. 其他模拟器和真机使用adb,截图速度较慢
     #     'packages': ['com.abc.efg1', 'com.abc.efg1']
@@ -140,7 +113,11 @@ config = {
     "supported_resolution": {
         "ratio": "16:9",  # 支持的游戏分辨率
         "min_size": (1920, 1080),  # 支持的最低游戏分辨率
-        "resize_to": [(2560, 1440), (1920, 1080)],  # 可选, 如果非16:9自动缩放为 resize_to
+        "resize_to": [
+            (3840, 2160),
+            (2560, 1440),
+            (1920, 1080),
+        ],  # 可选, 如果非16:9自动缩放为 resize_to
     },
     "links": {  # 关于里显示的链接, 可选
         "default": {
@@ -148,7 +125,9 @@ config = {
             "discord": "https://discord.gg/vVyCatEBgA",
             "sponsor": "https://ko-fi.com/bnanz",
             "share": "Download from https://github.com/BnanZ0/ok-nte",
+            "qq_group": "https://qm.qq.com/q/bIiSLoUTVS",
             "faq": "https://github.com/BnanZ0/ok-nte",
+            "qq_channel": "https://pd.qq.com/s/djmm6l44y",
         }
     },
     "about": """
@@ -190,25 +169,36 @@ config = {
     "onetime_tasks": [  # 用户点击触发的任务
         ["src.tasks.LauncherTask", "LauncherTask"],
         ["src.tasks.DailyTask", "DailyTask"],
+        ["src.tasks.CoffeeTask", "CoffeeTask"],
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.AnomalyTask", "AnomalyTask"],
+        ["src.tasks.RhythmTask", "RhythmTask"],
+        ["src.tasks.OwnerSelectionTask", "OwnerSelectionTask"],
+        ["src.tasks.AutoHeistTask", "AutoHeistTask"],
+        ["src.tasks.DarkTask", "DarkTask"],
         # ["src.tasks.MyOneTimeWithAGroup", "MyOneTimeWithAGroup"],
         # ["src.tasks.MyOneTimeWithAGroup2", "MyOneTimeWithAGroup2"],
         # ["src.tasks.MyOneTimeWithBGroup", "MyOneTimeWithBGroup"],
-        ["src.tasks.RhythmTask", "RhythmTask"],  # 新增
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
     ],
     "trigger_tasks": [  # 不断执行的触发式任务
         ["src.tasks.trigger.AutoCombatTask", "AutoCombatTask"],
+        ["src.tasks.trigger.SoundTriggerTask", "SoundTriggerTask"],
         ["src.tasks.trigger.SkipDialogTask", "SkipDialogTask"],
         ["src.tasks.trigger.FastTravelTask", "FastTravelTask"],
         ["src.tasks.trigger.HeistTask", "HeistTask"],
+        ["src.tasks.trigger.AutoLoginTask", "AutoLoginTask"],
     ],
     "custom_tabs": [
         ["src.ui.CharHubTab", "CharHubTab"]
         # ['src.ui.MyTab', 'MyTab'], #可选, 自定义UI, 显示在侧边栏
     ],
     "scene": ["src.scene.NTEScene", "NTEScene"],
+    'update_pyappify': {
+        'to_version': '1.1.3',
+        'zip_url': 'https://github.com/BnanZ0/ok-nte/releases/download/v0.0.53/ok-nte-win32.zip',
+        'sha256': '2d7aef33111d0db8f722dc69af528f6bf29df2b5411010dc9bea1c646eec22ce',
+    }
 }

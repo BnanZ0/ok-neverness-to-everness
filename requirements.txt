@@ -16,7 +16,7 @@ darkdetect==0.8.0
     # via pyside6-fluent-widgets
 decorator==5.2.1
     # via librosa
-idna==3.11
+idna==3.15
     # via requests
 imageio==2.37.3
     # via scikit-image
@@ -55,9 +55,9 @@ numpy==2.3.5
     #   soundfile
     #   soxr
     #   tifffile
-ok-script==1.0.115
+ok-script==1.0.148
     # via ok-nte (pyproject.toml)
-onnxocr-ppocrv5==0.0.17
+onnxocr-ppocrv5==0.0.18
     # via ok-nte (pyproject.toml)
 opencc==1.2.0
     # via ok-nte (pyproject.toml)
@@ -85,7 +85,7 @@ psutil==7.2.2
     # via
     #   ok-script
     #   pycaw
-pyappify==1.0.2
+pyappify==1.0.4
     # via ok-script
 pycaw==20240210
     # via ok-script
@@ -151,5 +151,5 @@ typing-extensions==4.15.0
     # via
     #   librosa
     #   ok-script
-urllib3==2.6.3
+urllib3==2.7.0
     # via requests

@@ -13,49 +13,49 @@ msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">
 msgstr "<b style=\"color: #0078d7;\">Character</b> and <b style=\"color: #0078d7;\">{combo}</b> support input and creation, and also support selecting existing items."
 
 msgid "Arc Key"
-msgstr ""
+msgstr "Arc Key"
 
 msgid "Check Monthly Card"
-msgstr ""
+msgstr "Check Monthly Card"
 
 msgid "Check for monthly card to avoid interruption of tasks"
-msgstr ""
+msgstr "Check for monthly card to avoid interruption of tasks"
 
 msgid "F10"
-msgstr ""
+msgstr "F10"
 
 msgid "F11"
-msgstr ""
+msgstr "F11"
 
 msgid "F12"
-msgstr ""
+msgstr "F12"
 
 msgid "F9"
-msgstr ""
+msgstr "F9"
 
 msgid "Game Hotkey Config"
-msgstr ""
+msgstr "Game Hotkey Config"
 
 msgid "In Game Hotkey for Skills"
-msgstr ""
+msgstr "In Game Hotkey for Skills"
 
 msgid "Monthly Card Config"
-msgstr ""
+msgstr "Monthly Card Config"
 
 msgid "Monthly Card Time"
-msgstr ""
+msgstr "Monthly Card Time"
 
 msgid "Skill Key"
-msgstr ""
+msgstr "Skill Key"
 
 msgid "Turn on to avoid interruption by monthly card when executing tasks"
-msgstr ""
+msgstr "Turn on to avoid interruption by monthly card when executing tasks"
 
 msgid "Ultimate Key"
-msgstr ""
+msgstr "Ultimate Key"
 
 msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
-msgstr ""
+msgstr "Your computer's local time when the monthly card will popup, hour in (1-24)"
 
 msgid "[内置代码]"
 msgstr "[Built-in Code]"
@@ -372,34 +372,34 @@ msgstr ""
 "If the game lags, input delay may cause accidental exit from the fishing scene."
 
 msgid "Counter Attack Threshold"
-msgstr ""
+msgstr "Counter Attack Threshold"
 
 msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr ""
+msgstr "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 
 msgid "Dodge Threshold"
-msgstr ""
+msgstr "Dodge Threshold"
 
 msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr ""
+msgstr "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
 
 msgid "Enable Sound Trigger"
-msgstr ""
+msgstr "Enable Sound Trigger"
 
 msgid "Enable sound recognition for automatic dodge and counter attacks"
-msgstr ""
+msgstr "Enable sound recognition for automatic dodge and counter attacks"
 
 msgid "Sound Trigger Config"
-msgstr ""
+msgstr "Sound Trigger Config"
 
 msgid "Sound-based dodge and counter trigger settings"
-msgstr ""
+msgstr "Sound-based dodge and counter trigger settings"
 
 msgid "Dodge All Attacks"
-msgstr ""
+msgstr "Dodge All Attacks"
 
 msgid "Dodge all attacks without performing counter attacks"
-msgstr ""
+msgstr "Dodge all attacks without performing counter attacks"
 
 msgid "不支持从OK启动游戏"
 msgstr "Launching the game from OK is not supported"
@@ -494,8 +494,8 @@ msgstr "Auto-Clicking Key (Active while held)"
 msgid "自动补饵卖鱼"
 msgstr "Auto-Refill Bait & Sell Fish"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "Refill default bait and sell fish catch when the first cast fails"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "When casting fails, refill default bait, sell catch, and retry"
 
 msgid "4列对应的键盘按键"
 msgstr "Keyboard keys for 4 columns"
@@ -538,3 +538,103 @@ msgstr "Start Game"
 
 msgid "Launcher Path"
 msgstr "Launcher Path"
+
+msgid "目标消耗体力"
+msgstr "Target Stamina Consumption"
+
+msgid "声音闪避反击"
+msgstr "Sound Dodge Counterattack"
+
+msgid "未处于自动战斗时, 响应声音闪避或反击"
+msgstr "Respond to sound dodge or counterattack when auto combat is not active"
+
+msgid ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+msgstr ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+
+msgid "Use QWERTY Physical Keys"
+msgstr "Use QWERTY Physical Keys"
+
+msgid "店长特供"
+msgstr "Owner's Selection"
+
+msgid "抢钱流"
+msgstr "Robbery Build"
+
+msgid "游戏启动后自动登录游戏"
+msgstr "Automatically log in after the game starts"
+
+msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
+msgstr "Automatically loop entering and exiting stages (requires an in-game AFK build)"
+
+msgid "自动登录游戏"
+msgstr "Auto Login"
+
+msgid "领取/补货一咖舍"
+msgstr "Claim/Restock Cafe"
+
+msgid "一咖舍任务"
+msgstr "Cafe Tasks"
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr "Choose how to handle Cafe daily tasks"
+
+msgid "不执行"
+msgstr "Do not execute"
+
+msgid ""
+"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 确保您已配置好游戏内的挂机流派。\n"
+"2. 站在咖啡店可进行 F 交互的位置。\n"
+"3. 首次启动需录制目标, 点击[开始]后请跟随指示操作。"
+msgstr ""
+"Feature notes: This feature only handles the click loop for \"automatically exiting the stage\" and \"restarting the stage\". It does not perform any in-stage food preparation or customer service actions.\n"
+"\n"
+"How to use:\n"
+"1. Make sure you have configured your in-game AFK build.\n"
+"2. Stand at a cafe position where you can interact with F.\n"
+"3. On the first launch, you need to record the target. Click [Start], then follow the prompts."
+
+msgid "循环次数(0为无限次)"
+msgstr "Loop count (0 for unlimited)"
+
+msgid "清空已记录的操作"
+msgstr "Clear recorded operations"
+
+msgid "自动执行黑暗赛车,请在大世界开始执行"
+msgstr "Automatically run Dark Race; please start from the open world"
+
+msgid "重置记录"
+msgstr "Reset Record"
+
+msgid "黑暗赛车"
+msgstr "Dark Race"
+
+msgid "Record has been reset"
+msgstr "Record has been reset"
+
+msgid "Updated successfully"
+msgstr "Updated successfully"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 使用滚轮滚动至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"Record the operations for clicking the target stage in two steps:\n"
+"1. Use the mouse wheel to scroll until the target is visible (if not needed, click the target)\n"
+"2. Click the target"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 点击滚动条至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"Record the operations for clicking the target stage in two steps:\n"
+"1. Click the scrollbar until the target is visible (if not needed, click the target)\n"
+"2. Click the target"

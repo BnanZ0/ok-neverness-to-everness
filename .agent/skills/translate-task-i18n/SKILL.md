@@ -25,9 +25,20 @@ Use this skill for task translation work in repositories that keep gettext catal
 
 Use `scripts/task_i18n_helper.py` from this skill when helpful:
 
+## Python Environment
+
+When running helper scripts or validation commands, use the project virtual environment if one exists. Prefer these interpreters in order:
+
+1. `.venv\Scripts\python.exe`
+2. `venv\Scripts\python.exe`
+3. `env\Scripts\python.exe`
+4. Global `python`
+
+If no project virtual environment exists, fall back to global `python`.
+
 ```powershell
-python C:\Users\ok\.codex\skills\translate-task-i18n\scripts\task_i18n_helper.py scan --task src\tasks\LauncherTask.py
-python C:\Users\ok\.codex\skills\translate-task-i18n\scripts\task_i18n_helper.py compile --i18n i18n
+.\.venv\Scripts\python.exe C:\Users\ok\.codex\skills\translate-task-i18n\scripts\task_i18n_helper.py scan --task src\tasks\LauncherTask.py
+.\.venv\Scripts\python.exe C:\Users\ok\.codex\skills\translate-task-i18n\scripts\task_i18n_helper.py compile --i18n i18n
 ```
 
 The scanner is a helper, not a substitute for reading the task. It finds common literal strings but may miss values built through constants or formatting.

@@ -494,8 +494,8 @@ msgstr "觸發連點的按鍵，按住該鍵生效"
 msgid "自动补饵卖鱼"
 msgstr "自動補餌賣魚"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr "首次拋竿失敗時，補充默認魚餌並出售魚獲"
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "拋竿失敗時，補充預設魚餌並出售魚獲後重試"
 
 msgid "4列对应的键盘按键"
 msgstr "4列對應的鍵盤按鍵"
@@ -529,3 +529,112 @@ msgstr "啟動遊戲"
 
 msgid "Launcher Path"
 msgstr "啟動器路徑"
+
+msgid "目标消耗体力"
+msgstr "目標消耗體力"
+
+msgid "声音闪避反击"
+msgstr "聲音閃避反擊"
+
+msgid "未处于自动战斗时, 响应声音闪避或反击"
+msgstr "未處於自動戰鬥時, 響應聲音閃避或反擊"
+
+msgid ""
+"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
+"physical positions, not your current layout's printed keys."
+msgstr ""
+"所有字母/數字按鍵，包括上方所有快捷鍵，都會按照美式 QWERTY\n"
+"物理位置替換，而不是目前鍵盤佈局上印刷的按鍵。"
+
+msgid "Use QWERTY Physical Keys"
+msgstr "使用 QWERTY 物理按鍵"
+
+msgid "店长特供"
+msgstr "店長特供"
+
+msgid "抢钱流"
+msgstr "搶錢流"
+
+msgid "游戏启动后自动登录游戏"
+msgstr "遊戲啟動後自動登入遊戲"
+
+msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
+msgstr "自動循環進出關卡（需配合遊戲內掛機流派使用）"
+
+msgid "自动登录游戏"
+msgstr "自動登入遊戲"
+
+msgid "领取/补货一咖舍"
+msgstr "領取/補貨一咖舍"
+
+msgid "一咖舍任务"
+msgstr "一咖舍任務"
+
+msgid "选择日常任务中的一咖舍处理方式"
+msgstr "選擇日常任務中的一咖舍處理方式"
+
+msgid "不执行"
+msgstr "不執行"
+
+msgid "记录新特征"
+msgstr "記錄新特徵"
+
+msgid "输入或选择关联的角色名称"
+msgstr "輸入或選擇關聯的角色名稱"
+
+msgid "输入或选择绑定的{combo} (可选)"
+msgstr "輸入或選擇綁定的{combo}（可選）"
+
+msgid ""
+"功能说明：本功能仅负责『自动退出关卡』与『重新开启关卡』的点击循环，不包含任何局内的制作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 确保您已配置好游戏内的挂机流派。\n"
+"2. 站在咖啡店可进行 F 交互的位置。\n"
+"3. 首次启动需录制目标, 点击[开始]后请跟随指示操作。"
+msgstr ""
+"功能說明：本功能僅負責「自動退出關卡」與「重新開啟關卡」的點擊循環，不包含任何局內的製作食物或招待客人操作。\n"
+"\n"
+"使用方法：\n"
+"1. 確保您已配置好遊戲內的掛機流派。\n"
+"2. 站在咖啡店可進行 F 互動的位置。\n"
+"3. 首次啟動需錄製目標，點擊[開始]後請依照指示操作。"
+
+msgid "循环次数(0为无限次)"
+msgstr "循環次數（0 為無限次）"
+
+msgid "清空已记录的操作"
+msgstr "清除已記錄的操作"
+
+msgid "自动执行黑暗赛车,请在大世界开始执行"
+msgstr "自動執行黑暗賽車，請在大世界開始執行"
+
+msgid "重置记录"
+msgstr "重置記錄"
+
+msgid "黑暗赛车"
+msgstr "黑暗賽車"
+
+msgid "Record has been reset"
+msgstr "記錄已重置"
+
+msgid "Updated successfully"
+msgstr "更新成功"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 使用滚轮滚动至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"記錄點擊目標關卡的操作，分為兩個步驟：\n"
+"1. 使用滾輪滾動至目標可見（若不需要則點擊目標）\n"
+"2. 點擊目標"
+
+msgid ""
+"记录点击目标关卡的操作，分为两个步骤：\n"
+"1. 点击滚动条至目标可见 (若不需要则点击目标)\n"
+"2. 点击目标"
+msgstr ""
+"記錄點擊目標關卡的操作，分為兩個步驟：\n"
+"1. 點擊捲動條至目標可見（若不需要則點擊目標）\n"
+"2. 點擊目標"

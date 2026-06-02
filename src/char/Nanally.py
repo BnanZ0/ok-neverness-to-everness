@@ -9,7 +9,9 @@ class Nanally(BaseChar):
 
     def do_perform(self):
         self.wait_intro()
-        self.click_skill()
+        skill = self.click_skill()[0]
+        if self.ultimate_available() and skill:
+            self.sleep(0.6)
         if self.click_ultimate():
             self.perform_in_ult()
 

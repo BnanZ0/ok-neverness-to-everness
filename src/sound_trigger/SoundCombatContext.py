@@ -184,6 +184,9 @@ class SoundCombatContext:
                 or self._trigger.task.executor.paused
             ):
                 return
+            if can_sound_trigger := getattr(self._trigger.task, "can_sound_trigger", None):
+                if not can_sound_trigger():
+                    return
             if self.should_interrupt_combat():
                 return
             if self._pending_action is not None:
@@ -240,6 +243,23 @@ class SoundCombatContext:
                 self._pending_action = None
                 self.clear_priority()
 
+    def clear_task_if(self, task):
+        with self._context_lock:
+            current_task = self._trigger.task if self._trigger else self._pending_task
+            if current_task is not task:
+                return False
+            self._pending_task = None
+            if self._trigger:
+                self._trigger.task = None
+            self._pending_action = None
+            self.clear_priority()
+            return True
+
+    def is_bound_to(self, task):
+        with self._context_lock:
+            current_task = self._trigger.task if self._trigger else self._pending_task
+            return current_task is task
+
     def update_config(
         self,
         enable: bool,
@@ -264,6 +284,9 @@ class SoundCombatContext:
         task = trigger.task
         if not task:
             return False
+        if can_sound_trigger := getattr(task, "can_sound_trigger", None):
+            if not can_sound_trigger():
+                return False
         return not task.executor.paused
 
     @property

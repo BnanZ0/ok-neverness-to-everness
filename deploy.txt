@@ -6,5 +6,6 @@ icons
 requirements.txt
 README.md
 i18n
+pyappify
 assets
 pyappify.yml

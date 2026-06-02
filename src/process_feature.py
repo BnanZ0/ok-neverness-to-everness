@@ -16,11 +16,11 @@ def process_feature(feature_name, feature: Feature):
             feature.mat = iu.binarize_bgr_by_brightness(feature.mat, threshold=180)
         case Labels.mini_map_arrow:
             feature.mat = iu.binarize_bgr_by_brightness(feature.mat, threshold=200)
-        case Labels.skip_dialog:
-            feature.mat = gf.isolate_dialog_to_white(feature.mat)
         case Labels.is_current_char:
             feature.mat = gf.current_char_filter(feature.mat)
         case Labels.target:
             feature.mat = iu.binarize_bgr_by_brightness(feature.mat, threshold=245)
         case Labels.fish_start:
+            feature.mat = iu.create_color_mask(feature.mat, text_white_color)
+        case Labels.heist_lock_pick:
             feature.mat = iu.create_color_mask(feature.mat, text_white_color)

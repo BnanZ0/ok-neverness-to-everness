@@ -148,10 +148,12 @@ class BaseChar:
             time_out = self.INTRO_MOTION_FREEZE_DURATION
 
         if self.has_intro:
+            self.logger.info(f"wait intro {time_out}s")
             if click:
                 self.continues_normal_attack(time_out)
             else:
                 self.sleep(time_out)
+            self.logger.info("wait intro end")
 
     def click_with_interval(self, interval=0.1):
         """以指定间隔执行点击操作。
@@ -324,7 +326,7 @@ class BaseChar:
             return "released" if result["clicked"] else "unavailable"
         return "continue"
 
-    def click_ultimate(self, send_click=False, wait_if_cd_ready=0.1):
+    def click_ultimate(self, send_click=True, wait_if_cd_ready=0.1):
         """尝试释放终结技。
 
         Args:
@@ -336,9 +338,16 @@ class BaseChar:
         """
         if not self.task.use_ultimate:
             return False
-        if self.task._combat_settle.time is not None:
-            self.logger.info("click_ultimate blocked by combat_detect_settle")
-            return False
+
+        if self.ultimate_available():
+            if self.task._combat_settle.time is not None:
+                self.logger.info("click_ultimate blocked by combat_detect_settle")
+            while self.task._combat_settle.time is not None:
+                self.task.next_frame()
+                self.check_combat()
+                self.click_with_interval()
+                self.sleep(0.1)
+
         self.logger.debug("click_ultimate start")
         if not self.task.in_animation:
             result = self._try_available_action(
@@ -415,19 +424,29 @@ class BaseChar:
 
     def _wait_ultimate_unfreeze(self, start):
         self.logger.debug("waiting for time unfrozen")
+        self.task.wait_until(
+            lambda: self.has_cd("ultimate"), post_action=self.click_with_interval, time_out=2
+        )
         box_ultimate = self.task.get_box_by_name(Labels.box_ultimate)
         snapshot = box_ultimate.crop_frame(self.task.frame)
         processed_snapshot = gf.isolate_cd_to_black(snapshot)
+
+        def condition():
+            if not self.task.find_one(
+                Labels.box_ultimate,
+                template=processed_snapshot,
+                box=box_ultimate,
+                frame_processor=gf.isolate_cd_to_black,
+                threshold=0.7,
+            ):
+                self.logger.info("ultimate unfreeze cause cd changed")
+                return True
+            elif not self.available("ultimate", check_cd=False):
+                self.logger.info("ultimate unfreeze cause ultimate not available")
+                return True
+
         self.task.wait_until(
-            lambda: (
-                not self.task.find_one(
-                    template=processed_snapshot,
-                    box=box_ultimate,
-                    frame_processor=gf.isolate_cd_to_black,
-                    threshold=0.7,
-                )
-                or not self.available("ultimate", check_cd=False)
-            ),
+            condition,
             time_out=10,
             post_action=self.click_with_interval,
         )
@@ -472,7 +491,9 @@ class BaseChar:
         if result["timed_out"] and time_out == 0:
             self.alert_skill_failed()
         clicked, duration, animated = self._finish_skill_action(result, post_sleep, has_animation)
-        self.logger.debug(f"click_skill end clicked {clicked} duration {duration} animated {animated}")
+        self.logger.debug(
+            f"click_skill end clicked {clicked} duration {duration} animated {animated}"
+        )
         return clicked, duration, animated
 
     def _finish_skill_action(self, result, post_sleep=0, has_animation=False):

@@ -28,7 +28,7 @@ class FastTravelTask(BaseNTETask, TriggerTask):
 
     def run(self):
         if self.scene.is_in_team(self.is_in_team) or not self.find_one(
-            Labels.map_location_card, threshold=0.8
+            Labels.close_button, threshold=0.8
         ):
             return
         if btn := self.find_traval_button():
@@ -45,4 +45,4 @@ class FastTravelTask(BaseNTETask, TriggerTask):
 
             if results:
                 self.click_traval_button(btn)
-                return True
+                return

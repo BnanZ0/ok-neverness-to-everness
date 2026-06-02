@@ -116,9 +116,57 @@
         },
         {
             "id": 20,
-            "file_name": "images/3.png",
+            "file_name": "images/7.png",
             "width": 1920,
             "height": 1080
+        },
+        {
+            "id": 21,
+            "file_name": "images/3.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 22,
+            "file_name": "images/4.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 23,
+            "file_name": "images/2.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 24,
+            "file_name": "images/5.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 25,
+            "file_name": "images/6.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 26,
+            "file_name": "images/1.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 27,
+            "file_name": "images/2.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 28,
+            "file_name": "images/1.png",
+            "width": 2560,
+            "height": 1440
         }
     ],
     "annotations": [
@@ -567,14 +615,14 @@
         {
             "id": 35,
             "image_id": 15,
-            "category_id": 35,
+            "category_id": 59,
             "bbox": [
-                2457,
-                45,
-                57,
-                58
+                2458,
+                46,
+                55,
+                55
             ],
-            "area": 3306,
+            "area": 3025,
             "iscrowd": 0
         },
         {
@@ -621,12 +669,12 @@
             "image_id": 16,
             "category_id": 39,
             "bbox": [
-                890,
-                652,
-                47,
-                47
+                907,
+                659,
+                13,
+                33
             ],
-            "area": 2209,
+            "area": 429,
             "iscrowd": 0
         },
         {
@@ -658,7 +706,7 @@
         {
             "id": 42,
             "image_id": 19,
-            "category_id": 42,
+            "category_id": 35,
             "bbox": [
                 929,
                 126,
@@ -679,6 +727,201 @@
                 48
             ],
             "area": 2160,
+            "iscrowd": 0
+        },
+        {
+            "id": 44,
+            "image_id": 22,
+            "category_id": 44,
+            "bbox": [
+                30,
+                35,
+                69,
+                61
+            ],
+            "area": 4209,
+            "iscrowd": 0
+        },
+        {
+            "id": 45,
+            "image_id": 21,
+            "category_id": 45,
+            "bbox": [
+                45,
+                50,
+                66,
+                64
+            ],
+            "area": 4224,
+            "iscrowd": 0
+        },
+        {
+            "id": 46,
+            "image_id": 23,
+            "category_id": 47,
+            "bbox": [
+                2467,
+                36,
+                48,
+                49
+            ],
+            "area": 2352,
+            "iscrowd": 0
+        },
+        {
+            "id": 47,
+            "image_id": 25,
+            "category_id": 46,
+            "bbox": [
+                33,
+                36,
+                92,
+                91
+            ],
+            "area": 8372,
+            "iscrowd": 0
+        },
+        {
+            "id": 48,
+            "image_id": 25,
+            "category_id": 48,
+            "bbox": [
+                1493,
+                1257,
+                53,
+                71
+            ],
+            "area": 3763,
+            "iscrowd": 0
+        },
+        {
+            "id": 49,
+            "image_id": 24,
+            "category_id": 49,
+            "bbox": [
+                42,
+                49,
+                76,
+                69
+            ],
+            "area": 5244,
+            "iscrowd": 0
+        },
+        {
+            "id": 50,
+            "image_id": 24,
+            "category_id": 50,
+            "bbox": [
+                146,
+                636,
+                108,
+                53
+            ],
+            "area": 5724,
+            "iscrowd": 0
+        },
+        {
+            "id": 51,
+            "image_id": 24,
+            "category_id": 51,
+            "bbox": [
+                1897,
+                418,
+                120,
+                54
+            ],
+            "area": 6480,
+            "iscrowd": 0
+        },
+        {
+            "id": 52,
+            "image_id": 25,
+            "category_id": 52,
+            "bbox": [
+                120,
+                508,
+                81,
+                88
+            ],
+            "area": 7128,
+            "iscrowd": 0
+        },
+        {
+            "id": 53,
+            "image_id": 26,
+            "category_id": 53,
+            "bbox": [
+                1493,
+                719,
+                67,
+                85
+            ],
+            "area": 5695,
+            "iscrowd": 0
+        },
+        {
+            "id": 54,
+            "image_id": 26,
+            "category_id": 54,
+            "bbox": [
+                63,
+                412,
+                47,
+                49
+            ],
+            "area": 2303,
+            "iscrowd": 0
+        },
+        {
+            "id": 55,
+            "image_id": 27,
+            "category_id": 56,
+            "bbox": [
+                1554,
+                768,
+                36,
+                37
+            ],
+            "area": 1332,
+            "iscrowd": 0
+        },
+        {
+            "id": 56,
+            "image_id": 28,
+            "category_id": 55,
+            "bbox": [
+                1247,
+                645,
+                56,
+                57
+            ],
+            "area": 3192,
+            "iscrowd": 0
+        },
+        {
+            "id": 57,
+            "image_id": 28,
+            "category_id": 57,
+            "bbox": [
+                925,
+                770,
+                63,
+                63
+            ],
+            "area": 3969,
+            "iscrowd": 0
+        },
+        {
+            "id": 58,
+            "image_id": 28,
+            "category_id": 58,
+            "bbox": [
+                106,
+                1234,
+                106,
+                95
+            ],
+            "area": 10070,
             "iscrowd": 0
         }
     ],
@@ -855,7 +1098,7 @@
         },
         {
             "id": 35,
-            "name": "map_location_card",
+            "name": "fish_sucess",
             "supercategory": ""
         },
         {
@@ -889,13 +1132,88 @@
             "supercategory": ""
         },
         {
-            "id": 42,
-            "name": "fising_sucess",
+            "id": 43,
+            "name": "launcher_start_game",
             "supercategory": ""
         },
         {
-            "id": 43,
-            "name": "launcher_start_game",
+            "id": 44,
+            "name": "f5_coffee_panel",
+            "supercategory": ""
+        },
+        {
+            "id": 45,
+            "name": "f5_panel",
+            "supercategory": ""
+        },
+        {
+            "id": 46,
+            "name": "fish_sell",
+            "supercategory": ""
+        },
+        {
+            "id": 47,
+            "name": "login_setting",
+            "supercategory": ""
+        },
+        {
+            "id": 48,
+            "name": "fish_one_click_sell",
+            "supercategory": ""
+        },
+        {
+            "id": 49,
+            "name": "fish_shop",
+            "supercategory": ""
+        },
+        {
+            "id": 50,
+            "name": "default_fish_bait",
+            "supercategory": ""
+        },
+        {
+            "id": 51,
+            "name": "default_fish_bait_big",
+            "supercategory": ""
+        },
+        {
+            "id": 52,
+            "name": "fish_hold",
+            "supercategory": ""
+        },
+        {
+            "id": 53,
+            "name": "heist_lock_pick",
+            "supercategory": ""
+        },
+        {
+            "id": 54,
+            "name": "heist_timer",
+            "supercategory": ""
+        },
+        {
+            "id": 55,
+            "name": "map_big_teleport",
+            "supercategory": ""
+        },
+        {
+            "id": 56,
+            "name": "heist_interac_lock_pick",
+            "supercategory": ""
+        },
+        {
+            "id": 57,
+            "name": "map_small_teleport",
+            "supercategory": ""
+        },
+        {
+            "id": 58,
+            "name": "map_city_tycoon_activities",
+            "supercategory": ""
+        },
+        {
+            "id": 59,
+            "name": "close_button",
             "supercategory": ""
         }
     ]
