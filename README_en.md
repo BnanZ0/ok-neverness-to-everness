@@ -13,21 +13,31 @@
     <a href="https://github.com/BnanZ0/ok-nte/releases"><img src="https://img.shields.io/github/v/release/BnanZ0/ok-nte" alt="Latest Release"></a>
     <a href="https://discord.gg/vVyCatEBgA"><img alt="Discord" src="https://img.shields.io/discord/296598043787132928?color=5865f2&label=%20Discord"></a>
   </p>
+
+  <p>
+    <strong>💖 Like this project?</strong><br>
+    <a href="https://github.com/BnanZ0/ok-nte">Lighten the star⭐</a> &nbsp;|&nbsp; <a href="./SPONSOR.md">Sponsor the developer☕</a>
+  </p>
 </div>
 
 ## ⚠️ Disclaimer
 
-This software is an open-source, free external tool intended for learning and exchange purposes only. It is designed to automate the gameplay of *Neverness To Everness* by interacting with the game solely through the existing user interface and in compliance with relevant laws and regulations. The package is intended to provide a simplified way for users to interact with the game and is not meant to disrupt the game balance or provide any unfair advantage. This package does not modify any game files or game code in any way.
+> [!CAUTION]
+> **This software is an open-source, free external tool intended for learning and exchange purposes only. It is designed to automate the gameplay of *Neverness To Everness* by interacting with the game solely through the existing user interface and in compliance with relevant laws and regulations.**
+>
+> - **Mechanism**: The package is intended to provide a simplified way for users to interact with the game. This package does not modify any game files or game code in any way.
+> - **Purpose**: It is not meant to disrupt the game balance or provide any unfair advantage.
+> - **Liability**: All issues and consequences arising from the use of this software are not related to this project or its development team. The development team reserves the final right of interpretation for this project.
+> - **Commercialization**: If you encounter vendors using this software for services and charging a fee, this may cover their costs for equipment and time; any resulting problems or consequences are not associated with this software.
 
-All issues and consequences arising from the use of this software are not related to this project or its development team. The development team reserves the final right of interpretation for this project. If you encounter vendors using this software for services and charging a fee, this may cover their costs for equipment and time; any resulting problems or consequences are not associated with this software.
-
-**Please Note: According to the [*Neverness To Everness* Fair Play Declaration](https://nte.perfectworld.com/en/article/news/gamebroad/20260206/260828.html):**
+> [!WARNING]
+> **Please Note: According to the [*Neverness To Everness* Fair Play Declaration](https://nte.perfectworld.com/en/article/news/gamebroad/20260206/260828.html):**
 >
 > The use of any third-party tools that undermine fair gameplay is strictly prohibited. We will take strong action against violations involving illegal tools such as cheats, speed hacks, macro scripts, and similar software.
-> 
+>
 > Prohibited behaviors include, but are not limited to: auto-farming, skill acceleration, god mode, teleportation, and game data manipulation. Any account found to be involved in such activities will be banned upon verification.
 >
-**You should fully understand and voluntarily assume all potential risks associated with using this tool.**
+> **You should fully understand and voluntarily assume all potential risks associated with using this tool.**
 
 ## ✨ Main Features
 
@@ -55,7 +65,7 @@ All issues and consequences arising from the use of this software are not relate
 ## 🖥️ System Requirements & Compatibility
 
 *   **Operating System**: Windows
-*   **Game Resolution**: 1920x1080 or higher (16:9 aspect ratio recommended)
+*   **Game Resolution**: 1920x1080 or higher (**16:9 aspect ratio only**)
 *   **Game Language**: Simplified Chinese / English
 
 ## 🚀 Installation Guide
@@ -84,7 +94,8 @@ This method requires a Python environment and is suitable for users who want to 
     # or
     pip install -r requirements.txt
     ```
-    *Tip: After pulling new code, it's recommended to run this command again to ensure all dependencies are up to date.*
+
+    **💡 Tip**: After pulling new code, it's recommended to run this command again to ensure all dependencies are up to date.
 4.  **Run the application**:
     ```bash
     # Run the standard version
@@ -100,22 +111,25 @@ To ensure the program runs stably, please carefully read the following configura
 
 ### 1. Pre-use Configuration (Required)
 
-Before starting the automation, please check and confirm the following settings:
+> [!IMPORTANT]
+> Before starting the automation, please check and confirm the following settings:
+>
+> *   **Graphics Settings**
+>     *   **Game Brightness**: Use the **default** in-game brightness.
+>     *   **UI Settings**: **Disable** all settings that cause the UI to differ from the default.
+>     *   **Graphics Filters**: **Disable** all graphics card filters and sharpening effects (e.g., NVIDIA Freestyle, AMD FidelityFX).
+> *   **Resolution**
+>     *   Recommended to use **1920x1080** or higher **16:9** resolutions.
+> *   **Keybindings**
+>     *   Please use the game's **default** keybindings.
+> *   **Third-party Software**
+>     *   Disable any overlays that display information on the game screen, such as the **framerate counter** from MSI Afterburner.
 
-*   **Graphics Settings**
-    *   **UI Settings**: **Disable** all settings that cause the UI to differ from the default.
-    *   **Graphics Filters**: **Disable** all graphics card filters and sharpening effects (e.g., NVIDIA Freestyle, AMD FidelityFX).
-    *   **Game Brightness**: Use the **default** in-game brightness.
-*   **Resolution**
-    *   Recommended to use **1920x1080** or other common 16:9 resolutions.
-*   **Keybindings**
-    *   Please use the game's **default** keybindings.
-*   **Third-party Software**
-    *   Disable any overlays that display information on the game screen, such as the **framerate counter** from MSI Afterburner.
-*   **Window and System State**
-    *   **Mouse Interference**: When the game window is in the **foreground**, do not move your mouse, as it will interfere with the program's simulated clicks.
-    *   **Window State**: The game window can be in the background but **must not be minimized**.
-    *   **System State**: Do not let your computer **turn off the display** or **lock the screen**, as this will interrupt the program.
+> [!WARNING]
+> **Window and System State Precautions**
+> *   **Mouse Interference**: When the game window is in the **foreground**, do not move your mouse, as it will interfere with the program's simulated clicks.
+> *   **Window State**: The game window can be in the background but **must not be minimized**.
+> *   **System State**: Do not let your computer **turn off the display** or **lock the screen**, as this will interrupt the program.
 
 ### 2. Quick Start
 
@@ -150,7 +164,6 @@ If the solutions above do not resolve your issue, feel free to report it via [**
 * Ash Echoes (discontinued) [https://github.com/ok-oldking/ok-baijing](https://github.com/ok-oldking/ok-baijing)
 
 ## ❤️ Support & Acknowledgments
-*   Like this project? [Lighten the star⭐](https://github.com/BnanZ0/ok-nte)
 
 ### Contributors
 

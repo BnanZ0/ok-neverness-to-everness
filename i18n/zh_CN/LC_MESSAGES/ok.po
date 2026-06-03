@@ -605,6 +605,11 @@ msgstr ""
 msgid "Record has been reset"
 msgstr "记录已重置"
 
+msgid ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+msgstr "未找到已记录的操作。请等待录制提示出现，然后按照指引，仔细完成操作录制。"
+
 msgid "Updated successfully"
 msgstr "更新成功"
 
@@ -618,4 +623,10 @@ msgid ""
 "记录点击目标关卡的操作，分为两个步骤：\n"
 "1. 点击滚动条至目标可见 (若不需要则点击目标)\n"
 "2. 点击目标"
+msgstr ""
+
+msgid "都市闲趣"
+msgstr ""
+
+msgid "日常/周常"
 msgstr ""

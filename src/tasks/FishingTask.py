@@ -40,6 +40,8 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         self.name = "自动钓鱼"
         self.description = "自动完成一轮或多轮钓鱼"
         self.icon = FluentIcon.SYNC
+        self.group_name = "都市闲趣"
+        self.group_icon = FluentIcon.GAME
         self.default_config.update(
             {
                 self.CONF_ROUNDS: 1,
@@ -362,13 +364,13 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
 
         box = self.box_of_screen(0.927, 0.827, 0.975, 0.912)
         btn = self.wait_strict(
-            lambda: self.find_one(Labels.skip_quest_confirm, box=box),
+            lambda: self.find_confirm(box=box),
             post_action=lambda: self.send_key("f", interval=2),
         )
 
         def action():
             box = self.box_of_screen(0.656, 0.618, 0.700, 0.699)
-            if btn := self.find_one(Labels.skip_quest_confirm, box=box):
+            if btn := self.find_confirm(box=box):
                 self.operate_click(btn, action_name="extra_confirm", interval=2)
 
         self.wait_strict(
@@ -396,11 +398,14 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
             return True
         return False
 
-    def wait_click_confirm(self, action, range=None, raise_if_not_found=True):
+    def wait_click_confirm(self, action=None, range=None, settle_time=1.0, raise_if_not_found=True):
         if range is None:
-            range=(0.641, 0.610, 0.713, 0.698)
+            range = (0.641, 0.610, 0.713, 0.698)
         return super().wait_click_confirm(
-            action=action, range=range, raise_if_not_found=raise_if_not_found
+            action=action,
+            range=range,
+            settle_time=settle_time,
+            raise_if_not_found=raise_if_not_found,
         )
 
     def wait_strict(

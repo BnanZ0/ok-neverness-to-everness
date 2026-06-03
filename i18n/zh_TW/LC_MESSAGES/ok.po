@@ -618,6 +618,11 @@ msgstr "黑暗賽車"
 msgid "Record has been reset"
 msgstr "記錄已重置"
 
+msgid ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+msgstr "未找到已記錄的操作。請等待錄製提示出現，然後依照指示，仔細完成操作錄製。"
+
 msgid "Updated successfully"
 msgstr "更新成功"
 
@@ -638,3 +643,9 @@ msgstr ""
 "記錄點擊目標關卡的操作，分為兩個步驟：\n"
 "1. 點擊捲動條至目標可見（若不需要則點擊目標）\n"
 "2. 點擊目標"
+
+msgid "都市闲趣"
+msgstr "都市閒趣"
+
+msgid "日常/周常"
+msgstr "日常/週常"

@@ -620,6 +620,11 @@ msgstr "Corrida Sombria"
 msgid "Record has been reset"
 msgstr "A gravação foi redefinida"
 
+msgid ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+msgstr "Nenhuma operação gravada foi encontrada. Aguarde o aviso de gravação e siga as instruções com atenção para gravar suas ações."
+
 msgid "Updated successfully"
 msgstr "Atualizado com sucesso"
 
@@ -640,3 +645,9 @@ msgstr ""
 "Grave as operações para clicar na fase alvo em duas etapas:\n"
 "1. Clique na barra de rolagem até que o alvo fique visível (se não for necessário, clique no alvo)\n"
 "2. Clique no alvo"
+
+msgid "都市闲趣"
+msgstr "Hobbies"
+
+msgid "日常/周常"
+msgstr "Diárias/semanais"

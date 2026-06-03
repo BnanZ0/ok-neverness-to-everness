@@ -618,6 +618,11 @@ msgstr "Carrera oscura"
 msgid "Record has been reset"
 msgstr "La grabación se ha restablecido"
 
+msgid ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+msgstr "No se encontraron operaciones grabadas. Espera a que aparezca el aviso de grabación y sigue las instrucciones con atención para grabar tus acciones."
+
 msgid "Updated successfully"
 msgstr "Actualizado correctamente"
 
@@ -638,3 +643,9 @@ msgstr ""
 "Graba las operaciones para hacer clic en la fase objetivo en dos pasos:\n"
 "1. Haz clic en la barra de desplazamiento hasta que el objetivo sea visible (si no hace falta, haz clic en el objetivo)\n"
 "2. Haz clic en el objetivo"
+
+msgid "都市闲趣"
+msgstr "Aficiones"
+
+msgid "日常/周常"
+msgstr "Diarias/semanales"

@@ -46,6 +46,8 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
         self.name = "自动音游"
         self.description = "异环鼓组音游自动打击与重试"
         self.icon = FluentIcon.MUSIC
+        self.group_name = "都市闲趣"
+        self.group_icon = FluentIcon.GAME
         self.default_config.update(
             {
                 self.CONF_TIMEOUT_SECONDS: 180,

@@ -75,24 +75,37 @@ class DarkTask(NTEOneTimeTask, RecordTask):
             self.sleep(1)
 
     def go(self):
+        key_down = False
         self.wait_in_team(time_out=120, settle_time=2)
         start_time = time.time()
-        while True:
-            elapsed = time.time() - start_time
+        try:
+            while True:
+                elapsed = time.time() - start_time
 
-            # 剩余时间
-            remain = 150 - elapsed
+                # 剩余时间
+                remain = 150 - elapsed
 
-            if remain <= 0:
-                break
-            if elapsed > 15 and elapsed < 40:
-                try:
-                    self.send_key_down("w")
+                if remain <= 0:
+                    break
+                
+                if elapsed > 20 and elapsed < 40:
+                    if not key_down:
+                        key_down = True
+                        self.send_key_down("w")
+                        self.sleep(0.2)
+                    self.send_key("lshift")
+                    self.sleep(0.1)
                     self.send_key("space")
                     self.sleep(0.25)
                     self.send_key("space")
                     self.sleep(1)
-                finally:
-                    self.send_key_up("w")
-            self.sleep(1)
+                else:
+                    if key_down:
+                        key_down = False
+                        self.send_key_up("w")
+                self.sleep(1)
+        finally:
+            if key_down:
+                key_down = False
+                self.send_key_up("w")
         self.wait_until(lambda: not self.is_in_team(), time_out=600)

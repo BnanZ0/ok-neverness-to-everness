@@ -104,6 +104,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         super().__init__(*args, **kwargs)
         self.name = "自动粉爪大劫案"
         self.icon = FluentIcon.SHOPPING_CART
+        self.group_name = "都市闲趣"
         self.instructions = INST
         self.supported_languages = ["zh_CN", "zh_TW"]
         self.paths = {

@@ -11,6 +11,7 @@ from PySide6.QtCore import Qt
 from qfluentwidgets import InfoBar, InfoBarPosition
 
 from src.tasks.BaseNTETask import BaseNTETask
+from src.ui.util import show_dialog_and_wait
 
 logger = Logger.get_logger(__name__)
 
@@ -19,6 +20,10 @@ DEFAULT_RECORD_INSTRUCTION = "Record operations"
 RECORD_CONFIG_FOLDER = "configs/records"
 RECORD_OPERATIONS_KEY = "operations"
 SCROLL_MERGE_INTERVAL = 0.35
+NOTIFICATION = (
+    "No recorded operations were found. Please wait for the recording prompt, "
+    "then follow the instructions carefully to record your actions."
+)
 
 
 class RecordTask(BaseNTETask):
@@ -43,9 +48,20 @@ class RecordTask(BaseNTETask):
                 self.CONF_RESET_RECORD: {"type": "button", "callback": self.reset_record},
             }
         )
-        self.config_description.update({
-            self.CONF_RESET_RECORD: "清空已记录的操作",
-        })
+        self.config_description.update(
+            {
+                self.CONF_RESET_RECORD: "清空已记录的操作",
+            }
+        )
+        self.tr(NOTIFICATION)
+
+    def run(self):
+        operations = self.load_recorded_operations()
+        if not operations:
+            self.show_notification()
+
+    def show_notification(self):
+        show_dialog_and_wait(self.tr(self.name), self.tr(NOTIFICATION), close_delay_seconds=2)
 
     def reset_record(self, *args, **kwargs):
         self.record_config[RECORD_OPERATIONS_KEY] = []
@@ -133,12 +149,13 @@ class RecordTask(BaseNTETask):
         respect_delays: bool = True,
     ) -> None:
         operations = operations if operations is not None else self.load_recorded_operations()
+        previous_operation = None
         for operation in operations:
             if not isinstance(operation, dict):
                 continue
             if respect_delays:
-                interval = operation.get("interval", operation.get("delay", 0))
-                self.sleep(max(0, float(interval)))
+                delay = self._operation_delay(operation, previous_operation)
+                self.sleep(delay)
 
             op_type = operation.get("type")
             if op_type == "click":
@@ -158,9 +175,23 @@ class RecordTask(BaseNTETask):
                     int(operation["y"] * self.height),
                     count,
                 )
+            previous_operation = operation
 
     def operation_click(self, *args, **kwargs):
         return self.operate_click(*args, **kwargs)
+
+    def _operation_delay(
+        self,
+        operation: dict[str, Any],
+        previous_operation: dict[str, Any] | None = None,
+    ) -> float:
+        if previous_operation is None:
+            return 0.0
+        try:
+            previous_end = previous_operation.get("end_time", previous_operation.get("time"))
+            return max(0.0, float(operation["time"]) - float(previous_end))
+        except (TypeError, ValueError, KeyError):
+            return max(0.0, float(operation.get("delay", 0)))
 
     def _record_mouse_operations(
         self,
@@ -208,12 +239,11 @@ class RecordTask(BaseNTETask):
             if len(operations) >= count:
                 return
             end_time = event_time if end_time is None else end_time
-            interval = 0.0
+            delay = 0.0
             if last_operation_end_time is not None:
-                interval = max(0.0, event_time - last_operation_end_time)
+                delay = max(0.0, event_time - last_operation_end_time)
             operation["index"] = len(operations) + 1
-            operation["interval"] = round(interval, 4)
-            operation["delay"] = operation["interval"]
+            operation["delay"] = round(delay, 4)
             operations.append(operation)
             last_operation_end_time = end_time
             self.log_info(f"record operation {operation['index']}/{count}: {operation}")
@@ -473,12 +503,13 @@ class RecordTask(BaseNTETask):
                 painter.setFont(font)
                 metrics = painter.fontMetrics()
                 padding = 6
-                offset = 14
+                offset_x = max(1, round(widget.width() * 14 / 1280))
+                offset_y = max(1, round(widget.height() * 14 / 720))
                 text_rect = metrics.boundingRect(QRect(0, 0, 360, 1000), Qt.TextWordWrap, text)
                 box_width = min(max(text_rect.width() + padding * 2, 120), widget.width())
                 box_height = text_rect.height() + padding * 2
-                box_x = min(max(0, mx + offset), max(0, widget.width() - box_width))
-                box_y = min(max(0, my + offset), max(0, widget.height() - box_height))
+                box_x = min(max(0, mx + offset_x), max(0, widget.width() - box_width))
+                box_y = min(max(0, my + offset_y), max(0, widget.height() - box_height))
 
                 painter.setPen(Qt.NoPen)
                 painter.setBrush(QColor(0, 0, 0, 170))

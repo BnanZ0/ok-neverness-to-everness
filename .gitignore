@@ -68,3 +68,4 @@ custom_chars/
 .vscode/
 ok_tasks/
 temp_images/
+.ruff_cache

@@ -123,7 +123,7 @@ config = {
         "default": {
             "github": "https://github.com/BnanZ0/ok-nte",
             "discord": "https://discord.gg/vVyCatEBgA",
-            "sponsor": "https://ko-fi.com/bnanz",
+            "sponsor": "https://cnb.cool/BnanZ0/ok-nte-update/-/blob/main/SPONSOR.md",
             "share": "Download from https://github.com/BnanZ0/ok-nte",
             "qq_group": "https://qm.qq.com/q/bIiSLoUTVS",
             "faq": "https://github.com/BnanZ0/ok-nte",

@@ -83,7 +83,7 @@ class SkipDialogTask(TriggerTask, BaseNTETask):
         return self.find_one(Labels.message_dialog, vertical_variance=0.2, horizontal_variance=0.01)
 
     def skip_confirm(self):
-        if skip_button := self.find_one(Labels.skip_quest_confirm, threshold=0.8):
+        if skip_button := self.find_confirm(threshold=0.8):
             # sleep 0.2 to stable click skip button
             now = time.time()
             self.wait_until(
@@ -96,7 +96,7 @@ class SkipDialogTask(TriggerTask, BaseNTETask):
                 self.sleep(0.4)
             self.operate_click(skip_button)
             self.sleep(0.5)
-            if not self.find_one(Labels.skip_quest_confirm, threshold=0.8):
+            if not self.find_confirm(threshold=0.8):
                 return True
         if self.is_in_team():
             return True

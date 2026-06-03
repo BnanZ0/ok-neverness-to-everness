@@ -618,6 +618,13 @@ msgstr "Dark Race"
 msgid "Record has been reset"
 msgstr "Record has been reset"
 
+msgid ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+msgstr ""
+"No recorded operations were found. Please wait for the recording prompt, then "
+"follow the instructions carefully to record your actions."
+
 msgid "Updated successfully"
 msgstr "Updated successfully"
 
@@ -638,3 +645,9 @@ msgstr ""
 "Record the operations for clicking the target stage in two steps:\n"
 "1. Click the scrollbar until the target is visible (if not needed, click the target)\n"
 "2. Click the target"
+
+msgid "都市闲趣"
+msgstr "Hobbies"
+
+msgid "日常/周常"
+msgstr "Daily/Weekly"
