@@ -12,7 +12,7 @@ import win32api
 import win32con
 import win32gui
 import win32process
-from ok import BaseTask, Box, CannotFindException, Logger, og, safe_get
+from ok import BaseTask, Box, CannotFindException, Logger, WaitFailedException, og, safe_get
 
 from src.Labels import Labels
 from src.scene.NTEScene import NTEScene
@@ -776,16 +776,19 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
         if monthly_card is not None:
             # self.screenshot('monthly_card1')
             self.log_info("monthly_card found click")
-            self.click(0.50, 0.89)
-            self.sleep(2)
-            # self.screenshot('monthly_card2')
-            self.click(0.50, 0.89)
-            self.sleep(2)
-            self.wait_until(
-                self.in_team_and_world,
-                time_out=10,
-                post_action=lambda: self.click(0.50, 0.89, after_sleep=1),
-            )
+            deadline = time.time() + 20
+            settle = -1
+            while time.time() < deadline:
+                if self.in_team_and_world():
+                    if settle < 0:
+                        settle = time.time()
+                    elif time.time() - settle > 2:
+                        break
+                else:
+                    self.operate_click(0.50, 0.89, after_sleep=2)
+                    settle = -1
+            else:
+                raise WaitFailedException()
             # self.screenshot('monthly_card3')
             self.set_check_monthly_card(next_day=True)
         # logger.debug(f'check_monthly_card {monthly_card}')

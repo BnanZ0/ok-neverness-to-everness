@@ -102,7 +102,7 @@ class CombatCheck(BaseNTETask):
         def filter(image):
             return iu.binarize_bgr_by_brightness(image, threshold=180)
 
-        box = self.box_of_screen(0.3582, 0.0215, 0.4808, 0.0569)
+        box = self.box_of_screen(0.3582, 0.0215, 0.5000, 0.0569)
         is_boss = self.find_one(Labels.boss_lv_text, box=box, frame_processor=filter)
         return bool(is_boss)
 

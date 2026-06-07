@@ -1,6 +1,7 @@
 import random
 import re
 import time
+from threading import Lock, Thread
 from typing import List
 
 import cv2
@@ -48,7 +49,17 @@ class BaseCombatTask(CombatCheck):
         Element.YELLOW,
     )
     element_ring_index = {element: index for index, element in enumerate(element_ring)}
+    target_elements = (
+        Element.BLUE,
+        Element.GREEN,
+        Element.RED,
+        Element.PURPLE,
+        Element.YELLOW,
+        Element.WHITE,
+    )
     _element_template_cache = {}
+    _element_template_cache_lock = Lock()
+    _element_template_preheat_started = False
 
     def __init__(self, *args, **kwargs):
         """初始化战斗任务。
@@ -68,6 +79,95 @@ class BaseCombatTask(CombatCheck):
         self.chars_slot_mat = [None, None, None, None]
         self.element_ring_reaction_counts = {}
         self.clear_element_ring_reactions()
+        self.preheat_element_template_cache_async()
+        CustomCharManager().preheat_feature_cache_async()
+
+    @staticmethod
+    def _process_template_transparency(img):
+        if img is None:
+            return None
+        if len(img.shape) == 2:
+            return cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
+        if img.shape[2] == 4:
+            b, g, r, a = cv2.split(img)
+            black_bg = np.zeros_like(img[:, :, :3])
+            alpha_factor = a.astype(float) / 255.0
+            alpha_factor = cv2.merge([alpha_factor, alpha_factor, alpha_factor])
+
+            foreground = cv2.merge([b, g, r]).astype(float)
+            background = black_bg.astype(float)
+
+            final_img = cv2.add(
+                cv2.multiply(foreground, alpha_factor),
+                cv2.multiply(background, 1.0 - alpha_factor),
+            )
+            return final_img.astype(np.uint8)
+        return img
+
+    @staticmethod
+    def _preprocess_element_template_image(image):
+        return iu.binarize_bgr_by_adaptive_center(image)
+
+    @classmethod
+    def _load_element_template(cls, element):
+        raw_template = cv2.imread(
+            f"assets/esper_icons/{element.value}.png", cv2.IMREAD_UNCHANGED
+        )
+        if raw_template is None:
+            return None
+
+        h, w = raw_template.shape[:2]
+        raw_template = cls._process_template_transparency(raw_template)
+        if raw_template is None:
+            return None
+
+        element_scale = 0.5
+        raw_template = cv2.resize(
+            raw_template,
+            (int(w * element_scale), int(h * element_scale)),
+            interpolation=cv2.INTER_NEAREST,
+        )
+        template_bin = cls._preprocess_element_template_image(raw_template)
+        _, mask = cv2.threshold(template_bin, 127, 255, cv2.THRESH_BINARY)
+        kernel = np.ones((30, 30), np.uint8)
+        mask = cv2.dilate(mask, kernel, iterations=1)
+        return raw_template, mask
+
+    @classmethod
+    def build_element_template_cache(cls):
+        with cls._element_template_cache_lock:
+            if cls._element_template_cache:
+                return
+
+        built_cache = {}
+        for element in cls.target_elements:
+            template_data = cls._load_element_template(element)
+            if template_data is not None:
+                built_cache[element] = template_data
+
+        with cls._element_template_cache_lock:
+            if not cls._element_template_cache:
+                cls._element_template_cache = built_cache
+
+    @classmethod
+    def _preheat_element_template_cache_worker(cls):
+        try:
+            cls.build_element_template_cache()
+            logger.debug(f"preheated {len(cls._element_template_cache)} element templates")
+        except Exception as e:
+            logger.error("Failed to preheat element templates", e)
+
+    @classmethod
+    def preheat_element_template_cache_async(cls):
+        with cls._element_template_cache_lock:
+            if cls._element_template_preheat_started or cls._element_template_cache:
+                return
+            cls._element_template_preheat_started = True
+        Thread(
+            target=cls._preheat_element_template_cache_worker,
+            name="element-template-cache-preheat",
+            daemon=True,
+        ).start()
 
     @property
     def team_size(self):
@@ -572,7 +672,7 @@ class BaseCombatTask(CombatCheck):
         """获取当前操作的角色对象。
 
         Args:
-            raise_exception (bool, optional): 如果找不到当前角色是否抛出异常。默认为 True。
+            raise_exception (bool, optional): 如果找不到当前角色是否抛出异常。默认为 False。
 
         Returns:
             BaseChar: 当前角色对象 (`BaseChar`) 或 None。
@@ -580,7 +680,8 @@ class BaseCombatTask(CombatCheck):
         for char in self.chars:
             if char and char.is_current_char:
                 return char
-        if raise_exception and not self.in_team()[0]:
+        if raise_exception:
+            self.screenshot("get_current_char_failed")
             self.raise_not_in_combat("can find current char!!")
         return None
 
@@ -723,61 +824,10 @@ class BaseCombatTask(CombatCheck):
         return ret
 
     def load_chars_element(self, indices: List[int]) -> dict:
-        def preprocess_image(image):
-            return iu.binarize_bgr_by_adaptive_center(image)
-
-        def process_transparency(img):
-            """
-            如果图片有透明通道，将其转为黑色背景
-            """
-            if img.shape[2] == 4:
-                b, g, r, a = cv2.split(img)
-                black_bg = np.zeros_like(img[:, :, :3])
-                alpha_factor = a.astype(float) / 255.0
-                alpha_factor = cv2.merge([alpha_factor, alpha_factor, alpha_factor])
-
-                foreground = cv2.merge([b, g, r]).astype(float)
-                background = black_bg.astype(float)
-
-                final_img = cv2.add(
-                    cv2.multiply(foreground, alpha_factor),
-                    cv2.multiply(background, 1.0 - alpha_factor),
-                )
-                return final_img.astype(np.uint8)
-            return img
-
         results = {}
-        target_elements = [
-            Element.BLUE,
-            Element.GREEN,
-            Element.RED,
-            Element.PURPLE,
-            Element.YELLOW,
-            Element.WHITE,
-        ]
+        self.build_element_template_cache()
 
         base_box = self.get_base_char_element_box()
-
-        if not self._element_template_cache:
-            element_scale = 0.5
-            for element in target_elements:
-                raw_template = cv2.imread(
-                    f"assets/esper_icons/{element.value}.png", cv2.IMREAD_UNCHANGED
-                )
-                if raw_template is not None:
-                    h, w = raw_template.shape[:2]
-                    raw_template = process_transparency(raw_template)
-                    raw_template = cv2.resize(
-                        raw_template,
-                        (int(w * element_scale), int(h * element_scale)),
-                        interpolation=cv2.INTER_NEAREST,
-                    )
-                    template_bin = preprocess_image(raw_template)
-                    _, mask = cv2.threshold(template_bin, 127, 255, cv2.THRESH_BINARY)
-                    kernel = np.ones((30, 30), np.uint8)
-                    mask = cv2.dilate(mask, kernel, iterations=1)
-                    # iu.show_images([mask], [f"mask_{element}"])
-                    self._element_template_cache[element] = (raw_template, mask)
 
         _frame = self.frame
         # self.screenshot("load_chars_element", _frame)
@@ -798,7 +848,7 @@ class BaseCombatTask(CombatCheck):
             best_element = Element.DEFAULT
             max_score = -1.0
 
-            for element in target_elements:
+            for element in self.target_elements:
                 template_data = self._element_template_cache.get(element)
                 if template_data is None:
                     continue

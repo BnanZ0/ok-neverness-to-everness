@@ -67,5 +67,6 @@ working_images/
 custom_chars/
 .vscode/
 ok_tasks/
+ok_import/
 temp_images/
 .ruff_cache

@@ -1,7 +1,8 @@
 import json
 import os
 import uuid
-from threading import Lock, RLock
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock, RLock, Thread
 from typing import TYPE_CHECKING
 
 import cv2
@@ -41,14 +42,17 @@ class CustomCharManager:
         os.makedirs(FEATURES_DIR, exist_ok=True)
         self.db = self._default_db()
         self._feature_cache = {}
+        self._raw_feature_cache = {}
         self._cache_mask = None
         self._cache_scr_w = -1
         self._cache_scr_h = -1
         self._cache_fids = set()
+        self._preheat_started = False
         self.load_db()
         self.migrate_db_schema()
         self.validate_db()
         self.initialized = True
+        self.preheat_feature_cache_async()
 
     @staticmethod
     def _default_fixed_team():
@@ -233,6 +237,51 @@ class CustomCharManager:
         self._cache_scr_w = -1
         self._cache_scr_h = -1
         self._cache_fids = set()
+
+    def _invalidate_raw_feature_cache(self, feature_id=None):
+        if feature_id is None:
+            self._raw_feature_cache.clear()
+        else:
+            self._raw_feature_cache.pop(feature_id, None)
+
+    def _get_feature_ids_snapshot(self):
+        with self._data_lock:
+            feature_ids = set(self.db.get("features", {}).keys())
+            for char_data in self.db.get("characters", {}).values():
+                if isinstance(char_data, dict):
+                    feature_ids.update(char_data.get("feature_ids", []))
+            return list(feature_ids)
+
+    def preheat_feature_cache(self):
+        feature_ids = self._get_feature_ids_snapshot()
+        if not feature_ids:
+            return
+
+        worker_count = min(8, len(feature_ids))
+        if worker_count == 1:
+            for fid in feature_ids:
+                self._load_feature_image_cached(fid)
+        else:
+            with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                list(executor.map(self._load_feature_image_cached, feature_ids))
+        logger.debug(f"preheated {len(feature_ids)} custom feature images")
+
+    def _preheat_feature_cache_worker(self):
+        try:
+            self.preheat_feature_cache()
+        except Exception as e:
+            logger.error("Failed to preheat custom feature images", e)
+
+    def preheat_feature_cache_async(self):
+        with self._data_lock:
+            if self._preheat_started:
+                return
+            self._preheat_started = True
+        Thread(
+            target=self._preheat_feature_cache_worker,
+            name="custom-feature-cache-preheat",
+            daemon=True,
+        ).start()
 
     def migrate_db_schema(self):
         with self._data_lock:
@@ -549,6 +598,8 @@ class CustomCharManager:
         ok = cv2.imwrite(path, image_mat)
         if not ok:
             raise IOError(f"Failed to write feature image: {path}")
+        with self._data_lock:
+            self._invalidate_raw_feature_cache(feature_id)
 
     def delete_feature_image(self, feature_id):
         """删除特征图文件并移除 DB 内独立的特征分辨率记录"""
@@ -558,18 +609,62 @@ class CustomCharManager:
             path = os.path.join(FEATURES_DIR, f"{feature_id}.png")
             if os.path.exists(path):
                 os.remove(path)
+            self._invalidate_raw_feature_cache(feature_id)
+
+    def _load_feature_image_cached(self, feature_id):
+        """读取特征图以及其原始分辨率"""
+        path = os.path.join(FEATURES_DIR, f"{feature_id}.png")
+        try:
+            stat = os.stat(path)
+        except FileNotFoundError:
+            with self._data_lock:
+                self._invalidate_raw_feature_cache(feature_id)
+            return None, 0, 0
+
+        cache_key = (stat.st_mtime_ns, stat.st_size)
+        with self._data_lock:
+            cached = self._raw_feature_cache.get(feature_id)
+            if cached and cached[0] == cache_key:
+                return cached[1], cached[2], cached[3]
+            feat_info = self.db.get("features", {}).get(feature_id, {})
+            w = feat_info.get("width", 0)
+            h = feat_info.get("height", 0)
+
+        mat = cv2.imread(path)
+        if mat is None:
+            return None, 0, 0
+
+        with self._data_lock:
+            self._raw_feature_cache[feature_id] = (cache_key, mat, w, h)
+        return mat, w, h
 
     def load_feature_image(self, feature_id):
         """读取特征图以及其原始分辨率"""
-        path = os.path.join(FEATURES_DIR, f"{feature_id}.png")
-        if os.path.exists(path):
-            mat = cv2.imread(path)
-            with self._data_lock:
-                feat_info = self.db.get("features", {}).get(feature_id, {})
-            w = feat_info.get("width", 0)
-            h = feat_info.get("height", 0)
-            return mat, w, h
-        return None, 0, 0
+        mat, w, h = self._load_feature_image_cached(feature_id)
+        return (mat.copy() if mat is not None else None), w, h
+
+    def _load_resized_feature(self, char_name, feature_id, current_scr_w, current_scr_h):
+        saved_img, w, h = self._load_feature_image_cached(feature_id)
+        if saved_img is None:
+            return char_name, feature_id, None
+
+        if w and h and (w != current_scr_w or h != current_scr_h):
+            scale_x = current_scr_w / w
+            scale_y = current_scr_h / h
+            scale = min(scale_x, scale_y)
+            save_h, save_w = saved_img.shape[:2]
+            new_w = max(1, round(save_w * scale))
+            new_h = max(1, round(save_h * scale))
+            resized_saved = cv2.resize(saved_img, (new_w, new_h))
+        else:
+            scale = 1
+            resized_saved = saved_img
+
+        logger.debug(
+            f"loaded {char_name} resized width {current_scr_w} / "
+            f"original_width:{w}, scale_x:{scale}"
+        )
+        return char_name, feature_id, resized_saved
 
     def match_feature(self, task: "BaseCombatTask", new_image_mat, threshold=0.6, target_char=None):
         """比对新截图与所有数据库内特征图，返回(是/否匹配, 匹配到的角色名, 相似度)"""
@@ -599,27 +694,31 @@ class CustomCharManager:
 
         if need_rebuild:
             rebuilt_cache = {}
+            load_jobs = []
             for char_name, feature_ids in character_snapshot.items():
                 rebuilt_cache[char_name] = {}
                 for fid in feature_ids:
-                    saved_img, w, h = self.load_feature_image(fid)
-                    if saved_img is not None:
-                        if w and h and (w != current_scr_w or h != current_scr_h):
-                            scale_x = current_scr_w / w
-                            scale_y = current_scr_h / h
-                            scale = min(scale_x, scale_y)
-                            save_h, save_w = saved_img.shape[:2]
-                            new_w = max(1, round(save_w * scale))
-                            new_h = max(1, round(save_h * scale))
-                            resized_saved = cv2.resize(saved_img, (new_w, new_h))
-                        else:
-                            scale = 1
-                            resized_saved = saved_img
-                        logger.debug(
-                            f"loaded {char_name} resized width {current_scr_w} / "
-                            f"original_width:{w}, scale_x:{scale}"
-                        )
-                        rebuilt_cache[char_name][fid] = resized_saved
+                    load_jobs.append((char_name, fid))
+
+            worker_count = min(8, max(1, len(load_jobs)))
+            if worker_count == 1:
+                results = [
+                    self._load_resized_feature(char_name, fid, current_scr_w, current_scr_h)
+                    for char_name, fid in load_jobs
+                ]
+            else:
+                with ThreadPoolExecutor(max_workers=worker_count) as executor:
+                    results = executor.map(
+                        lambda job: self._load_resized_feature(
+                            job[0], job[1], current_scr_w, current_scr_h
+                        ),
+                        load_jobs,
+                    )
+
+            for char_name, fid, resized_saved in results:
+                if resized_saved is not None:
+                    rebuilt_cache[char_name][fid] = resized_saved
+
             with self._data_lock:
                 self._feature_cache = rebuilt_cache
                 box = task.get_box_by_name(Labels.box_char_1)
