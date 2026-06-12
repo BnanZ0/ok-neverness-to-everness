@@ -3,6 +3,14 @@ from typing import Any, Callable, List, NamedTuple
 
 from src.char.BaseChar import BaseChar
 from src.char.custom.CustomCharManager import CustomCharManager
+from src.combat.planner import (
+    ActionSlot,
+    ActionTag,
+    EntryChainPolicy,
+    FieldPreference,
+    Role,
+    RoleProfile,
+)
 
 
 class Cmd(NamedTuple):
@@ -17,7 +25,7 @@ class Cmd(NamedTuple):
 class CustomChar(BaseChar):
     """
     用户自定义的出招表角色。
-    它从 CustomCharManager 获取出招表，并在 do_perform 中解析执行。
+    它从 CustomCharManager 获取出招表，并作为 planner 动作执行。
     """
 
     def __init__(self, task, index, char_name=None, confidence=1):
@@ -38,13 +46,35 @@ class CustomChar(BaseChar):
         else:
             self.logger.warning(f"No custom char info found for {self.char_name}")
 
-    def do_perform(self):
-        """覆盖默认战斗循环，执行解析出来的新出招"""
-        if not self.parsed_combo:
-            super().do_perform()  # 降级到默认
-            return
+    def describe_role(self):
+        return RoleProfile(role=Role.SUB_DPS, field_preference=FieldPreference.SUB_DPS)
 
+    def combat_intents(self, context):
+        if not self.parsed_combo:
+            return super().combat_intents(context)
+
+        tags = {ActionTag.LEGACY_COMBO, ActionTag.DAMAGE}
+        reason = "legacy combo ready"
+        if self.skill_available():
+            tags.add(ActionTag.SKILL_ACTION)
+            reason = "legacy combo skill available"
+        if self.ultimate_available():
+            tags.add(ActionTag.ULTIMATE_ACTION)
+
+        return self.intents(
+            self.planner_action(
+                name="legacy_combo",
+                tags=tags,
+                slot=ActionSlot.LEGACY_COMBO,
+                execute=self.execute_legacy_combo_action,
+                reason=reason,
+                chain_policy=EntryChainPolicy.STOP,
+            )
+        )
+
+    def execute_legacy_combo_action(self, context=None):
         self._execute_parsed_combo()
+        return True
 
     @classmethod
     def get_command_definitions(cls) -> List[Cmd]:
@@ -411,4 +441,4 @@ class CustomChar(BaseChar):
         self.task.send_key(key=key)
 
     def custom_click_skill(self, down_time=0.01) -> bool:
-        return self.click_skill(down_time=down_time)[0]
+        return self.click_skill(down_time=down_time)

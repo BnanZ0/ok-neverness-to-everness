@@ -1,12 +1,12 @@
+import json
 import unittest
 from unittest.mock import MagicMock, patch
-import json
 
 import numpy as np
 from ok.test.TaskTestCase import TaskTestCase
 
-from src.char.custom.CustomChar import CustomChar
 from src.char.custom.BuiltinComboRegistry import BuiltinComboRegistry
+from src.char.custom.CustomChar import CustomChar
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.config import config
 from src.tasks.trigger.AutoCombatTask import AutoCombatTask
@@ -55,8 +55,8 @@ class TestCustomChar(TaskTestCase):
 
     def setUp(self):
         super().setUp()
-        import tempfile
         import os
+        import tempfile
         from unittest.mock import patch
 
         self.set_image('tests/images/03.png')

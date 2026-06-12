@@ -524,7 +524,7 @@ class HeistPathA(HeistPath):
         self.log_round_info("LG2 WP1尝试出口1")
         self.sleep(2.65)  # 2.65
         self.send_key_down("w")
-        self.sleep(4.92)
+        self.sleep(5.00)
         self.send_key_up("w")
         self.sleep(0.13)
         self.send_key_down("f")  # start pick

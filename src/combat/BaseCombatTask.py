@@ -1,4 +1,3 @@
-import random
 import re
 import time
 from threading import Lock, Thread
@@ -6,14 +5,16 @@ from typing import List
 
 import cv2
 import numpy as np
-from ok import Logger, safe_get
+from ok import Box, Logger, safe_get
 
 from src import text_white_color
-from src.char.BaseChar import BaseChar, Element, Priority
+from src.char.BaseChar import BaseChar, Element
 from src.char.CharFactory import get_char_by_name, get_char_by_pos
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.char.Healer import Healer
 from src.combat.CombatCheck import CombatCheck
+from src.combat.planner import CombatPlanner
+from src.Labels import Labels
 from src.sound_trigger.SoundCombatContext import SoundCombatContext
 from src.utils import game_filters as gf
 from src.utils import image_utils as iu
@@ -78,6 +79,7 @@ class BaseCombatTask(CombatCheck):
         self.vibrate_chars_index: list[int] = []
         self.chars_slot_mat = [None, None, None, None]
         self.element_ring_reaction_counts = {}
+        self.combat_planner = CombatPlanner(self)
         self.clear_element_ring_reactions()
         self.preheat_element_template_cache_async()
         CustomCharManager().preheat_feature_cache_async()
@@ -110,9 +112,7 @@ class BaseCombatTask(CombatCheck):
 
     @classmethod
     def _load_element_template(cls, element):
-        raw_template = cv2.imread(
-            f"assets/esper_icons/{element.value}.png", cv2.IMREAD_UNCHANGED
-        )
+        raw_template = cv2.imread(f"assets/esper_icons/{element.value}.png", cv2.IMREAD_UNCHANGED)
         if raw_template is None:
             return None
 
@@ -306,7 +306,9 @@ class BaseCombatTask(CombatCheck):
                         freeze_time = 0
                 elif freeze_time == -100:
                     continue
-                to_minus += duration - freeze_time
+                if duration < freeze_time:
+                    duration = freeze_time
+                to_minus += duration
         if to_minus != 0:
             self.run_with_interval(
                 lambda: self.log_debug(f"time_elapsed_accounting_for_freeze to_minus {to_minus}"),
@@ -423,62 +425,46 @@ class BaseCombatTask(CombatCheck):
         else:
             return char.name
 
-    def _decide_switch_to(self, current_char: "BaseChar", free_intro=False, require_intro=False):
-        has_intro = free_intro or current_char.is_cycle_full()
-        switch_to = current_char
+    def _decide_switch_to(
+        self,
+        current_char: "BaseChar",
+        free_intro=False,
+        require_intro=False,
+    ):
+        decision = self.combat_planner.decide_switch(
+            current_char,
+            free_intro=free_intro,
+            require_intro=require_intro,
+        )
+        return decision.target, decision.has_intro
 
-        if require_intro and not has_intro:
-            return switch_to, has_intro
+    def _wait_switch_in_guard(
+        self,
+        current_char: "BaseChar",
+        switch_to: "BaseChar",
+        has_intro: bool,
+    ) -> None:
+        guard = self.combat_planner.switch_in_guard(current_char, switch_to, has_intro)
+        if not guard.should_delay():
+            return
 
-        max_priority = Priority.MIN
-
-        for char in self.chars:
-            if char is None:
-                continue
-
-            if char == current_char:
-                priority = Priority.CURRENT_CHAR
+        start_time = time.time()
+        reason = guard.reason or f"{switch_to} switch in guard"
+        logger.info(f"switch in delayed: {reason}")
+        while guard.should_delay() and time.time() - start_time < guard.timeout:
+            self.check_combat()
+            if guard.while_waiting is None:
+                current_char.click_with_interval()
             else:
-                priority = char.get_switch_priority(current_char, has_intro)
-                logger.debug(f"switch_next_char priority: {char} {priority}")
+                guard.while_waiting()
+            self.sleep(max(guard.poll_interval, 0.01))
 
-            if priority > max_priority or (
-                priority == max_priority and char.last_perform < switch_to.last_perform
-            ):
-                if priority == max_priority:
-                    logger.debug("switch priority equal, determine by last perform")
-                max_priority = priority
-                switch_to = char
-
-        if has_intro and max_priority < Priority.FAST_SWITCH:
-            reaction_target = self.find_element_ring_reaction_target(current_char)
-            if reaction_target:
-                return reaction_target, has_intro
-
-        return switch_to, has_intro
-
-    def _find_switch_target(self, current_char: "BaseChar", free_intro=False):
-        switch_to_self_count = 0
-        while True:
-            switch_to, has_intro = self._decide_switch_to(current_char, free_intro)
-            if switch_to != current_char:
-                return switch_to, has_intro
-
-            switch_to_self_count += 1
-            if switch_to_self_count > 5:
-                switch_to = safe_get(self.chars, self.get_longest_idle_char_index())
-                if switch_to is not None and switch_to != current_char:
-                    logger.warning(
-                        f"switch_next_char forced to next char {switch_to} "
-                        f"after repeated self selection"
-                    )
-                    return switch_to, has_intro
-
+        if guard.should_delay():
             logger.warning(
-                f"{current_char} can't find next char to switch to, "
-                "performing too fast add a normal attack"
+                f"switch in guard timeout after {time.time() - start_time:.2f}s: {reason}"
             )
-            current_char.continues_normal_attack(0.2)
+        else:
+            logger.info(f"switch in guard released after {time.time() - start_time:.2f}s: {reason}")
 
     def _set_current_char(self, current_char: "BaseChar | None", switch_to: "BaseChar", has_intro):
         self.in_animation = False
@@ -502,8 +488,12 @@ class BaseCombatTask(CombatCheck):
     ):
         current_char_name = self._get_char_log_name(current_char) if current_char else "None"
         switch_to.has_intro = has_intro
-        last_decide_time = 0.0
+        intro_replanned = False
         start_time = time.time()
+        start_frame = self.frame
+        health_snapshot = self._capture_active_health_snapshot(start_frame)
+        switch_key_sent_at = 0
+        last_index_check = 0
 
         logger.info(
             f"{log_prefix} {current_char_name} -> {self._get_char_log_name(switch_to)}, "
@@ -514,17 +504,34 @@ class BaseCombatTask(CombatCheck):
             self.check_combat()
             current_time = time.time()
             switch_to_name = self._get_char_log_name(switch_to)
+            frame = self.frame
 
-            if self.is_char_at_index(switch_to.index):
+            detected_reason, last_index_check = self._switch_detection_reason(
+                switch_to,
+                health_snapshot,
+                frame,
+                switch_key_sent_at,
+                current_time,
+                last_index_check,
+                start_time,
+                time_out,
+            )
+            if detected_reason:
+                logger.info(f"{log_prefix} detected by {detected_reason}")
                 self._set_current_char(current_char, switch_to, has_intro)
                 break
 
-            if retry_intro and not has_intro and current_time - last_decide_time > 0.12:
-                last_decide_time = current_time
+            intro_ready = current_char is not None and (free_intro or current_char.is_cycle_full())
+            if retry_intro and not has_intro and not intro_replanned and intro_ready:
+                intro_replanned = True
                 new_switch_to, new_has_intro = self._decide_switch_to(
-                    current_char, free_intro, require_intro=True
+                    current_char,
+                    free_intro,
+                    require_intro=True,
                 )
                 if new_has_intro and new_switch_to != current_char:
+                    if not self.combat_planner.has_strict_route(current_char):
+                        self._wait_switch_in_guard(current_char, new_switch_to, new_has_intro)
                     switch_to = new_switch_to
                     has_intro = new_has_intro
                     switch_to.has_intro = True
@@ -534,7 +541,7 @@ class BaseCombatTask(CombatCheck):
                         f"has_intro {switch_to.has_intro}"
                     )
 
-            if not self.is_in_team():
+            if not self.is_in_team(frame=frame):
                 logger.info(
                     f"not in world while switching {current_char_name} -> {switch_to_name},"
                     f" {current_time - start_time}"
@@ -550,6 +557,8 @@ class BaseCombatTask(CombatCheck):
             self.click(action_name="switch_char_click", interval=0.25)
             self.sleep(0.001)
             self.send_key(switch_to.index + 1, action_name="switch_char_send", interval=0.25)
+            if switch_key_sent_at <= 0:
+                switch_key_sent_at = current_time
 
             if current_time - start_time > time_out:
                 if self.debug:
@@ -559,13 +568,81 @@ class BaseCombatTask(CombatCheck):
             self.sleep(0.01)
 
         if has_intro and current_char:
-            self.record_element_ring_reaction(current_char, switch_to)
+            if self.record_element_ring_reaction(current_char, switch_to):
+                self.combat_planner.record_entry_reaction(current_char, switch_to)
+        self.combat_planner.record_switch(switch_to)
 
         if post_action:
             logger.debug(f"post_action {post_action}")
             post_action(switch_to, has_intro)
 
         logger.info(f"{log_prefix} end {(time.time() - start_time):.3f}s")
+
+    def _capture_active_health_snapshot(self, frame):
+        """截取当前出场角色血条颜色快照，用于快速判断切人是否已经发生。"""
+
+        box = self.is_in_team(frame=frame)
+        if box is None:
+            return
+        health_box = box.copy(x_offset=box.width, width_offset=box.width * 3)
+        cropped = health_box.crop_frame(frame)
+        snapshot = iu.create_color_mask(cropped, char_health_color, to_bgr=False)
+        return snapshot
+
+    def _active_health_changed(self, snapshot, frame):
+        """判断当前出场血条是否已经不同于切人前快照。"""
+
+        if snapshot is None:
+            return None
+
+        def frame_processor(cv):
+            return iu.create_color_mask(cv, char_health_color, to_bgr=False)
+
+        box = self.is_in_team(frame=frame)
+        if box is None:
+            return None
+        health_box = box.copy(x_offset=box.width, width_offset=box.width * 3).scale(1.1)
+        if self.find_one(
+            "health_snapshot",
+            template=snapshot,
+            box=health_box,
+            frame=frame,
+            frame_processor=frame_processor,
+        ):
+            return False
+        return True
+
+    def _switch_detection_reason(
+        self,
+        switch_to: "BaseChar",
+        health_snapshot,
+        frame,
+        switch_key_sent_at,
+        current_time,
+        last_index_check,
+        start_time,
+        time_out,
+    ):
+        if switch_key_sent_at > 0 and current_time - switch_key_sent_at >= 0.04:
+            if self._active_health_changed(health_snapshot, frame) is True:
+                return "active health change", last_index_check
+
+        if current_time - last_index_check < 0.35:
+            return None, last_index_check
+
+        use_index_fallback = (
+            health_snapshot is None
+            or switch_key_sent_at <= 0
+            or current_time - switch_key_sent_at > 0.45
+            or current_time - start_time > max(time_out - 0.75, time_out * 0.8)
+        )
+        if not use_index_fallback:
+            return None, last_index_check
+
+        last_index_check = current_time
+        if self.is_char_at_index(switch_to.index, frame=frame):
+            return "char index fallback", last_index_check
+        return None, last_index_check
 
     def switch_next_char(self, current_char: "BaseChar", post_action=None, free_intro=False):
         """切换到下一个最优角色。
@@ -579,14 +656,28 @@ class BaseCombatTask(CombatCheck):
             self.click(action_name="switch_char_click", interval=0.1)
             return
 
-        current_char.wait_switch_cd()
-
-        switch_to, has_intro = self._find_switch_target(current_char, free_intro)
-
+        decision = self.combat_planner.decide_switch(
+            current_char,
+            free_intro=free_intro,
+        )
+        switch_to = decision.target
+        has_intro = decision.has_intro
         if switch_to is None or switch_to == current_char:
-            logger.warning(f"{current_char} failed to find a valid switch target")
+            current_char.click_with_interval()
+            self.run_with_interval(
+                lambda: logger.debug(
+                    f"planner keeps current char {current_char}: {decision.reason}"
+                ),
+                0.5,
+                action_name=("planner_keep_current", current_char.index, decision.reason),
+            )
             return
 
+        if not self.combat_planner.has_strict_route(current_char):
+            self._wait_switch_in_guard(current_char, switch_to, has_intro)
+            current_char.wait_switch_cd()
+
+        self.combat_planner.expect_entry_action(switch_to, decision.expected_entry)
         self._switch_to_char(
             switch_to,
             current_char=current_char,
@@ -594,18 +685,15 @@ class BaseCombatTask(CombatCheck):
             post_action=post_action,
             free_intro=free_intro,
             retry_intro=True,
-            log_prefix="switch_next_char",
+            log_prefix=f"planner switch_next_char ({decision.reason})",
         )
 
     def switch_to_combat_start_char(self):
-        start_chars = [
-            char for char in self.chars if char is not None and getattr(char, "start_combat", False)
-        ]
-        if not start_chars:
-            return
-
-        switch_to = random.choice(start_chars)
         current_char = self.get_current_char(raise_exception=False)
+        decision = self.combat_planner.decide_combat_start_char(current_char)
+        switch_to = decision.target
+        if switch_to is None:
+            return
         if current_char == switch_to:
             logger.info(f"combat start char already current {switch_to}")
             return
@@ -613,7 +701,8 @@ class BaseCombatTask(CombatCheck):
         self._switch_to_char(
             switch_to,
             current_char=current_char,
-            log_prefix="switch to combat start char",
+            has_intro=decision.has_intro,
+            log_prefix=f"planner combat start ({decision.reason})",
             time_out=self.switch_char_time_out,
         )
 
@@ -765,6 +854,17 @@ class BaseCombatTask(CombatCheck):
 
         return get_char_by_pos(self, box_scaled, index, safe_get(self.chars, index))
 
+    @staticmethod
+    def _trim_fixed_slots(fixed_slots):
+        trimmed_slots = []
+        for slot in fixed_slots:
+            if not isinstance(slot, dict):
+                break
+            if not str(slot.get("char_name", "") or "").strip():
+                break
+            trimmed_slots.append(slot)
+        return trimmed_slots
+
     def load_chars(self) -> bool:
         """加载队伍中的角色信息。"""
         ret = False
@@ -781,7 +881,11 @@ class BaseCombatTask(CombatCheck):
 
         self.clear_element_ring_reactions()
         fixed_team = CustomCharManager().get_fixed_team()
-        fixed_slots = fixed_team.get("slots", []) if fixed_team.get("enabled", False) else []
+        fixed_team_enabled = fixed_team.get("enabled", False)
+        fixed_slots = fixed_team.get("slots", []) if fixed_team_enabled else []
+        if fixed_team_enabled:
+            fixed_slots = self._trim_fixed_slots(fixed_slots)
+            count = min(count, len(fixed_slots))
         new_chars = []
         indices_to_detect = []
         for i in range(count):
@@ -797,6 +901,7 @@ class BaseCombatTask(CombatCheck):
 
         elements = [char.element for char in new_chars]
         self.chars = new_chars
+        self.combat_planner.reset(self.chars)
         self.info_set("char elements", elements)
 
         healer_count = 0
@@ -958,6 +1063,83 @@ class BaseCombatTask(CombatCheck):
             self.send_key_up(direction)
         return ret
 
+    def ultimate_available(self, index) -> Box | None:
+        def mask_function(image):
+            return iu.mask_corners(image, ratio_w=0.5, ratio_h=0.5, corners="all")
+
+        def overlap_confidence(x, y, template, search_area, mask):
+            height, width = template.shape[:2]
+            hit = search_area[y : y + height, x : x + width]
+            if hit.shape[:2] != template.shape[:2]:
+                return 0.0
+
+            active = mask > 0
+            template_active = (template > 0) & active
+            hit_active = (hit > 0) & active
+            template_count = template_active.sum()
+            hit_count = hit_active.sum()
+            if template_count == 0 or hit_count == 0:
+                return 0.0
+
+            intersection = np.logical_and(template_active, hit_active).sum()
+            precision = intersection / hit_count
+            recall = intersection / template_count
+            return min(precision, recall)
+
+        def find_best_overlap(template, search_area, mask, search_box):
+            template_height, template_width = template.shape[:2]
+            search_height, search_width = search_area.shape[:2]
+            if template_height > search_height or template_width > search_width:
+                return None
+
+            best_confidence = 0.0
+            best_x = 0
+            best_y = 0
+            for y in range(search_height - template_height + 1):
+                for x in range(search_width - template_width + 1):
+                    confidence = overlap_confidence(x, y, template, search_area, mask)
+                    if confidence > best_confidence:
+                        best_confidence = confidence
+                        best_x = x
+                        best_y = y
+
+            return Box(
+                search_box.x + best_x,
+                search_box.y + best_y,
+                template_width,
+                template_height,
+                best_confidence,
+                Labels.ult_ready,
+            )
+
+        box = self.get_box_by_name(Labels.ult_ready)
+        box = self._shift_char_ui_box(box, expend=True)
+        target_box = self.get_box_by_char_spacing(box, index).scale(1.1)
+        self.draw_boxes(boxes=target_box, color="blue")
+
+        feature = self.get_feature_by_name(Labels.ult_ready).mat
+        mask = mask_function(feature)
+        # image = target_box.scale(1.1).crop_frame(self.frame)
+
+        # iu.show_images([feature, image], ["feature", "image"])
+        search_area = gf.ultimate_ready_filter(target_box.crop_frame(self.frame))
+        ret = find_best_overlap(feature, search_area, mask, target_box)
+        conf = ret.confidence if ret else -1
+        if ret and ret.confidence >= 0.7:
+            ret.name = str(index)
+            self.draw_boxes(boxes=ret, color="red")
+        else:
+            ret = None
+        self.log_info("char:{}, ult:{}, conf:{}".format(index, bool(ret), conf))
+        # self.run_with_interval(
+        #     lambda: self.log_info(
+        #         "char:{}, ult:{}, conf:{}".format(index, bool(ret), conf)
+        #     ),
+        #     interval=1,
+        #     action_name="ultimate_available",
+        # )
+        return ret
+
 
 def convert_cd(text):
     """
@@ -976,3 +1158,10 @@ def convert_cd(text):
             return float(match.group(0))
         else:
             return 1
+
+
+char_health_color = {
+    "r": (160, 210),
+    "g": (160, 210),
+    "b": (160, 210),
+}

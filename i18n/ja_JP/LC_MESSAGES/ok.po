@@ -9,7 +9,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgid ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 msgstr "「キャラクター」と「{combo}」は入力して作成でき、既存の項目を選択することもできます。"
 
 msgid "Arc Key"
@@ -54,7 +56,8 @@ msgstr "タスク実行時に月額カードによる中断を避けるために
 msgid "Ultimate Key"
 msgstr "アルティメットキー"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月額カードがポップアップするコンピュータのローカル時間（1-24時）"
 
 msgid "[内置代码]"
@@ -80,9 +83,6 @@ msgstr "{fixed_team}クリア済み"
 
 msgid "{} 号位"
 msgstr "{} 番目のスロット"
-
-msgid "不扫描也可自动战斗，将使用通用脚本"
-msgstr "スキャンしなくても自動戦闘が可能で、汎用スクリプトが使用されます"
 
 msgid "任务跳过对话"
 msgstr "会話スキップタスク"
@@ -124,6 +124,15 @@ msgstr "リスト更新"
 msgid "匹配成功: {}"
 msgstr "一致成功: {}"
 
+msgid "置信度: {:.2f}"
+msgstr "信頼度: {:.2f}"
+
+msgid "特征已加入"
+msgstr "特徴を追加しました"
+
+msgid "加入特征"
+msgstr "特徴を追加"
+
 msgid "匹配文字"
 msgstr "テキスト一致"
 
@@ -145,8 +154,14 @@ msgstr "マップ内で自動テレポート"
 msgid "填入扫描"
 msgstr "スキャン結果を入力"
 
-msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
-msgstr "キャラクター特徴を追加すると、現在のキャラクターを自動的に判別します。<br>キャラクター特徴を管理したくない場合は、直接 {fixed_team} 機能を有効にできます。"
+msgid ""
+"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
+msgstr ""
+"<b style=\"color: #0078d7;\">キャラクター特徴</b>を関連付けると、現在のキャラクターを自動的に判別します。<br><b "
+"style=\"color: #0078d7;\">キャラクター特徴</b>を管理したくない場合は、<b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 機能を直接有効にできます。"
 
 msgid "完成每日活跃度"
 msgstr "デイリーアクティビティを完了"
@@ -162,9 +177,6 @@ msgstr "データインポート"
 
 msgid "导出数据"
 msgstr "データエクスポート"
-
-msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
-msgstr "戦闘には固定キャラクターが優先的に使用され、無効またはスロットが空の場合は自動的に認識されます"
 
 msgid "已保存 {}/4"
 msgstr "保存済み {}/4"
@@ -245,8 +257,8 @@ msgstr "特徴を認識できませんでした"
 msgid "未获取到特征"
 msgstr "特徴を取得できませんでした"
 
-msgid "未识别，关联新特征"
-msgstr "未認識、新しい特徴を関連付け"
+msgid "关联特征"
+msgstr "特徴を関連付け"
 
 msgid ""
 "此为内建 Python 脚本，不可在此修改。\n"
@@ -296,9 +308,6 @@ msgstr "自動ターゲット"
 
 msgid "自动钓鱼"
 msgstr "自動釣り"
-
-msgid "角色"
-msgstr "キャラクター"
 
 msgid "角色中心"
 msgstr "キャラ中心"
@@ -374,7 +383,9 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反撃のしきい値"
 
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgid ""
+"Counter attack sound recognition threshold (0.0-1.0, lower is more "
+"sensitive)"
 msgstr "反撃音認識のしきい値 (0.0-1.0、低いほど感度が高くなります)"
 
 msgid "Dodge Threshold"
@@ -576,9 +587,6 @@ msgstr "デイリータスクでのカフェ処理方法を選択"
 msgid "不执行"
 msgstr "実行しない"
 
-msgid "记录新特征"
-msgstr "新しい特徴を記録"
-
 msgid "输入或选择关联的角色名称"
 msgstr "関連キャラクター名を入力または選択"
 
@@ -619,8 +627,8 @@ msgid "Record has been reset"
 msgstr "記録をリセットしました"
 
 msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then "
-"follow the instructions carefully to record your actions."
+"No recorded operations were found. Please wait for the recording prompt, "
+"then follow the instructions carefully to record your actions."
 msgstr "記録済みの操作が見つかりません。記録の案内が表示されるまで待ち、指示に従って慎重に操作を記録してください。"
 
 msgid "Updated successfully"
@@ -649,3 +657,47 @@ msgstr "趣味"
 
 msgid "日常/周常"
 msgstr "デイリー/ウィークリー"
+
+msgid "※ 列表可直接输入并创建"
+msgstr "※ リストには直接入力して作成できます"
+
+msgid "输入或选择角色"
+msgstr "キャラクターを入力または選択"
+
+msgid "自动战斗任务不可用"
+msgstr "自動戦闘タスクは利用できません"
+
+msgid ""
+"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
+"游戏内换人/换队自动适配，无需手动调整"
+msgstr ""
+"※ キャラクター特徴を関連付けると、ソフトウェアがキャラクターを自動識別し、紐付けたコンボ表を使用します。未関連付けの場合は汎用スクリプトを使用します。\n"
+"ゲーム内のキャラクター切替/チーム切替には自動対応するため、手動調整は不要です"
+
+msgid ""
+"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
+"如果游戏内切换队伍, 需要在软件里手动修改。"
+msgstr ""
+"※ {fixed_team}は順番に読み込まれます。前に空きスロットがある場合、後続の設定は無視されます。\n"
+"ゲーム内でチームを切り替えた場合は、ソフトウェア側で手動変更が必要です。"
+
+msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
+msgstr "<span style=\"color: #2ecc71;\">● 自動認識：有効</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ 自動認識：無効</span>"
+
+msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}：有効 ({count}/4)</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}：無効</span>"
+
+msgid "启动失败"
+msgstr "起動に失敗しました"
+
+msgid "固定队伍配置无效"
+msgstr "固定チーム設定が無効です"
+
+msgid "请先填入前方槽位，或清空后续槽位"
+msgstr "先に前のスロットを入力するか、後続のスロットをクリアしてください"

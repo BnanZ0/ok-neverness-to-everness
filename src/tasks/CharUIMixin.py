@@ -11,9 +11,9 @@ from src.utils import game_filters as gf
 from src.utils import image_utils as iu
 
 if TYPE_CHECKING:
-    from src.tasks.BaseNTETask import BaseNTETask
+    from ok import BaseTask
 
-    _TaskProxy = BaseNTETask
+    _TaskProxy = BaseTask
 else:
 
     class _TaskProxy:

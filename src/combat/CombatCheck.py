@@ -1,6 +1,7 @@
 import threading
 import time
 from dataclasses import dataclass
+from enum import Enum
 from functools import cache
 from typing import TYPE_CHECKING, Optional
 
@@ -19,10 +20,29 @@ if TYPE_CHECKING:
 logger = Logger.get_logger(__name__)
 
 
+class CombatDetectPhase(Enum):
+    IN_COMBAT = "in_combat"
+    UNCERTAIN = "uncertain"
+    VERIFY_TARGET = "verify_target"
+
+
+@dataclass(frozen=True)
+class CombatDetectPolicy:
+    miss_required: int = 2
+    uncertain_seconds: float = 0.4
+    retarget_settle_seconds: float = 0.3
+
+
 @dataclass
-class CombatSettle:
-    time: Optional[float] = None
-    force: bool = False
+class CombatDetectState:
+    miss_count: int = 0
+    uncertain_until: Optional[float] = None
+    retarget_ready_at: Optional[float] = None
+    retarget_detect_requested: bool = False
+
+    @property
+    def uncertain(self) -> bool:
+        return self.uncertain_until is not None
 
 
 class CombatCheck(BaseNTETask):
@@ -45,9 +65,8 @@ class CombatCheck(BaseNTETask):
         self.cds = {}
         self.find_lv_future = None
         self._lv_async = None
-        self._combat_settle = CombatSettle()
-        self._combat_detect_miss_count = 0
-        self.combat_detect_miss_required = 2
+        self.combat_detect_policy = CombatDetectPolicy()
+        self.combat_detect_state = CombatDetectState()
         self._target_template_cache_key = None
         self._target_match_templates = None
         self._bg_ocr_lock = threading.Lock()
@@ -73,8 +92,7 @@ class CombatCheck(BaseNTETask):
     def do_reset_to_false(self):
         self.cds = {}
         self._in_combat = False
-        self._combat_settle = CombatSettle()
-        self._combat_detect_miss_count = 0
+        self.combat_detect_state = CombatDetectState()
         self.find_lv_future = None
         self._lv_async = None
         self.openvino_clear_cache()
@@ -113,14 +131,11 @@ class CombatCheck(BaseNTETask):
             logger.info(f"targeting enemy for {self.target_enemy_time_out}s")
             deadline = time.time() + self.target_enemy_time_out
             while time.time() < deadline:
-                if self.combat_detect(lv=lv):
-                    return True
                 if self.is_in_team():
-                    self.middle_click()
-                    self.sleep(0.25)
-                    self.next_frame()
-                    if self.combat_detect(lv=lv):
+                    if self.combat_detect(lv=lv, force=True):
                         return True
+                    self.middle_click()
+                    self.sleep(0.3)
                 self.next_frame()
 
     def has_health_bar(self):
@@ -180,6 +195,72 @@ class CombatCheck(BaseNTETask):
         finally:
             self.in_sleep_check = False
 
+    @property
+    def combat_detect_uncertain(self) -> bool:
+        return self.combat_detect_state.uncertain
+
+    def _reset_combat_detect_state(self):
+        self.combat_detect_state = CombatDetectState()
+
+    def _update_combat_detect_state(self, combat_detect) -> CombatDetectPhase:
+        now = time.time()
+        if combat_detect is True:
+            self._reset_combat_detect_state()
+            return CombatDetectPhase.IN_COMBAT
+        if self.combat_detect_state.uncertain_until is not None:
+            return self._uncertain_combat_state(combat_detect, now)
+        if combat_detect is None:
+            return CombatDetectPhase.IN_COMBAT
+
+        policy = self.combat_detect_policy
+        self.combat_detect_state.miss_count += 1
+        if self.combat_detect_state.miss_count < policy.miss_required:
+            return CombatDetectPhase.IN_COMBAT
+
+        if self.combat_detect_state.uncertain_until is None:
+            self._enter_uncertain_combat(now + policy.uncertain_seconds)
+
+        if self.combat_detect_state.uncertain_until > now:
+            return CombatDetectPhase.UNCERTAIN
+        return CombatDetectPhase.VERIFY_TARGET
+
+    def _uncertain_combat_state(self, combat_detect, now: float) -> CombatDetectPhase:
+        if self._wait_for_retarget_detect(now):
+            return CombatDetectPhase.UNCERTAIN
+        if self.combat_detect_state.uncertain_until > now:
+            return CombatDetectPhase.UNCERTAIN
+        if combat_detect is None:
+            return CombatDetectPhase.UNCERTAIN
+        return CombatDetectPhase.VERIFY_TARGET
+
+    def _wait_for_retarget_detect(self, now: float) -> bool:
+        ready_at = self.combat_detect_state.retarget_ready_at
+        if ready_at is None:
+            return False
+        if now < ready_at:
+            return True
+        if self.combat_detect_state.retarget_detect_requested:
+            return False
+
+        self.next_frame()
+        self.async_combat_detect(exhaustive=True, force=True)
+        self.combat_detect_state.retarget_detect_requested = True
+        return True
+
+    def _enter_uncertain_combat(self, deadline: float):
+        self.log_info("CombatDetect UNCERTAIN")
+        self.combat_detect_state.uncertain_until = deadline
+        if self.middle_click():
+            self.openvino_clear_cache()
+            self.combat_detect_state.retarget_ready_at = (
+                time.time() + self.combat_detect_policy.retarget_settle_seconds
+            )
+
+    def _detect_combat_signal(self):
+        if self.combat_detect_state.uncertain_until is not None:
+            return self.async_combat_detect(exhaustive=True)
+        return self.async_combat_detect()
+
     def do_check_in_combat(self, target):
         if self.in_animation:
             return True
@@ -206,42 +287,15 @@ class CombatCheck(BaseNTETask):
             if self.combat_end_condition is not None and self.combat_end_condition():
                 return self.reset_to_false(reason="end condition reached")
 
-            if self._combat_settle.time is not None:
-                if self._combat_settle.force:
-                    self.next_frame()
-                combat_detect = self.async_combat_detect(
-                    exhaustive=True, force=self._combat_settle.force
-                )
-                self._combat_settle.force = False
-            else:
-                combat_detect = self.async_combat_detect()
-
-            if combat_detect is None:
+            combat_detect = self._detect_combat_signal()
+            combat_phase = self._update_combat_detect_state(combat_detect)
+            if combat_phase is CombatDetectPhase.IN_COMBAT:
                 return self.scene.set_in_combat()
-            elif combat_detect is True:
-                self._combat_settle = CombatSettle()
-                self._combat_detect_miss_count = 0
+            if combat_phase is CombatDetectPhase.UNCERTAIN:
                 return self.scene.set_in_combat()
-            else:
-                self._combat_detect_miss_count += 1
-                if self._combat_detect_miss_count < self.combat_detect_miss_required:
-                    return self.scene.set_in_combat()
-                if self._combat_settle.time is None:
-                    self._combat_settle.time = time.time() + 0.4
-                if self._combat_settle.time > time.time():
-                    if self.click(key="middle", action_name="retarget", interval=0.35):
-                        self.openvino_clear_cache()
-
-                        def delay_detect():
-                            time.sleep(0.25)
-                            self._combat_settle.force = True
-
-                        self.thread_pool_executor.submit(delay_detect)
-                    return self.scene.set_in_combat()
 
             if self.target_enemy(wait=True):
-                self._combat_settle = CombatSettle()
-                self._combat_detect_miss_count = 0
+                self._reset_combat_detect_state()
                 self.find_lv_future = None
                 self._lv_async = None
                 self.openvino_clear_cache()
@@ -256,7 +310,7 @@ class CombatCheck(BaseNTETask):
 
             @cache
             def has_target():
-                return self.openvino_detect_async(mask_regions=self._TARGET_MASK_REGIONS)
+                return self.find_target()
 
             @cache
             def has_lv():
@@ -287,14 +341,61 @@ class CombatCheck(BaseNTETask):
                 self._in_combat = self.load_chars()
                 return self._in_combat
 
-    def combat_detect(self, frame=None, target=True, lv=True):
+    def combat_detect(self, frame=None, target=True, lv=True, force=False):
         if lv and self.find_lv(frame=frame):
             return True
-        if target and self.openvino_detect_sync(
-            frame=frame, mask_regions=self._TARGET_MASK_REGIONS
-        ):
+        if target and self.find_target(frame=frame, sync=True, force=force):
             return True
         return False
+
+    def find_target(self, sync=False, frame=None, force=False) -> Box | None | bool:
+        result = self.openvino_detect(
+            frame=frame,
+            sync=sync,
+            threshold=0.65,
+            force=force,
+            mask_regions=self._TARGET_MASK_REGIONS,
+        )
+
+        if result is None:
+            return None
+
+        if result:
+            max_conf = max(result, key=lambda x: x.confidence)
+            if max_conf.confidence > 0.8:
+                return max_conf
+
+        target = False
+        for box in result:
+            if isinstance(box, Box):
+                detect_frame = self.get_last_openvino_image()
+                if detect_frame is None:
+                    return result
+
+                cropped = box.crop_frame(detect_frame)
+                # 使用自适应亮度二值化提取可能的亮色 UI 标记
+                mask = iu.binarize_bgr_by_adaptive_brightness(cropped, offset=20, to_bgr=False)
+                contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+                is_valid = False
+                if contours:
+                    cnt = max(contours, key=cv2.contourArea)
+                    area = cv2.contourArea(cnt)
+                    if area >= 10:  # 过滤极小的噪点
+                        x, y, w, h = cv2.boundingRect(cnt)
+                        aspect_ratio = w / float(max(h, 1))
+                        extent = area / float(max(w * h, 1))
+
+                        # 正菱形的宽高比应接近 1，面积填充率应接近 0.5
+                        if 0.75 < aspect_ratio < 1.33 and 0.35 < extent < 0.65:
+                            is_valid = True
+                if not is_valid:
+                    self.log_info("find_target cause contour analysis failed")
+                    target = is_valid
+                else:
+                    target = box
+
+        return target
 
     def find_lv_async(self, frame=None, force=False):
         ret = self._lv_async
@@ -332,9 +433,7 @@ class CombatCheck(BaseNTETask):
         is_lv_false = not lv or lv_ret is False
 
         if target and (exhaustive or is_lv_false):
-            target_ret = self.openvino_detect_async(
-                frame=frame, force=force, mask_regions=self._TARGET_MASK_REGIONS
-            )
+            target_ret = self.find_target(frame=frame, force=force)
             if target_ret:
                 return True
 

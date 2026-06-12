@@ -9,8 +9,13 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr "<b style=\"color: #0078d7;\">Personaje</b> y <b style=\"color: #0078d7;\">{combo}</b> permiten la entrada y creación, también admiten la selección de elementos existentes."
+msgid ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr ""
+"<b style=\"color: #0078d7;\">Personaje</b> y <b style=\"color: "
+"#0078d7;\">{combo}</b> permiten la entrada y creación, también admiten la "
+"selección de elementos existentes."
 
 msgid "Arc Key"
 msgstr "Tecla de Arco"
@@ -19,7 +24,8 @@ msgid "Check Monthly Card"
 msgstr "Comprobar tarjeta mensual"
 
 msgid "Check for monthly card to avoid interruption of tasks"
-msgstr "Comprobar la tarjeta mensual para evitar la interrupción de las tareas"
+msgstr ""
+"Comprobar la tarjeta mensual para evitar la interrupción de las tareas"
 
 msgid "F10"
 msgstr "F10"
@@ -54,7 +60,8 @@ msgstr "Activar para evitar la interrupción por la tarjeta mensual"
 msgid "Ultimate Key"
 msgstr "Tecla definitiva"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "Hora local para el aviso de tarjeta mensual (1-24)"
 
 msgid "[内置代码]"
@@ -80,9 +87,6 @@ msgstr "{fixed_team} vaciado"
 
 msgid "{} 号位"
 msgstr "Espacio {}"
-
-msgid "不扫描也可自动战斗，将使用通用脚本"
-msgstr "El combate automático es posible sin escanear; se usará un script general."
 
 msgid "任务跳过对话"
 msgstr "Tarea: Omitir diálogo"
@@ -124,11 +128,22 @@ msgstr "Actualizar lista"
 msgid "匹配成功: {}"
 msgstr "Coincidencia exitosa: {}"
 
+msgid "置信度: {:.2f}"
+msgstr "Confianza: {:.2f}"
+
+msgid "特征已加入"
+msgstr "Característica añadida"
+
+msgid "加入特征"
+msgstr "Añadir característica"
+
 msgid "匹配文字"
 msgstr "Coincidir texto"
 
 msgid "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
-msgstr "Debido a la singularidad de la interfaz de Neverness-to-Everness, la estabilidad del reconocimiento puede fluctuar en algunos escenarios."
+msgstr ""
+"Debido a la singularidad de la interfaz de Neverness-to-Everness, la "
+"estabilidad del reconocimiento puede fluctuar en algunos escenarios."
 
 msgid "可用指令"
 msgstr "Comandos disponibles"
@@ -145,8 +160,16 @@ msgstr "Clic automático de teletransporte en el mapa"
 msgid "填入扫描"
 msgstr "Completar escaneo"
 
-msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
-msgstr "Al añadir <b style=\"color: #0078d7;\">Características del personaje</b> se identificará automáticamente al personaje actual.<br>Si no desea gestionar las <b style=\"color: #0078d7;\">Características del personaje</b>, puede activar directamente la función <b style=\"color: #0078d7;\">{fixed_team}</b>."
+msgid ""
+"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
+msgstr ""
+"Al vincular <b style=\"color: #0078d7;\">Características del personaje</b>, "
+"se identificará automáticamente al personaje actual.<br>Si no desea "
+"gestionar las <b style=\"color: #0078d7;\">Características del "
+"personaje</b>, puede activar directamente la función <b style=\"color: "
+"#0078d7;\">{fixed_team}</b>."
 
 msgid "完成每日活跃度"
 msgstr "Completar actividad diaria"
@@ -162,9 +185,6 @@ msgstr "Importar datos"
 
 msgid "导出数据"
 msgstr "Exportar datos"
-
-msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
-msgstr "Se priorizará el uso de personajes fijos para el combate; se identificará automáticamente cuando no esté activado o los espacios estén vacíos."
 
 msgid "已保存 {}/4"
 msgstr "{} / 4 guardados"
@@ -188,7 +208,8 @@ msgid "已恢复自动识别"
 msgstr "Reconocimiento automático restaurado"
 
 msgid "已成功删除角色: {} 以及关联的特征图"
-msgstr "Personaje eliminado con éxito: {} y sus mapas de características asociados"
+msgstr ""
+"Personaje eliminado con éxito: {} y sus mapas de características asociados"
 
 msgid "已清空槽位"
 msgstr "Espacios vaciados"
@@ -245,8 +266,8 @@ msgstr "No se pudo identificar esta característica"
 msgid "未获取到特征"
 msgstr "Característica no obtenida"
 
-msgid "未识别，关联新特征"
-msgstr "No identificado, asociando nueva característica"
+msgid "关联特征"
+msgstr "Vincular característica"
 
 msgid ""
 "此为内建 Python 脚本，不可在此修改。\n"
@@ -277,7 +298,9 @@ msgid "点按时长倍率"
 msgstr "Multiplicador de duración del toque"
 
 msgid "点按模式专用。用于微调每次按键的持续时间"
-msgstr "Solo para el modo Tocar. Se usa para ajustar la duración de cada pulsación de tecla."
+msgstr ""
+"Solo para el modo Tocar. Se usa para ajustar la duración de cada pulsación "
+"de tecla."
 
 msgid "编辑名称"
 msgstr "Editar nombre"
@@ -297,9 +320,6 @@ msgstr "Objetivo automático"
 msgid "自动钓鱼"
 msgstr "Pesca automática"
 
-msgid "角色"
-msgstr "Personaje"
-
 msgid "角色中心"
 msgstr "Ctr. Pers."
 
@@ -316,7 +336,9 @@ msgid "解除绑定"
 msgstr "Desvincular"
 
 msgid "请在左侧选择一个角色以管理特征和{combo}"
-msgstr "Seleccione un personaje a la izquierda para gestionar las características y el {combo}"
+msgstr ""
+"Seleccione un personaje a la izquierda para gestionar las características y "
+"el {combo}"
 
 msgid "跳过剧情"
 msgstr "Omitir historia"
@@ -362,7 +384,9 @@ msgid "使用ESC"
 msgstr "Usar ESC"
 
 msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
-msgstr "Cuando está desactivado, el combate solo comienza si se selecciona un enemigo con el botón central y se detecta 'Lv' en pantalla"
+msgstr ""
+"Cuando está desactivado, el combate solo comienza si se selecciona un "
+"enemigo con el botón central y se detecta 'Lv' en pantalla"
 
 msgid ""
 "开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
@@ -374,20 +398,28 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "Umbral de contraataque"
 
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr "Umbral de reconocimiento de sonido de contraataque (0,0-1,0, más bajo es más sensible)"
+msgid ""
+"Counter attack sound recognition threshold (0.0-1.0, lower is more "
+"sensitive)"
+msgstr ""
+"Umbral de reconocimiento de sonido de contraataque (0,0-1,0, más bajo es más"
+" sensible)"
 
 msgid "Dodge Threshold"
 msgstr "Umbral de esquiva"
 
 msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr "Umbral de reconocimiento de sonido de esquiva (0,0-1,0, más bajo es más sensible)"
+msgstr ""
+"Umbral de reconocimiento de sonido de esquiva (0,0-1,0, más bajo es más "
+"sensible)"
 
 msgid "Enable Sound Trigger"
 msgstr "Activar disparador de sonido"
 
 msgid "Enable sound recognition for automatic dodge and counter attacks"
-msgstr "Activar el reconocimiento de sonido para esquivas y contraataques automáticos"
+msgstr ""
+"Activar el reconocimiento de sonido para esquivas y contraataques "
+"automáticos"
 
 msgid "Sound Trigger Config"
 msgstr "Configuración del disparador de sonido"
@@ -453,7 +485,9 @@ msgid "角色经验"
 msgstr "Experiencia de personaje"
 
 msgid "选择经验与甲硬币任务的具体奖励目标"
-msgstr "Seleccionar el objetivo de recompensa específico para tareas de EXP y Monedas Escarabajo"
+msgstr ""
+"Seleccionar el objetivo de recompensa específico para tareas de EXP y "
+"Monedas Escarabajo"
 
 msgid "选择要进行的任务类型"
 msgstr "Seleccionar el tipo de tarea a realizar"
@@ -495,7 +529,9 @@ msgid "自动补饵卖鱼"
 msgstr "Auto-recarga cebo y vende pescado"
 
 msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
-msgstr "Si falla el lanzamiento, reponer cebo predeterminado, vender capturas y reintentar"
+msgstr ""
+"Si falla el lanzamiento, reponer cebo predeterminado, vender capturas y "
+"reintentar"
 
 msgid "4列对应的键盘按键"
 msgstr "Teclas para 4 columnas"
@@ -537,7 +573,9 @@ msgid "声音闪避反击"
 msgstr "Esquiva y contraataque por sonido"
 
 msgid "未处于自动战斗时, 响应声音闪避或反击"
-msgstr "Cuando el combate automático no está activo, responde a esquivas o contraataques por sonido"
+msgstr ""
+"Cuando el combate automático no está activo, responde a esquivas o "
+"contraataques por sonido"
 
 msgid ""
 "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
@@ -559,7 +597,9 @@ msgid "游戏启动后自动登录游戏"
 msgstr "Iniciar sesión automáticamente después de iniciar el juego"
 
 msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
-msgstr "Entrar y salir de fases en bucle automáticamente (requiere una build AFK dentro del juego)"
+msgstr ""
+"Entrar y salir de fases en bucle automáticamente (requiere una build AFK "
+"dentro del juego)"
 
 msgid "自动登录游戏"
 msgstr "Inicio de sesión automático"
@@ -575,9 +615,6 @@ msgstr "Elige cómo gestionar las tareas diarias del café"
 
 msgid "不执行"
 msgstr "No ejecutar"
-
-msgid "记录新特征"
-msgstr "Registrar nueva característica"
 
 msgid "输入或选择关联的角色名称"
 msgstr "Introduce o selecciona el nombre del personaje asociado"
@@ -607,7 +644,8 @@ msgid "清空已记录的操作"
 msgstr "Borrar operaciones grabadas"
 
 msgid "自动执行黑暗赛车,请在大世界开始执行"
-msgstr "Ejecutar automáticamente Carrera oscura; inicia desde el mundo abierto"
+msgstr ""
+"Ejecutar automáticamente Carrera oscura; inicia desde el mundo abierto"
 
 msgid "重置记录"
 msgstr "Restablecer grabación"
@@ -619,9 +657,11 @@ msgid "Record has been reset"
 msgstr "La grabación se ha restablecido"
 
 msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then "
-"follow the instructions carefully to record your actions."
-msgstr "No se encontraron operaciones grabadas. Espera a que aparezca el aviso de grabación y sigue las instrucciones con atención para grabar tus acciones."
+"No recorded operations were found. Please wait for the recording prompt, "
+"then follow the instructions carefully to record your actions."
+msgstr ""
+"No se encontraron operaciones grabadas. Espera a que aparezca el aviso de "
+"grabación y sigue las instrucciones con atención para grabar tus acciones."
 
 msgid "Updated successfully"
 msgstr "Actualizado correctamente"
@@ -649,3 +689,47 @@ msgstr "Aficiones"
 
 msgid "日常/周常"
 msgstr "Diarias/semanales"
+
+msgid "※ 列表可直接输入并创建"
+msgstr "※ Puede escribir directamente en la lista para crear entradas"
+
+msgid "输入或选择角色"
+msgstr "Introduce o selecciona un personaje"
+
+msgid "自动战斗任务不可用"
+msgstr "La tarea de combate automático no está disponible"
+
+msgid ""
+"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
+"游戏内换人/换队自动适配，无需手动调整"
+msgstr ""
+"※ Tras vincular rasgos de personaje, el software podrá identificar personajes automáticamente y usar la lista de combos vinculada; si no hay vínculo, usará el script genérico.\n"
+"Los cambios de personaje o equipo en el juego se adaptan automáticamente, sin ajustes manuales"
+
+msgid ""
+"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
+"如果游戏内切换队伍, 需要在软件里手动修改。"
+msgstr ""
+"※ {fixed_team} se lee en orden. Si hay una ranura anterior vacía, se ignorarán las configuraciones posteriores.\n"
+"Si cambias de equipo en el juego, debes modificarlo manualmente en el software."
+
+msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
+msgstr "<span style=\"color: #2ecc71;\">● Reconocimiento automático: activado</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ Reconocimiento automático: desactivado</span>"
+
+msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: activado ({count}/4)</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: desactivado</span>"
+
+msgid "启动失败"
+msgstr "Error al iniciar"
+
+msgid "固定队伍配置无效"
+msgstr "La configuración del equipo fijo no es válida"
+
+msgid "请先填入前方槽位，或清空后续槽位"
+msgstr "Rellena primero las ranuras anteriores o borra las posteriores"

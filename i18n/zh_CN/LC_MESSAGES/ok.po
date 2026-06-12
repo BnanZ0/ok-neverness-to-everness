@@ -9,7 +9,9 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgid ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 msgstr ""
 
 msgid "Arc Key"
@@ -54,7 +56,8 @@ msgstr "执行任务时开启以避免月卡中断"
 msgid "Ultimate Key"
 msgstr "极轨技快捷键"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月卡弹出时的电脑本地时间，小时 (1-24)"
 
 msgid "[内置代码]"
@@ -79,9 +82,6 @@ msgid "{fixed_team}已清空"
 msgstr ""
 
 msgid "{} 号位"
-msgstr ""
-
-msgid "不扫描也可自动战斗，将使用通用脚本"
 msgstr ""
 
 msgid "任务跳过对话"
@@ -122,6 +122,15 @@ msgstr ""
 msgid "匹配成功: {}"
 msgstr ""
 
+msgid "置信度: {:.2f}"
+msgstr ""
+
+msgid "特征已加入"
+msgstr ""
+
+msgid "加入特征"
+msgstr ""
+
 msgid "匹配文字"
 msgstr ""
 
@@ -143,7 +152,10 @@ msgstr ""
 msgid "填入扫描"
 msgstr ""
 
-msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgid ""
+"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
 msgstr ""
 
 msgid "完成每日活跃度"
@@ -159,9 +171,6 @@ msgid "导入数据"
 msgstr ""
 
 msgid "导出数据"
-msgstr ""
-
-msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
 msgstr ""
 
 msgid "已保存 {}/4"
@@ -241,7 +250,7 @@ msgstr ""
 msgid "未获取到特征"
 msgstr ""
 
-msgid "未识别，关联新特征"
+msgid "关联特征"
 msgstr ""
 
 msgid ""
@@ -289,9 +298,6 @@ msgid "自动目标"
 msgstr ""
 
 msgid "自动钓鱼"
-msgstr ""
-
-msgid "角色"
 msgstr ""
 
 msgid "角色中心"
@@ -364,7 +370,9 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反击触发阈值"
 
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgid ""
+"Counter attack sound recognition threshold (0.0-1.0, lower is more "
+"sensitive)"
 msgstr "反击声音识别阈值（0.0-1.0，越低越灵敏）"
 
 msgid "Dodge Threshold"
@@ -511,9 +519,6 @@ msgstr ""
 msgid "输出调试日志"
 msgstr ""
 
-msgid "记录新特征"
-msgstr ""
-
 msgid "输入或选择绑定的{combo} (可选)"
 msgstr ""
 
@@ -606,8 +611,8 @@ msgid "Record has been reset"
 msgstr "记录已重置"
 
 msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then "
-"follow the instructions carefully to record your actions."
+"No recorded operations were found. Please wait for the recording prompt, "
+"then follow the instructions carefully to record your actions."
 msgstr "未找到已记录的操作。请等待录制提示出现，然后按照指引，仔细完成操作录制。"
 
 msgid "Updated successfully"
@@ -629,4 +634,44 @@ msgid "都市闲趣"
 msgstr ""
 
 msgid "日常/周常"
+msgstr ""
+
+msgid "※ 列表可直接输入并创建"
+msgstr ""
+
+msgid "输入或选择角色"
+msgstr ""
+
+msgid "自动战斗任务不可用"
+msgstr ""
+
+msgid ""
+"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
+"游戏内换人/换队自动适配，无需手动调整"
+msgstr ""
+
+msgid ""
+"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
+"如果游戏内切换队伍, 需要在软件里手动修改。"
+msgstr ""
+
+msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
+msgstr ""
+
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
+msgstr ""
+
+msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
+msgstr ""
+
+msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+msgstr ""
+
+msgid "启动失败"
+msgstr ""
+
+msgid "固定队伍配置无效"
+msgstr ""
+
+msgid "请先填入前方槽位，或清空后续槽位"
 msgstr ""

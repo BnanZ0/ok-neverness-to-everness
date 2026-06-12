@@ -1,9 +1,9 @@
-from ok import og
-from ok.gui.widget.CustomTab import CustomTab
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QStackedWidget, QVBoxLayout
 from qfluentwidgets import FluentIcon, Pivot, isDarkTheme, qconfig
 
+from ok import og
+from ok.gui.widget.CustomTab import CustomTab
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.ui.CharManagerTab import CharManagerTab
 from src.ui.TeamManagerTab import TeamManagerTab

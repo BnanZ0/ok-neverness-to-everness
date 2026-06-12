@@ -4,6 +4,7 @@ import time
 
 import win32api
 import win32con
+import win32gui
 from ok import og
 from ok.device.intercation import INPUT, MOUSEINPUT, PostMessageInteraction, SendInput
 from ok.util.logger import Logger
@@ -43,9 +44,42 @@ class NTEInteraction(PostMessageInteraction):
             mapped_args, mapped_kwargs = self._map_key_args(args, kwargs)
             return super().send_key_up(*mapped_args, **mapped_kwargs)
 
-    def scroll(self, *args, **kwargs):
+    def scroll(self, x, y, scroll_amount):
         with self._input_lock:
-            return super().scroll(*args, **kwargs)
+            self.try_activate()
+            logger.debug(f"scroll {x}, {y}, {scroll_amount}")
+
+            base_hwnd = (
+                self.hwnd_window.top_hwnd if self.hwnd_window.top_hwnd else self.hwnd_window.hwnd
+            )
+            if x > 0 and y > 0:
+                top_x, top_y = self.hwnd_window.get_top_window_cords(x, y)
+                abs_x, abs_y = win32gui.ClientToScreen(base_hwnd, (int(top_x), int(top_y)))
+                self.bg_mouse_pos = (top_x, top_y)
+                self._dynamic_target_hwnd = self._target_hwnd_at(abs_x, abs_y, base_hwnd)
+                long_position = win32api.MAKELONG(abs_x, abs_y)
+            else:
+                self._dynamic_target_hwnd = base_hwnd
+                long_position = 0
+
+            wParam = win32api.MAKELONG(0, win32con.WHEEL_DELTA * scroll_amount)
+            self.post(win32con.WM_MOUSEWHEEL, wParam, long_position)
+
+    def _target_hwnd_at(self, abs_x, abs_y, fallback_hwnd):
+        for hwnd_info in getattr(self.hwnd_window, "hwnds", []):
+            candidate = hwnd_info[0]
+            if not win32gui.IsWindow(candidate):
+                continue
+            try:
+                left = hwnd_info[4]
+                top = hwnd_info[5]
+                right = left + hwnd_info[2]
+                bottom = top + hwnd_info[3]
+                if left <= abs_x < right and top <= abs_y < bottom:
+                    return candidate
+            except Exception:
+                continue
+        return fallback_hwnd
 
     def _map_key_args(self, args, kwargs):
         if self._disable_key_mapping or not og.global_config.get_config("Game Hotkey Config").get(
@@ -69,9 +103,7 @@ class NTEInteraction(PostMessageInteraction):
         mapped_kwargs["key"] = mapped_key
         return args, mapped_kwargs
 
-    def click(
-        self, x=-1, y=-1, move_back=False, name=None, down_time=0.01, move=True, key="left"
-    ):
+    def click(self, x=-1, y=-1, move_back=False, name=None, down_time=0.01, move=True, key="left"):
         with self._input_lock:
             self.try_activate()
             if x < 0:

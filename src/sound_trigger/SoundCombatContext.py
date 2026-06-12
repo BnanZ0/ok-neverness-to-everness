@@ -1,12 +1,13 @@
 import threading
 import time
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from ok import Logger
-
 from src.sound_trigger.DodgeCounterTrigger import DodgeCounterTrigger
-from src.sound_trigger.SoundListener import SoundListener
 
+if TYPE_CHECKING:
+    from src.sound_trigger.SoundListener import SoundListener
+    
 logger = Logger.get_logger(__name__)
 
 
@@ -29,7 +30,7 @@ class SoundCombatContext:
             return
         self._initialized = True
 
-        self._listener: Optional[SoundListener] = None
+        self._listener: Optional["SoundListener"] = None
         self._trigger: Optional[DodgeCounterTrigger] = None
         self._context_lock = threading.RLock()
         self._is_active = False
@@ -129,6 +130,7 @@ class SoundCombatContext:
                 "counter_attack_threshold": counter_attack_threshold,
             }
 
+            from src.sound_trigger.SoundListener import SoundListener
             self._listener = SoundListener(
                 sample_path=sample_path,
                 counter_attack_sample_path=counter_attack_sample_path,
@@ -294,7 +296,7 @@ class SoundCombatContext:
         return self._is_active
 
     @property
-    def listener(self) -> Optional[SoundListener]:
+    def listener(self) -> Optional["SoundListener"]:
         return self._listener
 
     @property

@@ -24,7 +24,7 @@ logger = Logger.get_logger(__name__)
 stamina_re = re.compile(r"(\d+)/(\d+)")
 
 
-class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
+class BaseNTETask(CharUIMixin, BaseTask):
     DEFAULT_MOVE = False
 
     def __init__(self, *args, **kwargs):
@@ -33,7 +33,6 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
         self.key_config = self.get_global_config("Game Hotkey Config")
         self.monthly_card_config = self.get_global_config("Monthly Card Config")
         self.sound_config = self.get_global_config("Sound Trigger Config")
-        self._logged_in = False
         self._rotated_template_cache = {}
         self.default_box = ScreenPosition(self)
         self._init_char_ui_state()
@@ -82,7 +81,15 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
             return
         return og.my_app.submit_periodic_task(delay, task, *args, **kwargs)
 
-    def _openvino_detect(self, frame, sync, box, threshold, force=False, mask_regions=None):
+    def openvino_detect(
+        self,
+        frame=None,
+        sync: bool = False,
+        box: Box = None,
+        threshold: float = 0.7,
+        force: bool = False,
+        mask_regions=None,
+    ) -> List[Box] | None:
         if og.my_app is None:
             return []
         if box is None:
@@ -90,41 +97,28 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
         self.draw_boxes(boxes=box, color="blue")
         if frame is None:
             frame = self.frame
-        if sync:
-            results = og.my_app.openvino_detect_sync(
-                image=frame, box=box, threshold=threshold, mask_regions=mask_regions
-            )
-        else:
-            results = og.my_app.openvino_detect_async(
-                image=frame,
-                box=box,
-                threshold=threshold,
-                force=force,
-                mask_regions=mask_regions,
-            )
+        results = og.my_app.openvino_detect(
+            image=frame,
+            sync=sync,
+            box=box,
+            threshold=threshold,
+            force=force,
+            mask_regions=mask_regions,
+        )
         if results:
             self.draw_boxes(boxes=results, color="red")
         return results
-
-    def openvino_detect_async(
-        self, frame=None, box: Box = None, threshold=0.7, force=False, mask_regions=None
-    ) -> List[Box]:
-        """异步检测，返回结果可能为缓存值"""
-        return self._openvino_detect(
-            frame, False, box, threshold, force=force, mask_regions=mask_regions
-        )
-
-    def openvino_detect_sync(
-        self, frame=None, box: Box = None, threshold=0.7, mask_regions=None
-    ) -> List[Box]:
-        """同步检测，会等待结果返回"""
-        return self._openvino_detect(frame, True, box, threshold, mask_regions=mask_regions)
 
     def openvino_clear_cache(self):
         """清空缓存"""
         if og.my_app is None:
             return
         og.my_app.openvino_clear_cache()
+
+    def get_last_openvino_image(self):
+        if og.my_app is None:
+            return None
+        return getattr(og.my_app, 'openvino_latest_image', None)
 
     @property
     def main_viewport(self):
@@ -241,8 +235,8 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
     def get_base_char_element_box(self):
         return super().get_base_char_element_box()
 
-    def is_in_team(self) -> Box | None:
-        frame = self.frame
+    def is_in_team(self, frame=None) -> Box | None:
+        frame = self.frame if frame is None else frame
         if frame is None:
             self.log_warning("Received an empty or None frame. Skipping...")
             time.sleep(1)
@@ -280,10 +274,10 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
         if current != -1 and arr[current] is None:
             exist_count += 1
 
-        self._logged_in = True
+        self.scene.set_logged_in()
         return True, current, exist_count
 
-    def get_box_by_char_spacing(self, box: Box, index: int):
+    def get_box_by_char_spacing(self, box: Box, index: int) -> Box:
         return super().get_box_by_char_spacing(box, index)
 
     def is_char_at_index(self, index, threshold=0.5, frame=None):
@@ -741,7 +735,7 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
 
     def ensure_main(self, esc=True, time_out=30):
         self.info_set("current task", f"wait main esc={esc}")
-        if not self._logged_in:
+        if not self.scene.logged_in():
             time_out = 600
         if not self.wait_until(
             lambda: self.is_main(esc=esc), time_out=time_out, raise_if_not_found=False
@@ -752,7 +746,7 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
 
     def is_main(self, esc=True):
         if self.in_team_and_world():
-            self._logged_in = True
+            self.scene.set_logged_in()
             return True
         if self.handle_monthly_card():
             return True
@@ -812,7 +806,7 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
             self.next_monthly_card_start = 0
 
     def wait_login(self):
-        if not self._logged_in:
+        if not self.scene.logged_in():
             if self.in_team_and_world():
                 return True
             self.handle_monthly_card()
@@ -1084,6 +1078,15 @@ class BaseNTETask(BaseTask, CharUIMixin):  # type: ignore
         return self.find_best_match_in_box(
             box=box, to_find=[Labels.confirm_btn_1, Labels.confirm_btn_2], threshold=threshold
         )
+
+    @staticmethod
+    def get_app_locale() -> bool:
+        """get app locale."""
+
+        try:
+            return og.app.locale.name()
+        except Exception:
+            return None
 
 
 def interac_mask(image):

@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from typing import Callable, List, Optional, Tuple
 
-from ok import CannotFindException, TaskDisabledException, find_color_rectangles, og
+from ok import CannotFindException, TaskDisabledException, find_color_rectangles
 from qfluentwidgets import FluentIcon
 
 from src import text_white_color
@@ -56,7 +56,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         )
         coffee_options = [self.COFFEE_MODE_NONE, self.COFFEE_MODE_CLAIM_AND_RESTOCK]
         # 一咖舍自动化页面 OCR 仅匹配简体中文; 在非 zh_CN 下不向用户暴露自动化选项.
-        if self._is_zh_cn_locale():
+        if self.get_app_locale() == "zh_CN":
             coffee_options.append(self.COFFEE_MODE_AUTO)
         self.config_type[self.CONF_COFFEE_TASK] = {
             "type": "drop_down",
@@ -64,21 +64,6 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         }
         self.current_task_key = None
         self.add_exit_after_config()
-
-    @staticmethod
-    def _is_zh_cn_locale() -> bool:
-        """Return True iff the running app reports zh_CN as its locale.
-
-        Defensive against early init / test contexts where ``og.app`` may be
-        missing or ``locale.name()`` may raise.
-        """
-        app = getattr(og, "app", None)
-        if app is None or not hasattr(app, "locale"):
-            return False
-        try:
-            return app.locale.name() == "zh_CN"
-        except Exception:
-            return False
 
     def run(self):
         super().run()
@@ -91,7 +76,7 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
 
     def do_run(self):
         """执行日常任务主流程"""
-        self._logged_in = False
+        self.scene.set_logged_in(False)
         self.ensure_main()
         self.log_info("开始执行日常任务")
 

@@ -1,28 +1,14 @@
 import time
 
 from ok import Logger, TriggerTask
-from PySide6.QtCore import QObject, Signal
 from qfluentwidgets import FluentIcon
 
-from src.char.CharFactory import get_char_feature_by_pos
-from src.char.custom.CustomCharManager import CustomCharManager
 from src.combat.BaseCombatTask import BaseCombatTask, CharDeadException, NotInCombatException
-
-
-class ScannerSignals(QObject):
-    # Sends list of dicts: {"index": i, "feat_id": tmp_id, "mat": ndarray, "match": str|None}
-    scan_done = Signal(list, str)
-
-
-scanner_signals = ScannerSignals()
 
 logger = Logger.get_logger(__name__)
 
 
 class AutoCombatTask(BaseCombatTask, TriggerTask):
-    txt_team_not_exist = "队伍不存在"
-    txt_team_not_enough = "队伍人数少于2人"
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.default_config = {"_enabled": True}
@@ -41,9 +27,6 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
         }
         self.op_index = 0
         self.origin_func = {}
-        if self._app is not None:
-            self.tr(self.txt_team_not_exist)
-            self.tr(self.txt_team_not_enough)
 
     def run(self):
         ret = False
@@ -65,30 +48,3 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
                 break
         if ret:
             self.combat_end()
-
-    def scan_team(self):
-        self.log_info("开始扫描当前队伍...")
-        in_team, _, count = self.in_team()
-        if not in_team or count == 0:
-            scanner_signals.scan_done.emit([], self.tr(self.txt_team_not_exist))
-            self.log_info("队伍不存在, 扫描结束")
-            return
-        if count < 2:
-            scanner_signals.scan_done.emit([], self.tr(self.txt_team_not_enough))
-            self.log_info("队伍人数少于2人, 扫描结束")
-            return
-
-        manager = CustomCharManager()
-        results = []
-        frame = self.frame
-        for i in range(count):
-            feature_mat, w, h = get_char_feature_by_pos(self, i, frame=frame)
-            if feature_mat is not None and feature_mat.size > 0:
-                is_match, match_name, confidence = manager.match_feature(self, feature_mat)
-                name = match_name if is_match else None
-                results.append(
-                    {"index": i, "mat": feature_mat, "width": w, "height": h, "match": name}
-                )
-                self.log_debug(f"char_{i + 1}: {name}, confidence={confidence:.2f}")
-        scanner_signals.scan_done.emit(results, "")
-        self.log_info("扫描完成！")

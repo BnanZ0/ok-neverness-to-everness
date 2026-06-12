@@ -1,9 +1,9 @@
 
 from src.char.BaseChar import BaseChar
-from src.combat.planner import FieldPreference, Role, RoleProfile
+from src.combat.planner import EntryChainPolicy, FieldPreference, Role, RoleProfile
 
 
-class Sakiri(BaseChar):
+class Fadia(BaseChar):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -11,11 +11,10 @@ class Sakiri(BaseChar):
         return RoleProfile(
             role=Role.SUB_DPS,
             field_preference=FieldPreference.SUB_DPS,
-            max_field_time=1.0,
         )
 
     def combat_intents(self, context):
         return self.intents(
-            self.click_ultimate_action(),
-            self.click_skill_action(down_time=0.25),
+            self.click_ultimate_action(chain_policy=EntryChainPolicy.STOP_ON_SUCCESS),
+            self.click_skill_action(),
         )

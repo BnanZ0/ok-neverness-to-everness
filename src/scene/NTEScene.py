@@ -13,11 +13,18 @@ class NTEScene(BaseScene):
         self.cd_refreshed = False
         self._ocr_warm_up = False
         self._is_in_team_record = {"state": None, "timestamp": 0}
+        self._logged_in = False
 
     def reset(self):
         self._is_in_team = None
         self._in_combat = None
         self.cd_refreshed = False
+
+    def logged_in(self):
+        return self._logged_in
+
+    def set_logged_in(self, value=True):
+        self._logged_in = value
 
     def in_combat(self):
         return self._in_combat

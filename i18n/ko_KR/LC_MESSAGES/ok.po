@@ -9,8 +9,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr "<b style=\"color: #0078d7;\">캐릭터</b> 및 <b style=\"color: #0078d7;\">{combo}</b>는 직접 입력하여 생성하거나 기존 항목을 선택할 수 있습니다."
+msgid ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr ""
+"<b style=\"color: #0078d7;\">캐릭터</b> 및 <b style=\"color: "
+"#0078d7;\">{combo}</b>는 직접 입력하여 생성하거나 기존 항목을 선택할 수 있습니다."
 
 msgid "Arc Key"
 msgstr "아크 키"
@@ -54,7 +58,8 @@ msgstr "작업 실행 시 월정액 카드로 인한 중단을 피하기 위해 
 msgid "Ultimate Key"
 msgstr "궁극기 키"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "월정액 카드가 팝업될 컴퓨터의 로컬 시간(1-24시)"
 
 msgid "[内置代码]"
@@ -80,9 +85,6 @@ msgstr "{fixed_team} 초기화됨"
 
 msgid "{} 号位"
 msgstr "{} 번 슬롯"
-
-msgid "不扫描也可自动战斗，将使用通用脚本"
-msgstr "스캔 없이도 자동 전투가 가능하며, 공용 스크립트가 사용됩니다"
 
 msgid "任务跳过对话"
 msgstr "대화 건너뛰기 작업"
@@ -124,6 +126,15 @@ msgstr "목록 새로고침"
 msgid "匹配成功: {}"
 msgstr "매칭 성공: {}"
 
+msgid "置信度: {:.2f}"
+msgstr "신뢰도: {:.2f}"
+
+msgid "特征已加入"
+msgstr "특징이 추가됨"
+
+msgid "加入特征"
+msgstr "특징 추가"
+
 msgid "匹配文字"
 msgstr "텍스트 매칭"
 
@@ -145,8 +156,14 @@ msgstr "지도에서 자동 순간이동 클릭"
 msgid "填入扫描"
 msgstr "스캔 결과 입력"
 
-msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
-msgstr "캐릭터 특징을 추가하면 현재 캐릭터를 자동으로 판별합니다.<br>캐릭터 특징을 관리하고 싶지 않다면 {fixed_team} 기능을 직접 활성화할 수 있습니다."
+msgid ""
+"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
+msgstr ""
+"<b style=\"color: #0078d7;\">캐릭터 특징</b>을 연결하면 현재 캐릭터를 자동으로 판별합니다.<br><b "
+"style=\"color: #0078d7;\">캐릭터 특징</b>을 관리하고 싶지 않다면 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 기능을 직접 활성화할 수 있습니다."
 
 msgid "完成每日活跃度"
 msgstr "일일 활성도 완료"
@@ -162,9 +179,6 @@ msgstr "데이터 가져오기"
 
 msgid "导出数据"
 msgstr "데이터 내보내기"
-
-msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
-msgstr "고정 캐릭터를 우선 사용하여 전투하며, 비활성화되거나 슬롯이 비어 있으면 자동으로 인식합니다"
 
 msgid "已保存 {}/4"
 msgstr "저장됨 {}/4"
@@ -245,8 +259,8 @@ msgstr "특징을 인식하지 못했습니다"
 msgid "未获取到特征"
 msgstr "특징을 가져오지 못했습니다"
 
-msgid "未识别，关联新特征"
-msgstr "인식 불가, 새로운 특징 연결"
+msgid "关联特征"
+msgstr "특징 연결"
 
 msgid ""
 "此为内建 Python 脚本，不可在此修改。\n"
@@ -296,9 +310,6 @@ msgstr "자동 대상"
 
 msgid "自动钓鱼"
 msgstr "자동 낚시"
-
-msgid "角色"
-msgstr "캐릭터"
 
 msgid "角色中心"
 msgstr "캐릭 센터"
@@ -374,7 +385,9 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "반격 임계값"
 
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgid ""
+"Counter attack sound recognition threshold (0.0-1.0, lower is more "
+"sensitive)"
 msgstr "반격 사운드 인식 임계값 (0.0-1.0, 낮을수록 더 민감함)"
 
 msgid "Dodge Threshold"
@@ -576,9 +589,6 @@ msgstr "일일 작업에서 카페 처리 방식을 선택"
 msgid "不执行"
 msgstr "실행하지 않음"
 
-msgid "记录新特征"
-msgstr "새 특징 기록"
-
 msgid "输入或选择关联的角色名称"
 msgstr "연결된 캐릭터 이름 입력 또는 선택"
 
@@ -619,8 +629,8 @@ msgid "Record has been reset"
 msgstr "기록이 초기화되었습니다"
 
 msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then "
-"follow the instructions carefully to record your actions."
+"No recorded operations were found. Please wait for the recording prompt, "
+"then follow the instructions carefully to record your actions."
 msgstr "기록된 작업을 찾을 수 없습니다. 기록 안내가 표시될 때까지 기다린 뒤, 지시에 따라 신중하게 동작을 기록하세요."
 
 msgid "Updated successfully"
@@ -649,3 +659,47 @@ msgstr "취미"
 
 msgid "日常/周常"
 msgstr "일일/주간"
+
+msgid "※ 列表可直接输入并创建"
+msgstr "※ 목록에 직접 입력하여 생성할 수 있습니다"
+
+msgid "输入或选择角色"
+msgstr "캐릭터를 입력하거나 선택"
+
+msgid "自动战斗任务不可用"
+msgstr "자동 전투 작업을 사용할 수 없습니다"
+
+msgid ""
+"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
+"游戏内换人/换队自动适配，无需手动调整"
+msgstr ""
+"※ 캐릭터 특징을 연결하면 소프트웨어가 캐릭터를 자동으로 인식하고 연결된 콤보표를 사용합니다. 연결하지 않은 경우 범용 스크립트를 사용합니다.\n"
+"게임 내 캐릭터/팀 전환은 자동으로 적용되므로 수동 조정이 필요 없습니다"
+
+msgid ""
+"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
+"如果游戏内切换队伍, 需要在软件里手动修改。"
+msgstr ""
+"※ {fixed_team}은 순서대로 읽습니다. 앞쪽에 빈 슬롯이 있으면 뒤쪽 설정은 무시됩니다.\n"
+"게임 내에서 팀을 전환한 경우 소프트웨어에서 수동으로 수정해야 합니다."
+
+msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
+msgstr "<span style=\"color: #2ecc71;\">● 자동 인식: 활성화됨</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ 자동 인식: 비활성화됨</span>"
+
+msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: 활성화됨 ({count}/4)</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: 비활성화됨</span>"
+
+msgid "启动失败"
+msgstr "시작하지 못했습니다"
+
+msgid "固定队伍配置无效"
+msgstr "고정 팀 구성이 잘못되었습니다"
+
+msgid "请先填入前方槽位，或清空后续槽位"
+msgstr "앞쪽 슬롯을 먼저 채우거나 뒤쪽 슬롯을 비우세요"

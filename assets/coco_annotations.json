@@ -379,6 +379,19 @@
             "iscrowd": 0
         },
         {
+            "id": 17,
+            "image_id": 1,
+            "category_id": 17,
+            "bbox": [
+                2438,
+                296,
+                31,
+                31
+            ],
+            "area": 961,
+            "iscrowd": 0
+        },
+        {
             "id": 18,
             "image_id": 4,
             "category_id": 18,
@@ -1017,6 +1030,11 @@
         {
             "id": 16,
             "name": "skip_dialog",
+            "supercategory": ""
+        },
+        {
+            "id": 17,
+            "name": "ult_ready",
             "supercategory": ""
         },
         {

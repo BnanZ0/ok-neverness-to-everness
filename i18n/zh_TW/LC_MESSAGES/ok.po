@@ -9,8 +9,12 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支援輸入並建立，也支援選擇已有項。"
+msgid ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr ""
+"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
+"#0078d7;\">{combo}</b> 支援輸入並建立，也支援選擇已有項。"
 
 msgid "Arc Key"
 msgstr "弓箭按鍵"
@@ -54,7 +58,8 @@ msgstr "執行任務時開啟以避免月卡中斷"
 msgid "Ultimate Key"
 msgstr "極軌技快速鍵"
 
-msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid ""
+"Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月卡彈出時的電腦本地時間，小時 (1-24)"
 
 msgid "[内置代码]"
@@ -80,9 +85,6 @@ msgstr "{fixed_team}已清空"
 
 msgid "{} 号位"
 msgstr "{} 號位"
-
-msgid "不扫描也可自动战斗，将使用通用脚本"
-msgstr "不掃描也可自動戰鬥，將使用通用腳本"
 
 msgid "任务跳过对话"
 msgstr "任務跳過對話"
@@ -124,6 +126,15 @@ msgstr "重新整理列表"
 msgid "匹配成功: {}"
 msgstr "比對成功: {}"
 
+msgid "置信度: {:.2f}"
+msgstr "信心度: {:.2f}"
+
+msgid "特征已加入"
+msgstr "特徵已加入"
+
+msgid "加入特征"
+msgstr "加入特徵"
+
 msgid "匹配文字"
 msgstr "比對文字"
 
@@ -145,8 +156,14 @@ msgstr "地圖中自動點擊傳送"
 msgid "填入扫描"
 msgstr "填入掃描"
 
-msgid "增加 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
-msgstr "增加 <b style=\"color: #0078d7;\">角色特徵</b> 後將自動判斷當前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特徵</b>，可以直接啟用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgid ""
+"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
+msgstr ""
+"關聯 <b style=\"color: #0078d7;\">角色特徵</b> 後將自動判斷當前角色。<br>如果不想管理 <b "
+"style=\"color: #0078d7;\">角色特徵</b>，可以直接啟用 <b style=\"color: "
+"#0078d7;\">{fixed_team}</b> 功能。"
 
 msgid "完成每日活跃度"
 msgstr "完成每日活躍度"
@@ -162,9 +179,6 @@ msgstr "導入數據"
 
 msgid "导出数据"
 msgstr "匯出數據"
-
-msgid "将优先使用固定角色进行战斗，未启用或槽位为空时自动识别"
-msgstr "將優先使用固定角色進行戰鬥，未啟用或槽位為空時自動識別"
 
 msgid "已保存 {}/4"
 msgstr "已儲存 {}/4"
@@ -245,8 +259,8 @@ msgstr "未能識別該特徵"
 msgid "未获取到特征"
 msgstr "未獲取到特徵"
 
-msgid "未识别，关联新特征"
-msgstr "未識別，關聯新特徵"
+msgid "关联特征"
+msgstr "關聯特徵"
 
 msgid ""
 "此为内建 Python 脚本，不可在此修改。\n"
@@ -296,9 +310,6 @@ msgstr "自動目標"
 
 msgid "自动钓鱼"
 msgstr "自動釣魚"
-
-msgid "角色"
-msgstr "角色"
 
 msgid "角色中心"
 msgstr "角色中心"
@@ -374,7 +385,9 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反擊觸發閾值"
 
-msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgid ""
+"Counter attack sound recognition threshold (0.0-1.0, lower is more "
+"sensitive)"
 msgstr "反擊聲音識別閾值（0.0-1.0，越低越靈敏）"
 
 msgid "Dodge Threshold"
@@ -576,9 +589,6 @@ msgstr "選擇日常任務中的一咖舍處理方式"
 msgid "不执行"
 msgstr "不執行"
 
-msgid "记录新特征"
-msgstr "記錄新特徵"
-
 msgid "输入或选择关联的角色名称"
 msgstr "輸入或選擇關聯的角色名稱"
 
@@ -619,8 +629,8 @@ msgid "Record has been reset"
 msgstr "記錄已重置"
 
 msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then "
-"follow the instructions carefully to record your actions."
+"No recorded operations were found. Please wait for the recording prompt, "
+"then follow the instructions carefully to record your actions."
 msgstr "未找到已記錄的操作。請等待錄製提示出現，然後依照指示，仔細完成操作錄製。"
 
 msgid "Updated successfully"
@@ -649,3 +659,47 @@ msgstr "都市閒趣"
 
 msgid "日常/周常"
 msgstr "日常/週常"
+
+msgid "※ 列表可直接输入并创建"
+msgstr "※ 列表可直接輸入並建立"
+
+msgid "输入或选择角色"
+msgstr "輸入或選擇角色"
+
+msgid "自动战斗任务不可用"
+msgstr "自動戰鬥任務不可用"
+
+msgid ""
+"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
+"游戏内换人/换队自动适配，无需手动调整"
+msgstr ""
+"※ 關聯角色特徵後，軟體將能自動識別角色並使用綁定的出招表；未關聯時，將使用通用腳本。\n"
+"遊戲內換人/換隊會自動適配，無需手動調整"
+
+msgid ""
+"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
+"如果游戏内切换队伍, 需要在软件里手动修改。"
+msgstr ""
+"※ {fixed_team}會按順序讀取，若前方有空置欄位，後續設定將被忽略。\n"
+"如果遊戲內切換隊伍，需要在軟體裡手動修改。"
+
+msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
+msgstr "<span style=\"color: #2ecc71;\">● 自動識別：已啟用</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ 自動識別：已停用</span>"
+
+msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}：已啟用 ({count}/4)</span>"
+
+msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
+
+msgid "启动失败"
+msgstr "啟動失敗"
+
+msgid "固定队伍配置无效"
+msgstr "固定隊伍設定無效"
+
+msgid "请先填入前方槽位，或清空后续槽位"
+msgstr "請先填入前方欄位，或清空後續欄位"

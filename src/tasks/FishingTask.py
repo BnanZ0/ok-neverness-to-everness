@@ -253,7 +253,7 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
             self._clear_bar_key_if_hold_mode()
 
     def run_restock_state_machine(self):
-        state_order = [RestockState.BUY_BAIT, RestockState.SELL_FISH]
+        state_order = [RestockState.SELL_FISH, RestockState.BUY_BAIT]
         retry_by_state = {state: 0 for state in state_order}
         state_index = 0
 

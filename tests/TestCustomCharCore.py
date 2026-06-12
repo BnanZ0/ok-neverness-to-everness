@@ -6,7 +6,7 @@ import uuid
 from unittest.mock import Mock, patch
 
 from src.char.custom.CustomChar import CustomChar
-from src.char.custom.CustomCharManager import CustomCharManager, DB_SCHEMA_VERSION
+from src.char.custom.CustomCharManager import DB_SCHEMA_VERSION, CustomCharManager
 
 PREDEFINED_CHARACTER_REF = "builtin:char_zero"
 

@@ -24,3 +24,5 @@ def process_feature(feature_name, feature: Feature):
             feature.mat = iu.create_color_mask(feature.mat, text_white_color)
         case Labels.heist_lock_pick:
             feature.mat = iu.create_color_mask(feature.mat, text_white_color)
+        case Labels.ult_ready:
+            feature.mat = gf.ultimate_ready_filter(feature.mat)

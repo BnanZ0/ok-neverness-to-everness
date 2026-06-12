@@ -1,10 +1,9 @@
 # Test case
 import unittest
-import time
 
-from src.config import config
 from ok.test.TaskTestCase import TaskTestCase
 
+from src.config import config
 from src.tasks.trigger.AutoCombatTask import AutoCombatTask
 
 

@@ -70,3 +70,8 @@ ok_tasks/
 ok_import/
 temp_images/
 .ruff_cache
+
+#midi
+!mid_lib/
+mid_lib/*
+!mid_lib/public

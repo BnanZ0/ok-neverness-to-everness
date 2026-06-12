@@ -1,11 +1,10 @@
 # Test case
 import unittest
-import time
 
-from src.config import config
 from ok.test.TaskTestCase import TaskTestCase
 
 from src.combat.CombatCheck import CombatCheck
+from src.config import config
 
 
 class TestOcrLv(TaskTestCase):
