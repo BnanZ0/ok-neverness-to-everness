@@ -153,7 +153,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             self.log_info("当前运行在：呗果文案助手模式")
             self.sleep(1.14)
             try:
-                self.setup_helper_hotkeys()
                 self.do_helper_run()
             except TaskDisabledException:
                 pass
@@ -171,7 +170,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                     pass
                 except Exception as e:
                     self.log_error("呗果小工具出错", e)
-                    self.do_run()
                     raise
             else:
                 self.wait_until(
@@ -188,7 +186,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                     pass
                 except Exception as e:
                     self.log_error("呗果小工具出错", e)
-                    self.do_run()
                     raise
 
     # 文案助手模式
@@ -479,7 +476,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         all_posts = self.filter_author_names_smart(pre_posts, self.screen_width, self.screen_height)
 
 
-        if not "过滤水贴" in self.auto_config_list:
+        if "过滤水贴" not in self.auto_config_list:
             return all_posts
         
         # 确保 all_posts 是列表结构方便后面遍历
@@ -1106,7 +1103,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                         self.log_info(f"未找到首选模型，加载其他视觉模型: '{model_name}'")
                     # 没有视觉模型，抛出异常降级到本地词库
                     else:
-                        raise Exception(f"未找到首选模型和其他视觉模型")
+                        raise Exception("未找到首选模型和其他视觉模型")
 
         # ==========================================
         # 后续的标准 Vision 请求逻辑
@@ -1116,8 +1113,10 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         final_prompt = prompt
         if post_title or author:
             final_prompt += "\n\n【目标帖子信息】"
-            if post_title: final_prompt += f"\n标题: {post_title}"
-            if author: final_prompt += f"\n发帖者: {author}"
+            if post_title:
+                final_prompt += f"\n标题: {post_title}"
+            if author:
+                final_prompt += f"\n发帖者: {author}"
         
         # 转图片 Base64
         with open(post_img_path, "rb") as image_file:
