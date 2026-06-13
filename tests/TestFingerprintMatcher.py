@@ -14,6 +14,7 @@ from src.sound_trigger.fingerprint.runtime import FingerprintDetector
 from src.sound_trigger.fingerprint.templates import (
     BANK_SUBDIR,
     COUNTER,
+    COUNTER_ENABLED,
     DODGE,
     counter_config,
     dodge_bank_configs,
@@ -154,6 +155,10 @@ class TestTemplateConfigs(unittest.TestCase):
         self.assertEqual(cfg.name, COUNTER)
         self.assertIsNone(cfg.wav)
         self.assertGreater(cfg.threshold, cfg.rearm)
+
+    def test_counter_disabled_by_default(self):
+        # Counter template is uncalibrated -> must stay off until trained.
+        self.assertFalse(COUNTER_ENABLED)
 
 
 class TestDodgeBank(unittest.TestCase):

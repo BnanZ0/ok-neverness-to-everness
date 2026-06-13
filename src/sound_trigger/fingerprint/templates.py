@@ -72,8 +72,28 @@ def dodge_bank_configs() -> list[FingerprintTemplateConfig]:
     ]
 
 
+# ============================================================================
+# Counter (弹反) detection is DISABLED by default.
+#
+# Unlike dodge, the counter template has NO reference tuning (NTE-Auto-Skill-Combo
+# never had a counter template). The placeholder below is uncalibrated, so it
+# would fire on poorly-separated / false cues. Rather than run an untrained
+# detector, counter detection is off until its tuning is calibrated.
+#
+# TO ENABLE: calibrate counter_config()'s tuning + confidence with
+# tools/calibrate_fingerprint.py against real combat audio containing parries,
+# bake the result in below, then set COUNTER_ENABLED = True.
+#
+# Until then, "Dodge All Attacks" + the dodge bank cover attack avoidance.
+# ============================================================================
+COUNTER_ENABLED = False
+
+
 def counter_config() -> FingerprintTemplateConfig:
-    """PLACEHOLDER counter tuning (uncalibrated). Uses ok-nte's counter.wav."""
+    """PLACEHOLDER counter tuning — UNCALIBRATED, must be trained before use.
+
+    See COUNTER_ENABLED above. Uses ok-nte's assets/sounds/counter.wav.
+    """
     return FingerprintTemplateConfig(
         COUNTER,
         None,

@@ -27,6 +27,7 @@ from src.sound_trigger.fingerprint.matcher import load_template
 from src.sound_trigger.fingerprint.runtime import FingerprintDetector
 from src.sound_trigger.fingerprint.templates import (
     BANK_SUBDIR,
+    COUNTER_ENABLED,
     FingerprintTemplateConfig,
     counter_config,
     dodge_bank_configs,
@@ -99,7 +100,7 @@ class FingerprintSoundListener:
         if not self._dodge_entries:
             logger.error("No dodge fingerprint templates loaded")
 
-        if self.counter_attack_sample_path:
+        if self.counter_attack_sample_path and COUNTER_ENABLED:
             cfg = counter_config()
             try:
                 detector = self._build_detector(
@@ -108,6 +109,11 @@ class FingerprintSoundListener:
                 self._counter_entry = (cfg, detector)
             except Exception as exc:
                 logger.error(f"Failed to load counter fingerprint template: {exc}")
+        elif self.counter_attack_sample_path:
+            logger.info(
+                "Counter fingerprint detection disabled (template not yet calibrated); "
+                "dodge bank + 'Dodge All Attacks' cover attack avoidance"
+            )
 
     @staticmethod
     def _build_detector(
