@@ -211,7 +211,7 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
 
     def exit_anomaly(self):
         self.wait_click_confirm(
-            lambda: self.send_key("esc", interval=2), range=(0.6629, 0.6167, 0.6988, 0.6965)
+            lambda: self.send_key("esc", interval=2), range=(0.661, 0.6167, 0.701, 0.6965)
         )
         self.wait_in_team_and_world()
 
