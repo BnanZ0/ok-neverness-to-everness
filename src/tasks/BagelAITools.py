@@ -2,16 +2,15 @@ import random, re, base64, requests, json, cv2, time
 from dataclasses import dataclass
 from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
-from src.combat.BaseCombatTask import BaseCombatTask
+from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 
-class BagelAITools(NTEOneTimeTask, BaseCombatTask):
+class BagelAITools(NTEOneTimeTask, BaseNTETask):
 
     # ==========================================
     # 配置区域
     # ========================================== 
 
-    # CONF_I18N = "匹配文字"
     CONF_MODEL = "调用模型"
     CONF_HELPER_MODE = "文案助手模式"
     CONF_AUTO_AICONFIG = "智能体模式选项"
@@ -30,7 +29,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         self.instructions = """【呗果智能体】\n自动模式下将自动发帖回帖点赞；\n助手模式下可辅助生成文案。\n支持调用支持图片输入的模型生成文案。\n项目开发版地址与配置教程：<a href="https://github.com/HazukiKaguya/BagelAIToolsDev">呗果智能体</a>"""
         self.default_config.update(
             {
-                # self.CONF_I18N: "{\n'MatchReply':'说点什么',\n'MatchPostTitle':'请输入标题',\n'MatchPostContent':'请输入正文',\n'SortMenu':'推荐|总热门|最新|今日|本周|关注',\n'SortMenuClick':'最新'\n}",
                 self.CONF_MODEL: False,
                 self.CONF_HELPER_MODE: False,
                 self.CONF_AUTO_AICONFIG: ["自动发帖", "自动回帖", "自动按赞", "过滤水贴"],
@@ -44,7 +42,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         )
         self.config_description.update(
             {
-                # self.CONF_I18N: "相应页面标志性文本",
                 self.CONF_MODEL: "关闭后将降级使用本地词库抽取发帖回复文案",
                 self.CONF_HELPER_MODE: "开启助手模式后，将只会辅助生成文案",
                 self.CONF_AUTO_AICONFIG: "智能体模式选项\n自动回帖会同时点赞",
@@ -139,54 +136,36 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
     # 模式判断、异常处理
     def run(self):
         super().run()
-        self.info_clear()
         self.is_running = False
         self.gallery_total_count = 1
         self.reply_count = 0
         self.post_count = 0
         self.like_count = 0
+        self.info_clear()
         self.log_info("脚本初始化完成！")
         self.sleep(2.56)
-        if self.config.get(self.CONF_HELPER_MODE, True):
-            self.info_clear()
+        is_helper_mode = self.config.get(self.CONF_HELPER_MODE, True)
+        if is_helper_mode:
             self.info_set("帮助文案生成次数", 0)
             self.log_info("当前运行在：呗果文案助手模式")
             self.sleep(1.14)
-            try:
-                self.do_helper_run()
-            except TaskDisabledException:
-                pass
-            except Exception as e:
-                self.log_error("呗果文案助手出错: ", e)
-                raise
+            target_action = self.do_helper_run
+            error_msg = "呗果文案助手出错: "
         else:
             self.info_set("成功发帖次数", 0)
             self.info_set("成功回复次数", 0)
             self.info_set("成功按赞次数", 0)
-            if self.in_team_and_world():
-                try:
-                    self.do_run()
-                except TaskDisabledException:
-                    pass
-                except Exception as e:
-                    self.log_error("呗果小工具出错", e)
-                    raise
-            else:
-                self.wait_until(
-                    lambda: (
-                        self.in_team_and_world()
-                    ),
-                    pre_action=lambda: self.send_key("esc", action_name="call_phone", interval=5.14),
-                    time_out=60,
-                    raise_if_not_found=True,
-                )
-                try:
-                    self.do_run()
-                except TaskDisabledException:
-                    pass
-                except Exception as e:
-                    self.log_error("呗果小工具出错", e)
-                    raise
+            self.ensure_main(esc=True, time_out=60)
+            
+            target_action = self.do_run
+            error_msg = "呗果小工具出错"
+        try:
+            target_action()
+        except TaskDisabledException:
+            pass
+        except Exception as e:
+            self.log_error(error_msg, e)
+            raise
 
     # 文案助手模式
     def do_helper_run(self):
@@ -318,7 +297,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         self.input_text(my_reply_text)
         if post_type == 'title':
             self.nowview_post = my_reply_text
-        # self.nowview_poster = self.my_name
         self.sleep(0.50)
         return True
 
@@ -340,16 +318,14 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
 
         def on_press(key):
             try:
-                if key == keyboard.Key.f10:
-                    if not self.is_running:
-                        self.is_running = True
-                        self.log_info("【🟢】呗果文案助手已就绪！")
-                        self.sleep(0.25)
-                elif key == keyboard.Key.f12:
-                    if self.is_running:
-                        self.is_running = False
-                        self.log_info("【🔴】呗果文案助手已暂停！")
-                        self.sleep(0.25)
+                if key == keyboard.Key.f10 and not self.is_running:
+                    self.is_running = True
+                    self.log_info("【🟢】呗果文案助手已就绪！")
+                    self.sleep(0.25)
+                elif key == keyboard.Key.f12 and self.is_running:
+                    self.is_running = False
+                    self.log_info("【🔴】呗果文案助手已暂停！")
+                    self.sleep(0.25)
             except Exception as e:
                 self.log_error(f"快捷键响应异常: {e}")
 
@@ -361,6 +337,13 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
     # ==========================================
     # 智能体模快 回帖按赞相关
     # ========================================== 
+    _RE_PATTERN_WATER = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
+    _RE_PATTERN_SPAM = re.compile(r"(^[a-zA-Z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
+    _RE_SPAM_CLEANER = re.compile(r'[\d\s\=\÷\+\*\/\\|\[\]\{\}\(\)\<\>\?¿¡§¶†‡•■□▲△▼▽◆◇○●•★☆\-]')
+
+    _RE_ALBUM_PREFER = re.compile(r"(\d+)[/|]\d+")
+    _RE_ALBUM_BACKUP = re.compile(r"历史(?:记录)?_?(\d{1,2})")
+    _RE_ALBUM_LAST_RESORT = re.compile(r"(\d{1,2})")
 
     # 回帖按赞操作流程
     def reply_like_module(self):
@@ -414,9 +397,9 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             return True # 告诉可以翻页了
 
         for i, post in enumerate(posts):
-            if not self.reply_count < 5 and not self.like_count < 5:
+            if self.reply_count >= 5 and self.like_count >= 5:
                 self.log_info("已完成自动回复按赞任务！")
-                return True # 只是返回掉，因为结束了
+                return False # 只是返回掉，因为结束了
             if not self.find_area(area="reply_area"):
                 self.log_info(f"正在点击目标帖子【{post.name}】")
                 self.operate_click(post)
@@ -548,12 +531,10 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         if not isinstance(all_posts, list):
             all_posts = [all_posts]
 
-        # 定义水贴的正则表达式
         # water_pattern: 匹配互赞、互粉、求回、秒回、点赞、留名、dd顶帖等
-        water_pattern = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
-
         # spam_char_pattern: 匹配纯数字、纯英文字母、或者全是无意义符号凑字数的垃圾贴（如: "asdfghjk", "11111111", "......"）
         # ^[a-zA-Z0-9\s\W]+$ 配合长度限制，或者直接判定中文字符极少且全是指头狂飙出来的无意义串
+        water_pattern = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
         spam_char_pattern = re.compile(r"(^[a-zA-Z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
 
         clean_posts = []
@@ -566,14 +547,14 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             if len(text) < 3:
                 self.log_info(f"【拦截】非帖子: '{text}'")
                 continue
-            meaningful_text = re.sub(r'[\d\s[:punct:]\s\=\÷\+\-\*\/\\|\[\]\{\}\(\)\<\>\?¿¡§¶†‡•■□▲△▼▽◆◇○●•★☆]', '', text)
+            meaningful_text = self._RE_SPAM_CLEANER.sub('', text)
             # 检查是否包含互赞关键词
-            if water_pattern.search(meaningful_text):
+            if self._RE_PATTERN_WATER.search(meaningful_text):
                 self.log_info(f"【拦截】互赞贴: '{text}'")
                 continue
 
             # 检查是否是纯无意义乱码/凑字数字符（排除纯英文短词，长度大于5的纯字母/数字更可疑）
-            if len(text) > 2 and spam_char_pattern.match(meaningful_text):
+            if len(text) > 2 and self._RE_PATTERN_SPAM.match(meaningful_text):
                 self.log_info(f"【拦截】垃圾贴: '{text}'")
                 continue
 
@@ -587,7 +568,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
     # ==========================================
     # 智能体模快 发帖相关
     # ========================================== 
-
+    
     # 发帖操作流程模块
     def post_module(self):
         self.log_info("进行自动发帖")
@@ -734,7 +715,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             self.operate_click(0.035, 0.94, action_name="enter_gallery")
             self.sleep(1.14)
             current_total = self.get_gallery_total()
-            if not current_total > number:
+            if current_total <= number:
                 self.log_info("照片总数小于或等于要删除的数量。")
                 return True
             if current_total > 12:
@@ -755,8 +736,6 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                     # 如果总数大于12，说明页面此时钉在底部，利用减 4 映射到 0-11 的底部相对格子上
                     while photo_count > 11:
                         photo_count -= 4
-                else:
-                    pass 
                 
                 photo_grid_locations = (
                     (0.15, 0.25), (0.38, 0.25), (0.62, 0.25), (0.85, 0.25), # 0-3
@@ -765,7 +744,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                 )
                 
                 if photo_count < 0 or photo_count > 11:
-                    self.log_error(f"计算出的索引 {photo_count} 越界！强制安全到 11")
+                    self.log_info(f"计算出的索引 {photo_count} 越界！强制安全到 11")
                     photo_count = 11
                     
                 target_target = photo_grid_locations[photo_count]
@@ -778,57 +757,61 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                 self.sleep(2.56)
                 # 账本同步扣减：物理删一张，内存账本减一张
                 current_total -= 1
-            # 刷新最终总数
-            self.get_gallery_total()
-            return True
-       
-        take_photo_actions = ['phone_third', 'phone_self', 'uav_third', 'uav_first']
-        def take_photo(target_action = 'phone_third'):
-            if target_action == 'phone_third':
-                pass
-            elif target_action == 'phone_self':
-                self.operate_click(0.84, 0.05, action_name="phone_self")
-                self.sleep(1.14)
-            elif target_action in ['uav_third', 'uav_first']:
-                self.operate_click(0.895, 0.05, action_name="uav_third")
-                self.sleep(1.14)
-                if target_action == 'uav_first':
-                    self.operate_click(0.89, 0.05, action_name="uav_first")
-                    self.sleep(1.14)
-            else:
-                pass
 
-        for i in range(number):
-            if not self.enabled:
-                return False
-            move_actions = ['w', 'a', 's', 'd', None]
-            current_move_action = random.choice(move_actions)
-            if action == 'take_photo':
-                current_take_photo_action = random.choice(take_photo_actions)
-            else:
-                current_take_photo_action = action
-            if current_take_photo_action:
-                take_photo(target_action = current_take_photo_action)
-            if current_move_action:
-                move_time = round(random.uniform(0.1, 1.0), 2)
-                self.send_key(current_move_action, down_time=move_time)
-            self.log_info(f"正在拍摄第 {i+1}张照片...")
-            # 点击物理快门
-            self.sleep(1.14)
-            self.send_key('f', down_time=0.15)
-            self.sleep(1.14)
-            self.send_key('esc', down_time=0.15)
-            self.sleep(1.14)
-            if not current_take_photo_action == 'phone_third':
+        else:
+            take_photo_actions = ['phone_third', 'phone_self', 'uav_third', 'uav_first']
+            def take_photo(target_action = 'phone_third'):
+                if target_action == 'phone_third':
+                    self.log_info("使用手机拍照：第三人称")
+                elif target_action == 'phone_self':
+                    self.operate_click(0.84, 0.05, action_name="phone_self")
+                    self.log_info("使用手机拍照：自拍模式")
+                    self.sleep(1.14)
+                elif target_action in ['uav_third', 'uav_first']:
+                    self.operate_click(0.895, 0.05, action_name="uav_third")
+                    self.sleep(1.14)
+                    if target_action == 'uav_first':
+                        self.operate_click(0.89, 0.05, action_name="uav_first")
+                        self.log_info("使用无人机拍照：第一人称")
+                        self.sleep(1.14)
+                    else:
+                        self.log_info("使用无人机拍照：第三人称")
+                else:
+                    self.log_info("使用手机拍照：第三人称")
+
+            for i in range(number):
+                if not self.enabled:
+                    return False
+                move_actions = ['w', 'a', 's', 'd', None]
+                current_move_action = random.choice(move_actions)
+                if action == 'take_photo':
+                    current_take_photo_action = random.choice(take_photo_actions)
+                else:
+                    current_take_photo_action = action
+                if current_take_photo_action:
+                    take_photo(target_action = current_take_photo_action)
+                if current_move_action:
+                    move_time = round(random.uniform(0.1, 1.0), 2)
+                    self.send_key(current_move_action, down_time=move_time)
+                self.log_info(f"正在拍摄第 {i+1}张照片...")
+                # 点击物理快门
+                self.sleep(1.14)
+                self.send_key('f', down_time=0.15)
+                self.sleep(1.14)
                 self.send_key('esc', down_time=0.15)
                 self.sleep(1.14)
-        self.log_info("照片拍摄完毕，进入相册核对总数...")
-        self.sleep(1.14)
-        self.operate_click(0.035, 0.94, action_name="enter_gallery")
-        self.sleep(1.14)
+                if current_take_photo_action != 'phone_third':
+                    self.send_key('esc', down_time=0.15)
+                    self.sleep(1.14)
+            self.log_info("照片拍摄完毕，进入相册核对总数...")
+            self.sleep(1.14)
+            self.operate_click(0.035, 0.94, action_name="enter_gallery")
+            self.sleep(1.14)
+
+        # 刷新最终总数
         self.get_gallery_total()
         self.sleep(1.14)
-        return
+        return True
 
     # 获取相册相片数
     def get_gallery_total(self):
@@ -845,9 +828,9 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         full_ocr_text = "_".join([str(node.name).strip() for node in gallery_total if hasattr(node, 'name')])
         self.log_info(f"原始OCR文本: '{full_ocr_text}'")
 
-        match_prefer = re.search(r"(\d+)[/|]\d+", full_ocr_text)
-        match_backup = re.search(r"历史(?:记录)?_?(\d{1,2})", full_ocr_text)
-        match_last_resort = re.search(r"(\d{1,2})", full_ocr_text)
+        match_prefer = self._RE_ALBUM_PREFER.search(full_ocr_text)
+        match_backup = self._RE_ALBUM_BACKUP.search(full_ocr_text)
+        match_last_resort = self._RE_ALBUM_LAST_RESORT.search(full_ocr_text)
 
         # 动态对齐
         if match_prefer:
@@ -924,7 +907,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             "post_content_area":    ((0.70, 0.35, 0.85, 0.45),),
             "post_confirm_area":    ((0.86, 0.87, 0.97, 0.92),"post_text"),
         }
-        if not area in configs:
+        if area not in configs:
             return None
         config_item = configs[area]
         ocr_area = config_item[0]  # 第一个元素必然是坐标元组
@@ -952,7 +935,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         """
             
         # 如果本身就没超限，直接放行
-        if not len(text) > max_len:
+        if len(text) <= max_len:
             return text
             
         self.log_info(f"VLM 返回文本过长({len(text)}字)，触发25字硬限制截断流: '{text}'")
@@ -1004,6 +987,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
             cv2.imwrite(temp_img_path, cropped_frame)
         else:
             temp_img_path = False
+        
         # 如果配置了大模型，图片存在，优先走大模型
         if temp_img_path and self.config.get(self.CONF_MODEL, False):
             try:
@@ -1013,9 +997,10 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                 return model_reply
             except Exception as e:
                 self.log_info(f"VLM不可用({e})，降级到本地词库...")
-                pass
+        
         # 模型生成不可用时，使用本地词库随机回复
         base_reply = random.choice(self.preset_replies)
+        
         # 40% 概率用对方昵称替换通称
         if author_name and author_name != "呗主" and random.random() < 0.4:
             base_reply = base_reply.replace("呗主", author_name).replace("博主", author_name)
@@ -1057,7 +1042,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                 return model_post
             except Exception as e:
                 self.log_info(f"VLM不可用({e})，降级到本地词库...")
-                pass
+
         # 模型生成不可用时，使用本地词库随机选取
         base_post = random.choice(self.preset_posts)
         self.log_info(f"本地词库 | 为所选图片随机选取{action}: '{base_post}'")
@@ -1100,10 +1085,10 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
                     vl_models = [mid for mid in available_model_ids if "-vl" in mid.lower()]
                     if vl_models:
                         model_name = vl_models[0]
-                        self.log_info(f"未找到首选模型，加载其他视觉模型: '{model_name}'")
+                        self.log_info(f"未找到指定模型，加载其他视觉模型: '{model_name}'")
                     # 没有视觉模型，抛出异常降级到本地词库
                     else:
-                        raise Exception("未找到首选模型和其他视觉模型")
+                        raise Exception("未找到指定模型和其他视觉模型")
 
         # ==========================================
         # 后续的标准 Vision 请求逻辑
@@ -1149,7 +1134,7 @@ class BagelAITools(NTEOneTimeTask, BaseCombatTask):
         if response.status_code == 200:
             model_reply = response.json()['choices'][0]['message']['content'].strip()
             if not model_reply:
-                raise Exception(f"VLM 返回内容异常")
+                raise Exception(f"VLM 返回内容异常, 详情: {response.text}")
             model_reply= self.text_length(model_reply,max_len=25)
             return model_reply
         else:
