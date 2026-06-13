@@ -18,6 +18,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -25,6 +26,9 @@ from typing import Optional
 import numpy as np
 
 from src.sound_trigger.fingerprint.matcher import HOP_SIZE, TemplateData, Tuning, load_template
+
+# stdlib logging (not ok's Logger) keeps this module dependency-free / testable.
+_log = logging.getLogger(__name__)
 
 # Logical cue names routed to dodge vs counter-attack actions.
 DODGE = "dodge"
@@ -128,13 +132,13 @@ def load_cached_template(wav_path, tuning: Tuning) -> TemplateData:
             with np.load(cache_path, allow_pickle=False) as data:
                 if str(data["key"].item()) == key:
                     return _template_from_cache(data)
-    except Exception:
-        pass  # corrupt / incompatible cache -> recompute
+    except Exception as exc:  # corrupt / incompatible cache -> recompute
+        _log.debug("fingerprint cache read failed for %s (%s); recomputing", cache_path.name, exc)
     template = load_template(wav_path, tuning)
     try:
         _write_template_cache(cache_path, key, template)
-    except Exception:
-        pass  # read-only location etc. -> skip caching
+    except Exception as exc:  # read-only location etc. -> skip caching
+        _log.debug("fingerprint cache write failed for %s (%s); skipping", cache_path.name, exc)
     return template
 
 
