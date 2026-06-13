@@ -77,11 +77,11 @@ def cmd_grid(args) -> int:
     audio_peaks = fp.extract_peaks(audio)
     prefixes = [120, 150, 180, 220, 307]
     profiles = [
-        dict(votes=8, coverage=4, corr=0.08, psr=3.0),
-        dict(votes=8, coverage=4, corr=0.08, psr=2.0),
-        dict(votes=6, coverage=3, corr=0.08, psr=2.0),
-        dict(votes=6, coverage=3, corr=0.05, psr=2.0),
-        dict(votes=4, coverage=2, corr=0.02, psr=1.5),
+        {"votes": 8, "coverage": 4, "corr": 0.08, "psr": 3.0},
+        {"votes": 8, "coverage": 4, "corr": 0.08, "psr": 2.0},
+        {"votes": 6, "coverage": 3, "corr": 0.08, "psr": 2.0},
+        {"votes": 6, "coverage": 3, "corr": 0.05, "psr": 2.0},
+        {"votes": 4, "coverage": 2, "corr": 0.02, "psr": 1.5},
     ]
     for prefix in prefixes:
         for profile in profiles:

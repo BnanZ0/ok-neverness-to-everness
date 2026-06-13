@@ -563,17 +563,17 @@ class ProcessLoopbackSource(AudioCaptureSource):
                         continue
 
                     while next_frames > 0 and not self._stop.is_set():
-                        ppData, frames, flags, _devpos, _qpc = capture.GetBuffer()
+                        data_ptr, frames, flags, _devpos, _qpc = capture.GetBuffer()
                         # Every GetBuffer MUST be paired with ReleaseBuffer, even
                         # if downstream processing raises -> release in finally.
                         try:
                             if frames > 0:
-                                if (flags & AUDCLNT_BUFFERFLAGS_SILENT) or not ppData:
+                                if (flags & AUDCLNT_BUFFERFLAGS_SILENT) or not data_ptr:
                                     mono = np.zeros(frames, dtype=np.float32)
                                 else:
                                     # string_at accepts an int address or c_void_p
                                     # and copies, so the buffer is safe to release.
-                                    raw = ctypes.string_at(ppData, frames * block_align)
+                                    raw = ctypes.string_at(data_ptr, frames * block_align)
                                     mono = _to_mono(raw, is_float)
                                 push(mono)
                         finally:

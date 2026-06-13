@@ -113,7 +113,7 @@ class AudioCaptureSource(ABC):
     def _run(self) -> None:
         try:
             self._produce(self._push)
-        except BaseException as exc:  # noqa: BLE001 - report and fall back
+        except Exception as exc:  # noqa: BLE001 - report and let the listener fall back
             self._error = exc
             logger.error(f"Audio capture source '{self.name}' failed: {exc}")
         finally:

@@ -187,8 +187,9 @@ class TestActivationStructLayout(unittest.TestCase):
             import ctypes
 
             from src.sound_trigger.capture import process_loopback as pl
-        except (ModuleNotFoundError, ImportError, OSError) as exc:
+        except (ImportError, OSError) as exc:
             # comtypes/psutil/ok not installed in this minimal env.
+            # (ImportError already covers ModuleNotFoundError.)
             self.skipTest(f"capture deps unavailable: {exc}")
         self.assertEqual(ctypes.sizeof(pl.AUDIOCLIENT_ACTIVATION_PARAMS), 12)
         self.assertEqual(ctypes.sizeof(pl.AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS), 8)

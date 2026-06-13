@@ -30,14 +30,11 @@ def create_capture_source(
     mode: str = MODE_PROCESS,
     *,
     process_name: Optional[str] = None,
-    allow_fallback: bool = True,
 ) -> AudioCaptureSource:
-    """Build a capture source for `mode`, falling back to system loopback.
+    """Build a (not-yet-started) capture source for `mode`.
 
-    The returned source is not yet started; the caller invokes `.start()` and,
-    if it returns False, may call `create_capture_source(MODE_SYSTEM, ...)` —
-    but when `allow_fallback` is True this helper hands back a source that the
-    listener can start directly and the listener owns the fallback decision.
+    The caller invokes `.start()`; if it returns False it may build a
+    `MODE_SYSTEM` source instead — the listener owns the fallback decision.
     """
     if mode == MODE_PROCESS and process_name:
         from src.sound_trigger.capture.process_loopback import ProcessLoopbackSource
