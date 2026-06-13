@@ -122,7 +122,9 @@ def main() -> int:
                 comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
                 print(f"[{mode}] worker CoInitializeEx(MTA) ok")
             except OSError as exc:
-                print(f"[{mode}] worker CoInitializeEx(MTA) failed: {exc}")
+                # Activation requires MTA; without it the result is meaningless.
+                print(f"[{mode}] worker CoInitializeEx(MTA) failed: {exc} — skipping attempt")
+                return
             try:
                 attempt(pid, not args.no_tree, mode)
             except Exception as exc:
@@ -154,15 +156,17 @@ def main() -> int:
         chunks = samples = 0
         peak = 0.0
         deadline = time.time() + 3.0
-        while time.time() < deadline:
-            chunk = source.read(timeout=0.5)
-            if chunk is not None and len(chunk):
-                chunks += 1
-                samples += len(chunk)
-                peak = max(peak, float(np.max(np.abs(chunk))))
-        source.stop()
+        try:
+            while time.time() < deadline:
+                chunk = source.read(timeout=0.5)
+                if chunk is not None and len(chunk):
+                    chunks += 1
+                    samples += len(chunk)
+                    peak = max(peak, float(np.max(np.abs(chunk))))
+        finally:
+            source.stop()
         print(f"captured chunks={chunks} samples={samples} (~{samples / 48000:.2f}s) peak_amp={peak:.4f}")
-        print(f"  (peak_amp ~0 just means the game was silent; nonzero = real audio captured)")
+        print("  (peak_amp ~0 just means the game was silent; nonzero = real audio captured)")
         print(f"  source error after run = {source.error}")
     else:
         print(f"  start failed; error={source.error}")

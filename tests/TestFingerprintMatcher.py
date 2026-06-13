@@ -176,7 +176,7 @@ class TestDodgeBank(unittest.TestCase):
             candidates = fp.evaluate(stream, fp.extract_peaks(stream), template, cfg.tuning)
             self.assertTrue(candidates, f"no candidates for bank template {cfg.wav}")
             self.assertTrue(candidates[0].verified, f"{cfg.wav} not verified")
-            self.assertGreaterEqual(candidates[0].confidence, ACCEPT_THRESHOLD)
+            self.assertGreaterEqual(candidates[0].confidence, cfg.threshold)
 
 
 class TestActivationStructLayout(unittest.TestCase):
@@ -187,7 +187,8 @@ class TestActivationStructLayout(unittest.TestCase):
             import ctypes
 
             from src.sound_trigger.capture import process_loopback as pl
-        except Exception as exc:  # comtypes/psutil not installed in this env
+        except (ModuleNotFoundError, ImportError, OSError) as exc:
+            # comtypes/psutil/ok not installed in this minimal env.
             self.skipTest(f"capture deps unavailable: {exc}")
         self.assertEqual(ctypes.sizeof(pl.AUDIOCLIENT_ACTIVATION_PARAMS), 12)
         self.assertEqual(ctypes.sizeof(pl.AUDIOCLIENT_PROCESS_LOOPBACK_PARAMS), 8)

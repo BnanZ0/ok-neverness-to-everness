@@ -124,6 +124,7 @@ def cmd_capture(args) -> int:
         print("no audio captured (game silent or capture failed)")
         return 1
     mono = np.concatenate(collected).astype(np.float32)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
     wavfile.write(str(args.out), fp.ANALYSIS_SAMPLE_RATE, mono)
     print(f"wrote {args.out} ({fp.seconds(mono):.1f}s @ {fp.ANALYSIS_SAMPLE_RATE} Hz mono)")
     return 0
