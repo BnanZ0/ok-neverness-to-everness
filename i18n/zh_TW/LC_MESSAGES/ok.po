@@ -677,17 +677,17 @@ msgstr ""
 "遊戲內換人/換隊會自動適配，無需手動調整"
 
 msgid ""
-"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
-"如果游戏内切换队伍, 需要在软件里手动修改。"
+"※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
+"如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
 msgstr ""
-"※ {fixed_team}會按順序讀取，若前方有空置欄位，後續設定將被忽略。\n"
-"如果遊戲內切換隊伍，需要在軟體裡手動修改。"
+"※ {fixed_team}會優先使用已填寫槽位；未填寫的槽位仍會自動識別。\n"
+"如果遊戲內切換隊伍，已填寫槽位需要在軟體裡手動修改。"
 
 msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
 msgstr "<span style=\"color: #2ecc71;\">● 自動識別：已啟用</span>"
 
-msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
-msgstr "<span style=\"color: #95a5a6;\">○ 自動識別：已停用</span>"
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ 自動識別：僅空槽啟用</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
 msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}：已啟用 ({count}/4)</span>"
@@ -697,9 +697,3 @@ msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 
 msgid "启动失败"
 msgstr "啟動失敗"
-
-msgid "固定队伍配置无效"
-msgstr "固定隊伍設定無效"
-
-msgid "请先填入前方槽位，或清空后续槽位"
-msgstr "請先填入前方欄位，或清空後續欄位"

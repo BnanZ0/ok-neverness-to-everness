@@ -854,17 +854,6 @@ class BaseCombatTask(CombatCheck):
 
         return get_char_by_pos(self, box_scaled, index, safe_get(self.chars, index))
 
-    @staticmethod
-    def _trim_fixed_slots(fixed_slots):
-        trimmed_slots = []
-        for slot in fixed_slots:
-            if not isinstance(slot, dict):
-                break
-            if not str(slot.get("char_name", "") or "").strip():
-                break
-            trimmed_slots.append(slot)
-        return trimmed_slots
-
     def load_chars(self) -> bool:
         """加载队伍中的角色信息。"""
         ret = False
@@ -881,11 +870,7 @@ class BaseCombatTask(CombatCheck):
 
         self.clear_element_ring_reactions()
         fixed_team = CustomCharManager().get_fixed_team()
-        fixed_team_enabled = fixed_team.get("enabled", False)
-        fixed_slots = fixed_team.get("slots", []) if fixed_team_enabled else []
-        if fixed_team_enabled:
-            fixed_slots = self._trim_fixed_slots(fixed_slots)
-            count = min(count, len(fixed_slots))
+        fixed_slots = fixed_team.get("slots", []) if fixed_team.get("enabled", False) else []
         new_chars = []
         indices_to_detect = []
         for i in range(count):

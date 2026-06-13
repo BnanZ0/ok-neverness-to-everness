@@ -706,29 +706,27 @@ msgstr ""
 "Trocas de personagem/equipe no jogo se adaptam automaticamente, sem ajuste manual"
 
 msgid ""
-"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
-"如果游戏内切换队伍, 需要在软件里手动修改。"
+"※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
+"如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
 msgstr ""
-"※ {fixed_team} é lida em ordem. Se houver um slot vazio antes, as configurações posteriores serão ignoradas.\n"
-"Se trocar de equipe no jogo, você precisa alterar manualmente no software."
+"※ {fixed_team} prioriza os espaços preenchidos; espaços vazios ainda usarão o reconhecimento automático.\n"
+"Se você trocar de equipe no jogo, atualize manualmente os espaços preenchidos no software."
 
 msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
-msgstr "<span style=\"color: #2ecc71;\">● Reconhecimento automático: ativado</span>"
+msgstr ""
+"<span style=\"color: #2ecc71;\">● Reconhecimento automático: ativado</span>"
 
-msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
-msgstr "<span style=\"color: #95a5a6;\">○ Reconhecimento automático: desativado</span>"
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
+msgstr ""
+"<span style=\"color: #95a5a6;\">○ Reconhecimento automático: apenas espaços "
+"vazios</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
-msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: ativada ({count}/4)</span>"
+msgstr ""
+"<span style=\"color: #2ecc71;\">● {fixed_team}: ativada ({count}/4)</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: desativada</span>"
 
 msgid "启动失败"
 msgstr "Falha ao iniciar"
-
-msgid "固定队伍配置无效"
-msgstr "Configuração de equipe fixa inválida"
-
-msgid "请先填入前方槽位，或清空后续槽位"
-msgstr "Preencha primeiro os slots anteriores ou limpe os posteriores"

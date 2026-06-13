@@ -370,8 +370,6 @@ class TeamManagerTab(CustomTab):
         self.tr_clear_fixed_team = og.app.tr("清空")
         self.tr_fill_failed_title = og.app.tr("没有可用扫描结果")
         self.tr_fill_failed_desc = og.app.tr("先扫描或手动填写")
-        self.tr_fixed_team_invalid_title = og.app.tr("固定队伍配置无效")
-        self.tr_fixed_team_invalid_desc = og.app.tr("请先填入前方槽位，或清空后续槽位")
         self.tr_fill_partial_title = og.app.tr("已填入扫描结果")
         self.tr_fill_partial_desc = og.app.tr("已填入 {}")
         self.tr_save_success_title = tr_fmt(
@@ -389,15 +387,15 @@ class TeamManagerTab(CustomTab):
         )
         self.tr_clear_success_desc = og.app.tr("已清空槽位")
         self.tr_fixed_team_desc = tr_fmt(
-            "※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
-            "如果游戏内切换队伍, 需要在软件里手动修改。",
+            "※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
+            "如果游戏内切换队伍，已填写槽位需要在软件里手动修改。",
             fixed_team=self.tr_fixed_team_title,
         )
         self.tr_scan_status_active = og.app.tr(
             '<span style="color: #2ecc71;">● 自动识别：已启用</span>'
         )
         self.tr_scan_status_paused = og.app.tr(
-            '<span style="color: #95a5a6;">○ 自动识别：已停用</span>'
+            '<span style="color: #95a5a6;">○ 自动识别：仅空槽启用</span>'
         )
         self.tr_fixed_team_status_active = tr_fmt(
             '<span style="color: #2ecc71;">● {fixed_team}：已启用 ({count}/4)</span>',
@@ -465,6 +463,7 @@ class TeamManagerTab(CustomTab):
         self.scan_layout.addLayout(self.cards_layout)
 
         self.scan_desc = BodyLabel(self.tr_scan_desc)
+        self.scan_desc.setWordWrap(True)
         self.scan_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.scan_layout.addWidget(self.scan_desc)
 
@@ -522,6 +521,7 @@ class TeamManagerTab(CustomTab):
         self.fixed_team_layout.addLayout(self.fixed_team_slots_layout)
 
         self.fixed_team_desc = BodyLabel(self.tr_fixed_team_desc)
+        self.fixed_team_desc.setWordWrap(True)
         self.fixed_team_desc.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.fixed_team_layout.addWidget(self.fixed_team_desc)
 
@@ -560,17 +560,10 @@ class TeamManagerTab(CustomTab):
     def _collect_fixed_team_slots(self, persist=False):
         slots = []
         filled_count = 0
-        effective_count = 0
-        has_empty = False
-        has_ignored = False
         for card in self.fixed_team_slots:
             char_name, combo_ref = card.get_data()
             if char_name:
                 filled_count += 1
-                if has_empty:
-                    has_ignored = True
-                else:
-                    effective_count += 1
                 if persist:
                     if (
                         combo_ref
@@ -580,7 +573,6 @@ class TeamManagerTab(CustomTab):
                         self.manager.add_combo(combo_ref, "")
                     self.manager.add_character(char_name, combo_ref)
             else:
-                has_empty = True
                 combo_ref = ""
             slots.append(
                 {
@@ -588,7 +580,7 @@ class TeamManagerTab(CustomTab):
                     "combo_ref": combo_ref,
                 }
             )
-        return slots, filled_count, effective_count, has_ignored
+        return slots, filled_count
 
     def reload_fixed_team_options(self):
         for card in self.fixed_team_slots:
@@ -598,10 +590,10 @@ class TeamManagerTab(CustomTab):
         fixed_team = self.manager.get_fixed_team()
         enabled = fixed_team.get("enabled", False)
 
-        _, filled_count, effective_count, _ = self._collect_fixed_team_slots()
+        _, filled_count = self._collect_fixed_team_slots()
 
         if enabled and filled_count:
-            status_text = self.tr_fixed_team_status_active.format(count=effective_count)
+            status_text = self.tr_fixed_team_status_active.format(count=filled_count)
             self.fixed_team_status.setText(status_text)
             self.scan_status.setText(self.tr_scan_status_paused)
             self.save_fixed_team_btn.setText(self.tr_update_fixed_team)
@@ -688,22 +680,13 @@ class TeamManagerTab(CustomTab):
         self._show_bar(self.tr_fill_partial_title, self.tr_fill_partial_desc.format(filled_count))
 
     def on_save_fixed_team(self):
-        slots, filled_count, _, has_ignored = self._collect_fixed_team_slots()
-        if has_ignored:
-            self._show_bar(
-                self.tr_fixed_team_invalid_title,
-                self.tr_fixed_team_invalid_desc,
-                success=False,
-            )
-            return
-
+        slots, filled_count = self._collect_fixed_team_slots(persist=True)
         if filled_count == 0:
             self.manager.clear_fixed_team()
             self.refresh_fixed_team_state()
             char_manager_signals.refresh_tab.emit()
             self._show_bar(self.tr_clear_success_title, self.tr_clear_success_desc)
         else:
-            self._collect_fixed_team_slots(persist=True)
             self.manager.set_fixed_team(True, slots)
             self.refresh_fixed_team_state()
             char_manager_signals.refresh_tab.emit()

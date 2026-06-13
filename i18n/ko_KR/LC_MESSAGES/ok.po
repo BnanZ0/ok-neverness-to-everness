@@ -677,17 +677,17 @@ msgstr ""
 "게임 내 캐릭터/팀 전환은 자동으로 적용되므로 수동 조정이 필요 없습니다"
 
 msgid ""
-"※ {fixed_team}按顺序读取，若前方有空置槽位，后续配置将被忽略。\n"
-"如果游戏内切换队伍, 需要在软件里手动修改。"
+"※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
+"如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
 msgstr ""
-"※ {fixed_team}은 순서대로 읽습니다. 앞쪽에 빈 슬롯이 있으면 뒤쪽 설정은 무시됩니다.\n"
-"게임 내에서 팀을 전환한 경우 소프트웨어에서 수동으로 수정해야 합니다."
+"※ {fixed_team}은 입력된 슬롯을 우선 사용하며, 비어 있는 슬롯은 계속 자동 인식을 사용합니다.\n"
+"게임 내에서 팀을 변경한 경우 입력된 슬롯은 소프트웨어에서 수동으로 수정해야 합니다."
 
 msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
 msgstr "<span style=\"color: #2ecc71;\">● 자동 인식: 활성화됨</span>"
 
-msgid "<span style=\"color: #95a5a6;\">○ 自动识别：已停用</span>"
-msgstr "<span style=\"color: #95a5a6;\">○ 자동 인식: 비활성화됨</span>"
+msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ 자동 인식: 빈 슬롯만 활성화</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
 msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: 활성화됨 ({count}/4)</span>"
@@ -697,9 +697,3 @@ msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: 비활성화됨</span>
 
 msgid "启动失败"
 msgstr "시작하지 못했습니다"
-
-msgid "固定队伍配置无效"
-msgstr "고정 팀 구성이 잘못되었습니다"
-
-msgid "请先填入前方槽位，或清空后续槽位"
-msgstr "앞쪽 슬롯을 먼저 채우거나 뒤쪽 슬롯을 비우세요"
