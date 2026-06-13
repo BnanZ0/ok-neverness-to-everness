@@ -130,12 +130,8 @@ class SoundCombatContext:
                 "counter_attack_threshold": counter_attack_threshold,
             }
 
-            from src.sound_trigger.SoundListener import SoundListener
-            self._listener = SoundListener(
-                sample_path=sample_path,
-                counter_attack_sample_path=counter_attack_sample_path,
-                threshold=threshold,
-                counter_attack_threshold=counter_attack_threshold,
+            self._listener = self._build_listener(
+                sample_path, counter_attack_sample_path, threshold, counter_attack_threshold
             )
 
             self._trigger = DodgeCounterTrigger(
@@ -268,14 +264,94 @@ class SoundCombatContext:
         dodge_all_attacks: bool,
         dodge_threshold: float,
         counter_threshold: float,
+        dodge_confidence: Optional[float] = None,
+        counter_confidence: Optional[float] = None,
     ):
         with self._context_lock:
             self._pending_config = (enable, dodge_all_attacks, dodge_threshold, counter_threshold)
             self._enable_sound_trigger = enable
             self._dodge_all_attacks = dodge_all_attacks
             if self._listener:
+                # Legacy thresholds (consumed by the cross-correlation engine).
                 self._listener.threshold = dodge_threshold
                 self._listener.counter_attack_threshold = counter_threshold
+                # Fingerprint confidence (consumed by the fingerprint engine).
+                apply_confidence = getattr(self._listener, "apply_confidence", None)
+                if apply_confidence and (
+                    dodge_confidence is not None or counter_confidence is not None
+                ):
+                    apply_confidence(dodge_confidence, counter_confidence)
+
+    @staticmethod
+    def _read_engine_config():
+        """Read engine/capture settings from the global Sound Trigger config.
+
+        Returns (use_fingerprint, capture_game_audio_only, process_name,
+        dodge_confidence, counter_confidence) with safe defaults.
+        """
+        use_fingerprint = True
+        capture_only = True
+        process_name = "HTGame.exe"
+        dodge_confidence = 79.5
+        counter_confidence = 79.5
+        try:
+            from ok import og
+
+            sound_cfg = og.global_config.get_config("Sound Trigger Config")
+            if sound_cfg is not None:
+                use_fingerprint = bool(sound_cfg.get("Use Fingerprint Detection", True))
+                capture_only = bool(sound_cfg.get("Capture Game Audio Only", True))
+                dodge_confidence = float(sound_cfg.get("Dodge Confidence", 79.5))
+                counter_confidence = float(sound_cfg.get("Counter Confidence", 79.5))
+            windows_cfg = getattr(og.device_manager, "windows_capture_config", None)
+            if windows_cfg:
+                process_name = windows_cfg.get("exe", process_name) or process_name
+        except Exception as exc:
+            logger.warning(f"Falling back to default sound engine config: {exc}")
+        return use_fingerprint, capture_only, process_name, dodge_confidence, counter_confidence
+
+    def _build_listener(
+        self,
+        sample_path: str,
+        counter_attack_sample_path: str,
+        threshold: float,
+        counter_attack_threshold: float,
+    ):
+        (
+            use_fingerprint,
+            capture_only,
+            process_name,
+            dodge_confidence,
+            counter_confidence,
+        ) = self._read_engine_config()
+
+        if use_fingerprint:
+            from src.sound_trigger.capture import MODE_PROCESS, MODE_SYSTEM
+            from src.sound_trigger.FingerprintSoundListener import FingerprintSoundListener
+
+            logger.info(
+                f"Sound engine: fingerprint (capture={'process' if capture_only else 'system'})"
+            )
+            return FingerprintSoundListener(
+                sample_path=sample_path,
+                counter_attack_sample_path=counter_attack_sample_path,
+                threshold=threshold,
+                counter_attack_threshold=counter_attack_threshold,
+                capture_mode=MODE_PROCESS if capture_only else MODE_SYSTEM,
+                process_name=process_name,
+                dodge_confidence=dodge_confidence,
+                counter_confidence=counter_confidence,
+            )
+
+        from src.sound_trigger.SoundListener import SoundListener
+
+        logger.info("Sound engine: cross-correlation (legacy)")
+        return SoundListener(
+            sample_path=sample_path,
+            counter_attack_sample_path=counter_attack_sample_path,
+            threshold=threshold,
+            counter_attack_threshold=counter_attack_threshold,
+        )
 
     def _is_computation_required(self) -> bool:
         if not self._enable_sound_trigger:

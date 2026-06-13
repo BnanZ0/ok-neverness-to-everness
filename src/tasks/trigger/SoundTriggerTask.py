@@ -69,7 +69,11 @@ class SoundTriggerTask(BaseNTETask, TriggerTask):
         counter_thresh = self._clip_threshold(
             self.sound_config.get("Counter Attack Threshold"), 0.12
         )
-        context.update_config(enable, dodge_all_attacks, dodge_thresh, counter_thresh)
+        dodge_conf = self._clip_confidence(self.sound_config.get("Dodge Confidence"), 79.5)
+        counter_conf = self._clip_confidence(self.sound_config.get("Counter Confidence"), 79.5)
+        context.update_config(
+            enable, dodge_all_attacks, dodge_thresh, counter_thresh, dodge_conf, counter_conf
+        )
 
     @staticmethod
     def _clip_threshold(value, default):
@@ -78,3 +82,11 @@ class SoundTriggerTask(BaseNTETask, TriggerTask):
         except (TypeError, ValueError):
             value = default
         return max(0.0, min(1.0, value))
+
+    @staticmethod
+    def _clip_confidence(value, default):
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            value = default
+        return max(0.0, min(100.0, value))

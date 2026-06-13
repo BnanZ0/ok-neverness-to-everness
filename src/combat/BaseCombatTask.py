@@ -804,8 +804,12 @@ class BaseCombatTask(CombatCheck):
             counter_thresh = self.sound_config.get("Counter Attack Threshold", 0.12)
             dodge_thresh = np.clip(dodge_thresh, 0.0, 1.0)
             counter_thresh = np.clip(counter_thresh, 0.0, 1.0)
+            dodge_conf = float(np.clip(self.sound_config.get("Dodge Confidence", 79.5), 0.0, 100.0))
+            counter_conf = float(
+                np.clip(self.sound_config.get("Counter Confidence", 79.5), 0.0, 100.0)
+            )
             SoundCombatContext().update_config(
-                enable, dodge_all_attacks, dodge_thresh, counter_thresh
+                enable, dodge_all_attacks, dodge_thresh, counter_thresh, dodge_conf, counter_conf
             )
         SoundCombatContext().update_task(self)
 

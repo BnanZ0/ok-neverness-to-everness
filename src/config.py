@@ -45,6 +45,10 @@ sound_trigger_config_option = ConfigOption(
     {
         "Enable Sound Trigger": True,
         "Dodge All Attacks": True,
+        "Use Fingerprint Detection": True,
+        "Capture Game Audio Only": True,
+        "Dodge Confidence": 79.5,
+        "Counter Confidence": 79.5,
         "Dodge Threshold": 0.13,
         "Counter Attack Threshold": 0.12,
     },
@@ -52,8 +56,31 @@ sound_trigger_config_option = ConfigOption(
     config_description={
         "Enable Sound Trigger": "Enable sound recognition for automatic dodge and counter attacks",
         "Dodge All Attacks": "Dodge all attacks without performing counter attacks",
-        "Dodge Threshold": "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)",
-        "Counter Attack Threshold": "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)",
+        "Use Fingerprint Detection": (
+            "Use the spectral-fingerprint engine (recommended): robust to background music\n"
+            "and other apps. Turn off to use the legacy cross-correlation engine."
+        ),
+        "Capture Game Audio Only": (
+            "Capture only the game's audio via per-process loopback to avoid false triggers\n"
+            "from music/voice chat. Falls back to system-wide audio if unavailable.\n"
+            "Used only when Use Fingerprint Detection is on."
+        ),
+        "Dodge Confidence": (
+            "Fingerprint dodge confidence threshold (0-100, lower is more sensitive).\n"
+            "Used when Use Fingerprint Detection is on."
+        ),
+        "Counter Confidence": (
+            "Fingerprint counter-attack confidence threshold (0-100, lower is more sensitive).\n"
+            "Used when Use Fingerprint Detection is on."
+        ),
+        "Dodge Threshold": (
+            "Legacy cross-correlation dodge threshold (0.0-1.0, lower is more sensitive).\n"
+            "Used when Use Fingerprint Detection is off."
+        ),
+        "Counter Attack Threshold": (
+            "Legacy cross-correlation counter threshold (0.0-1.0, lower is more sensitive).\n"
+            "Used when Use Fingerprint Detection is off."
+        ),
     },
 )
 
