@@ -71,6 +71,9 @@ ok_import/
 temp_images/
 .ruff_cache
 
+# fingerprint template caches (computed at runtime next to the .wav)
+*.fpcache
+
 #midi
 !mid_lib/
 mid_lib/*

@@ -23,7 +23,6 @@ from typing import List, Optional, Tuple
 from ok import Logger
 
 from src.sound_trigger.capture import MODE_PROCESS, MODE_SYSTEM, create_capture_source
-from src.sound_trigger.fingerprint.matcher import load_template
 from src.sound_trigger.fingerprint.runtime import FingerprintDetector
 from src.sound_trigger.fingerprint.templates import (
     BANK_SUBDIR,
@@ -31,6 +30,7 @@ from src.sound_trigger.fingerprint.templates import (
     FingerprintTemplateConfig,
     counter_config,
     dodge_bank_configs,
+    load_cached_template,
 )
 
 Entry = Tuple[FingerprintTemplateConfig, FingerprintDetector]
@@ -122,7 +122,7 @@ class FingerprintSoundListener:
         on_detected,
         confidence_override: Optional[float],
     ) -> FingerprintDetector:
-        template = load_template(wav_path, config.tuning)
+        template = load_cached_template(wav_path, config.tuning)
         threshold = config.threshold if confidence_override is None else float(confidence_override)
         rearm = _rearm_for(config, threshold)
         return FingerprintDetector(

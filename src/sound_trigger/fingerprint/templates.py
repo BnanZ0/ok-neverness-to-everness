@@ -7,18 +7,23 @@
 # assets/sounds/fingerprint/. Because it is the same game cue and the same
 # recordings + tunings, dodge needs no re-calibration.
 #
-# COUNTER (弹反) has NO reference: NTE-ASC never had a counter template. The
-# config below is a PLACEHOLDER reusing ok-nte's counter.wav with generic
-# defaults and MUST be re-calibrated with tools/calibrate_fingerprint.py against
-# real captured combat audio before it can be trusted. Until then, prefer
-# "Dodge All Attacks" so detection does not depend on the counter template.
+# COUNTER (弹反) has no NTE-ASC reference (that project never had a counter
+# template), so it reuses ok-nte's counter.wav with a baseline tuning. Its
+# acceptance threshold is user-configurable ("Counter Confidence") and can be
+# refined with tools/calibrate_fingerprint.py against captured parry audio.
+#
+# Template fingerprints are cached on disk (load_cached_template) so the peak /
+# hash / index computation runs once instead of on every startup.
 # ============================================================================
 from __future__ import annotations
 
+import hashlib
+import pickle
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
-from src.sound_trigger.fingerprint.matcher import HOP_SIZE, Tuning
+from src.sound_trigger.fingerprint.matcher import HOP_SIZE, TemplateData, Tuning, load_template
 
 # Logical cue names routed to dodge vs counter-attack actions.
 DODGE = "dodge"
@@ -72,30 +77,61 @@ def dodge_bank_configs() -> list[FingerprintTemplateConfig]:
     ]
 
 
-# ============================================================================
-# Counter (弹反) detection is DISABLED by default.
-#
-# Unlike dodge, the counter template has NO reference tuning (NTE-Auto-Skill-Combo
-# never had a counter template). The placeholder below is uncalibrated, so it
-# would fire on poorly-separated / false cues. Rather than run an untrained
-# detector, counter detection is off until its tuning is calibrated.
-#
-# TO ENABLE: calibrate counter_config()'s tuning + confidence with
-# tools/calibrate_fingerprint.py against real combat audio containing parries,
-# bake the result in below, then set COUNTER_ENABLED = True.
-#
-# Until then, "Dodge All Attacks" + the dodge bank cover attack avoidance.
-# ============================================================================
-COUNTER_ENABLED = False
+# Counter (弹反) detection. NTE-ASC has no counter reference, so the tuning below
+# is a baseline derived from the dodge defaults; it self-matches counter.wav and
+# was observed firing on real counter cues in-game at ~90 confidence. Its
+# acceptance threshold is user-configurable ("Counter Confidence", default 79.5);
+# refine the gates with tools/calibrate_fingerprint.py against captured parry
+# audio if false positives appear.
+COUNTER_ENABLED = True
 
 
 def counter_config() -> FingerprintTemplateConfig:
-    """PLACEHOLDER counter tuning — UNCALIBRATED, must be trained before use.
-
-    See COUNTER_ENABLED above. Uses ok-nte's assets/sounds/counter.wav.
-    """
+    """Baseline counter tuning. Uses ok-nte's assets/sounds/counter.wav."""
     return FingerprintTemplateConfig(
         COUNTER,
         None,
         Tuning(prefix_ms=180, tolerance=2, votes=8, coverage=4, corr=0.08, psr=2.0),
     )
+
+
+# Bump when the fingerprint algorithm or TemplateData layout changes so stale
+# on-disk caches are invalidated.
+FINGERPRINT_CACHE_VERSION = 1
+
+
+def _cache_key(wav_path: Path, tuning: Tuning) -> str:
+    try:
+        stat = wav_path.stat()
+        signature = (FINGERPRINT_CACHE_VERSION, int(stat.st_mtime_ns), stat.st_size, repr(tuning))
+    except OSError:
+        signature = (FINGERPRINT_CACHE_VERSION, repr(tuning))
+    return hashlib.sha1(repr(signature).encode("utf-8")).hexdigest()
+
+
+def load_cached_template(wav_path, tuning: Tuning) -> TemplateData:
+    """`load_template` with an on-disk cache of the computed fingerprint.
+
+    Mirrors the project's existing next-to-asset caching (the legacy engine's
+    `.npy` files): the expensive peak/hash/index/verifier computation runs once
+    and is reused across runs. Any cache miss, version mismatch, corruption or
+    IO error (e.g. a read-only asset dir) silently falls back to recomputing.
+    """
+    wav_path = Path(wav_path)
+    cache_path = wav_path.with_name(wav_path.name + ".fpcache")
+    key = _cache_key(wav_path, tuning)
+    try:
+        if cache_path.exists():
+            with open(cache_path, "rb") as handle:
+                blob = pickle.load(handle)
+            if isinstance(blob, dict) and blob.get("key") == key:
+                return blob["template"]
+    except Exception:
+        pass  # corrupt / incompatible cache -> recompute
+    template = load_template(wav_path, tuning)
+    try:
+        with open(cache_path, "wb") as handle:
+            pickle.dump({"key": key, "template": template}, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    except Exception:
+        pass  # read-only location etc. -> skip caching
+    return template

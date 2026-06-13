@@ -18,6 +18,7 @@ from src.sound_trigger.fingerprint.templates import (
     DODGE,
     counter_config,
     dodge_bank_configs,
+    load_cached_template,
 )
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -150,15 +151,37 @@ class TestTemplateConfigs(unittest.TestCase):
             self.assertGreater(cfg.threshold, cfg.rearm)
             self.assertEqual(cfg.cooldown_seconds, cfg.cooldown_ms / 1000.0)
 
-    def test_counter_config_placeholder(self):
+    def test_counter_config(self):
         cfg = counter_config()
         self.assertEqual(cfg.name, COUNTER)
         self.assertIsNone(cfg.wav)
         self.assertGreater(cfg.threshold, cfg.rearm)
 
-    def test_counter_disabled_by_default(self):
-        # Counter template is uncalibrated -> must stay off until trained.
-        self.assertFalse(COUNTER_ENABLED)
+    def test_counter_enabled(self):
+        # Counter detection is enabled with a baseline tuning.
+        self.assertTrue(COUNTER_ENABLED)
+
+
+class TestTemplateCache(unittest.TestCase):
+    def test_cache_roundtrip(self):
+        import shutil
+        import tempfile
+
+        cfg = dodge_bank_configs()[0]
+        with tempfile.TemporaryDirectory() as tmp:
+            wav = Path(tmp) / cfg.wav
+            shutil.copy(BANK_DIR / cfg.wav, wav)
+            cache = wav.with_name(wav.name + ".fpcache")
+
+            self.assertFalse(cache.exists())
+            first = load_cached_template(wav, cfg.tuning)  # computes + writes cache
+            self.assertTrue(cache.exists(), "cache file not written")
+            cached = load_cached_template(wav, cfg.tuning)  # loads from cache
+
+            self.assertEqual(len(first.peaks), len(cached.peaks))
+            self.assertEqual(set(first.index), set(cached.index))
+            self.assertTrue(np.array_equal(first.samples, cached.samples))
+            self.assertTrue(np.array_equal(first.verifier, cached.verifier))
 
 
 class TestDodgeBank(unittest.TestCase):
