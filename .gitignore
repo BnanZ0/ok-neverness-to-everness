@@ -74,6 +74,11 @@ temp_images/
 # fingerprint template caches (computed at runtime next to the .wav)
 *.fpcache.npz
 
+# fingerprint calibration captures + label sidecars (local, not committed)
+/counter_pos*.wav
+/counter_neg*.wav
+*.labels.json
+
 #midi
 !mid_lib/
 mid_lib/*

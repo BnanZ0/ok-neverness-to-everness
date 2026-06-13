@@ -100,20 +100,16 @@ class FingerprintSoundListener:
         if not self._dodge_entries:
             logger.error("No dodge fingerprint templates loaded")
 
-        if self.counter_attack_sample_path and COUNTER_ENABLED:
+        if COUNTER_ENABLED:
             cfg = counter_config()
+            wav = self._bank_dir / cfg.wav  # dodge3.wav — the counter (弹反) cue
             try:
-                detector = self._build_detector(
-                    self.counter_attack_sample_path, cfg, self._on_counter, counter_confidence
-                )
+                detector = self._build_detector(wav, cfg, self._on_counter, counter_confidence)
                 self._counter_entry = (cfg, detector)
             except Exception as exc:
-                logger.error(f"Failed to load counter fingerprint template: {exc}")
-        elif self.counter_attack_sample_path:
-            logger.info(
-                "Counter fingerprint detection disabled (template not yet calibrated); "
-                "dodge bank + 'Dodge All Attacks' cover attack avoidance"
-            )
+                logger.error(f"Failed to load counter fingerprint template {wav}: {exc}")
+        else:
+            logger.info("Counter fingerprint detection disabled")
 
     @staticmethod
     def _build_detector(

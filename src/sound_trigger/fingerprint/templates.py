@@ -1,16 +1,17 @@
 # ============================================================================
-# Per-template fingerprint tuning.
+# Per-template fingerprint tuning. Both cues use NTE-Auto-Skill-Combo's bundled
+# recordings under assets/sounds/fingerprint/.
 #
-# DODGE uses NTE-Auto-Skill-Combo's proven, field-tested template bank and
-# tunings verbatim (its `dodge_template_configs_v1`, the shipping default in
-# src/dodge.rs): a two-template bank (dodge.wav + dodge3.wav) bundled under
-# assets/sounds/fingerprint/. Because it is the same game cue and the same
-# recordings + tunings, dodge needs no re-calibration.
-#
-# COUNTER (弹反) has no NTE-ASC reference (that project never had a counter
-# template), so it reuses ok-nte's counter.wav with a baseline tuning. Its
-# acceptance threshold is user-configurable ("Counter Confidence") and can be
-# refined with tools/calibrate_fingerprint.py against captured parry audio.
+# IMPORTANT: NTE-ASC shipped dodge.wav + dodge3.wav as a two-template "dodge"
+# bank (it dodges everything, so it lumped both cues together). A fingerprint
+# cross-match shows they are DIFFERENT in-game cues:
+#   - dodge.wav   -> the dodge (闪避) cue.
+#   - dodge3.wav  -> the COUNTER (弹反) cue (matches ok-nte's counter.wav at
+#                    ~90.7%; it is the clean counter onset).
+# ok-nte performs different actions for each (dodge=LShift, counter=click), so
+# we split them: DODGE = dodge.wav only, COUNTER = dodge3.wav. Verified on a
+# labelled capture: dodge3.wav as counter scored recall 0.8 / precision 1.0,
+# vs counter.wav's 0.5 / 0.29.
 #
 # Template fingerprints are cached on disk (load_cached_template) so the peak /
 # hash / index computation runs once instead of on every startup.
@@ -67,36 +68,34 @@ class FingerprintTemplateConfig:
 
 
 def dodge_bank_configs() -> list[FingerprintTemplateConfig]:
-    """NTE-ASC dodge_template_configs_v1 (the shipping default), verbatim."""
+    """Dodge (闪避) template: dodge.wav with NTE-ASC's v1 primary tuning.
+
+    dodge3.wav is intentionally NOT here — it is the counter cue (see
+    counter_config); including it made dodge fire on counters.
+    """
     return [
         FingerprintTemplateConfig(
             DODGE,
             "dodge.wav",
             Tuning(prefix_ms=220, tolerance=2, votes=8, coverage=3, corr=0.074, psr=2.0),
         ),
-        FingerprintTemplateConfig(
-            DODGE,
-            "dodge3.wav",
-            Tuning(prefix_ms=120, tolerance=2, votes=8, coverage=4, corr=0.115, psr=2.0),
-        ),
     ]
 
 
-# Counter (弹反) detection. NTE-ASC has no counter reference, so the tuning below
-# is a baseline derived from the dodge defaults; it self-matches counter.wav and
-# was observed firing on real counter cues in-game at ~90 confidence. Its
-# acceptance threshold is user-configurable ("Counter Confidence", default 79.5);
-# refine the gates with tools/calibrate_fingerprint.py against captured parry
-# audio if false positives appear.
+# Counter (弹反) detection, using dodge3.wav (the counter cue) with NTE-ASC's v1
+# secondary tuning. Validated on a labelled capture: recall 0.8, precision 1.0,
+# detections clustered at ~90.6% (corr ~0.118). The acceptance threshold is
+# user-configurable ("Counter Confidence", default 79.5); refine the gates with
+# tools/calibrate_fingerprint.py against captured parry audio if needed.
 COUNTER_ENABLED = True
 
 
 def counter_config() -> FingerprintTemplateConfig:
-    """Baseline counter tuning. Uses ok-nte's assets/sounds/counter.wav."""
+    """Counter tuning. Uses bundled dodge3.wav (the counter cue, see header)."""
     return FingerprintTemplateConfig(
         COUNTER,
-        None,
-        Tuning(prefix_ms=180, tolerance=2, votes=8, coverage=4, corr=0.08, psr=2.0),
+        "dodge3.wav",
+        Tuning(prefix_ms=120, tolerance=2, votes=8, coverage=4, corr=0.115, psr=2.0),
     )
 
 

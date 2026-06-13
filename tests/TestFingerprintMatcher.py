@@ -144,8 +144,8 @@ class TestStreamingRuntime(unittest.TestCase):
 class TestTemplateConfigs(unittest.TestCase):
     def test_dodge_bank_present(self):
         bank = dodge_bank_configs()
-        self.assertEqual(len(bank), 2)
-        self.assertEqual({cfg.wav for cfg in bank}, {"dodge.wav", "dodge3.wav"})
+        # dodge.wav only — dodge3.wav is the counter cue (see counter_config).
+        self.assertEqual({cfg.wav for cfg in bank}, {"dodge.wav"})
         for cfg in bank:
             self.assertEqual(cfg.name, DODGE)
             self.assertGreater(cfg.threshold, cfg.rearm)
@@ -154,7 +154,7 @@ class TestTemplateConfigs(unittest.TestCase):
     def test_counter_config(self):
         cfg = counter_config()
         self.assertEqual(cfg.name, COUNTER)
-        self.assertIsNone(cfg.wav)
+        self.assertEqual(cfg.wav, "dodge3.wav")
         self.assertGreater(cfg.threshold, cfg.rearm)
 
     def test_counter_enabled(self):
@@ -200,6 +200,29 @@ class TestDodgeBank(unittest.TestCase):
             self.assertTrue(candidates, f"no candidates for bank template {cfg.wav}")
             self.assertTrue(candidates[0].verified, f"{cfg.wav} not verified")
             self.assertGreaterEqual(candidates[0].confidence, cfg.threshold)
+
+    def test_counter_template_is_the_counter_cue(self):
+        # dodge3.wav is the COUNTER cue: it self-matches, is found within
+        # counter.wav (same cue), and is distinct from the dodge cue.
+        cfg = counter_config()
+        wav = BANK_DIR / cfg.wav  # dodge3.wav
+        self.assertTrue(wav.exists(), wav)
+        template = fp.load_template(wav, cfg.tuning)
+
+        def best_conf(audio_path):
+            audio = fp.trim_silence(fp.load_analysis_samples(audio_path))
+            cands = fp.evaluate(audio, fp.extract_peaks(audio), template, cfg.tuning)
+            return max((c.confidence for c in cands), default=0.0)
+
+        self.assertGreaterEqual(best_conf(wav), ACCEPT_THRESHOLD, "counter template self-match")
+        self.assertGreaterEqual(
+            best_conf(COUNTER_WAV), ACCEPT_THRESHOLD, "counter template should match counter.wav"
+        )
+        self.assertLess(
+            best_conf(BANK_DIR / "dodge.wav"),
+            ACCEPT_THRESHOLD,
+            "counter template must NOT match the dodge cue",
+        )
 
 
 class TestActivationStructLayout(unittest.TestCase):
