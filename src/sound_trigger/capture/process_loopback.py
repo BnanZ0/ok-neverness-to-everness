@@ -285,25 +285,40 @@ def _process_name(pid: int) -> Optional[str]:
         return None
 
 
-def resolve_target_pid(process_name: str) -> Optional[int]:
-    """Foreground window's process if it matches `process_name`, else a scan."""
-    target = process_name.casefold()
+def _name_set(process_name) -> set:
+    """Normalize a process name (str or list/tuple — ok-script stores `exe` as a
+    list) into a set of casefolded names to match against."""
+    if isinstance(process_name, (list, tuple, set)):
+        names = process_name
+    else:
+        names = [process_name]
+    return {str(n).casefold() for n in names if n}
+
+
+def resolve_target_pid(process_name) -> Optional[int]:
+    """Foreground window's process if it matches `process_name`, else a scan.
+
+    `process_name` may be a single name or a list of candidate names.
+    """
+    targets = _name_set(process_name)
+    if not targets:
+        return None
 
     foreground = _foreground_pid()
-    if foreground and (_process_name(foreground) or "").casefold() == target:
+    if foreground and (_process_name(foreground) or "").casefold() in targets:
         return foreground
 
     for proc in psutil.process_iter(["pid", "name"]):
         try:
-            if (proc.info.get("name") or "").casefold() == target:
+            if (proc.info.get("name") or "").casefold() in targets:
                 return int(proc.info["pid"])
         except (psutil.NoSuchProcess, psutil.AccessDenied, KeyError):
             continue
     return None
 
 
-def process_is_alive(pid: int, process_name: str) -> bool:
-    return (_process_name(pid) or "").casefold() == process_name.casefold()
+def process_is_alive(pid: int, process_name) -> bool:
+    return (_process_name(pid) or "").casefold() in _name_set(process_name)
 
 
 # -- activation ------------------------------------------------------------
@@ -441,15 +456,18 @@ class ProcessLoopbackSource(AudioCaptureSource):
     used_sr = ANALYSIS_SAMPLE_RATE
     used_channel = CAPTURE_CHANNELS
 
-    def __init__(self, process_name: str, include_process_tree: bool = True):
+    def __init__(self, process_name, include_process_tree: bool = True):
         super().__init__()
+        # `process_name` may be a str or a list of candidate exe names (ok-script
+        # stores `exe` as a list); resolve_target_pid/process_is_alive accept both.
         self.process_name = process_name
+        self._display_name = ",".join(sorted(_name_set(process_name))) or "?"
         self.include_process_tree = include_process_tree
         self._stream_started_once = False
 
     @property
     def name(self) -> str:
-        return f"process-loopback({self.process_name})"
+        return f"process-loopback({self._display_name})"
 
     def _produce(self, push: PushFn) -> None:
         if not _capability_available():

@@ -73,6 +73,7 @@ class FingerprintDetector:
         self.eval_step_samples = max(1, int(eval_step_samples))
 
         self._buf = np.zeros(0, dtype=np.float32)
+        self._pending: list = []
         self._stream_sample_count = 0
         self._window_start_sample = 0
         self._armed = True
@@ -82,6 +83,7 @@ class FingerprintDetector:
 
     def reset(self) -> None:
         self._buf = np.zeros(0, dtype=np.float32)
+        self._pending = []
         self._stream_sample_count = 0
         self._window_start_sample = 0
         self._armed = True
@@ -92,21 +94,27 @@ class FingerprintDetector:
     def feed(self, chunk: np.ndarray) -> None:
         if chunk is None or len(chunk) == 0:
             return
-        chunk = np.ascontiguousarray(chunk, dtype=np.float32)
-        self._buf = np.concatenate((self._buf, chunk))
-        self._stream_sample_count += len(chunk)
-        self._samples_since_eval += len(chunk)
+        # Buffer incoming chunks cheaply (list append); only materialize the
+        # numpy window when an evaluation is actually due. Concatenating on every
+        # capture packet would be O(window) per packet and dominate CPU.
+        self._pending.append(np.ascontiguousarray(chunk, dtype=np.float32))
+        n = len(chunk)
+        self._stream_sample_count += n
+        self._samples_since_eval += n
 
-        self._trim_window()
-
-        # Evaluate on a fixed cadence rather than per capture-packet so CPU is
-        # bounded and independent of the capture buffer size.
-        if (
-            self._samples_since_eval >= self.eval_step_samples
-            and len(self._buf) >= self.template_sample_count
-        ):
+        # Evaluate on a fixed sample cadence (independent of capture packet size)
+        # so the bank stays real-time.
+        if self._samples_since_eval >= self.eval_step_samples:
             self._samples_since_eval = 0
-            self._evaluate_once()
+            self._materialize_and_trim()
+            if len(self._buf) >= self.template_sample_count:
+                self._evaluate_once()
+
+    def _materialize_and_trim(self) -> None:
+        if self._pending:
+            self._buf = np.concatenate((self._buf, *self._pending))
+            self._pending = []
+        self._trim_window()
 
     def _trim_window(self) -> None:
         while len(self._buf) > self.analysis_sample_count:

@@ -32,6 +32,14 @@ DEFAULT_COOLDOWN_MS = 50
 # Subdirectory under assets/sounds/ holding the bundled dodge bank WAVs.
 BANK_SUBDIR = "fingerprint"
 
+# Samples between window evaluations. Each evaluate() costs ~15-25 ms in pure
+# Python and the bank runs one per template, so evaluating every HOP (~10 ms)
+# cannot keep real time (the consumer lags and analyses increasingly stale
+# audio). ~64 ms keeps the whole 3-template bank comfortably real-time (~0.6x on
+# a worst-case dense-combat fixture) while still catching every event; the added
+# detection jitter is negligible next to the combat action-dispatch latency.
+DEFAULT_EVAL_STEP_SAMPLES = 6 * HOP_SIZE
+
 
 @dataclass(frozen=True)
 class FingerprintTemplateConfig:
@@ -41,7 +49,7 @@ class FingerprintTemplateConfig:
     threshold: float = DEFAULT_CONFIDENCE
     rearm: float = DEFAULT_REARM
     cooldown_ms: int = DEFAULT_COOLDOWN_MS
-    eval_step_samples: int = HOP_SIZE
+    eval_step_samples: int = DEFAULT_EVAL_STEP_SAMPLES
 
     @property
     def cooldown_seconds(self) -> float:
