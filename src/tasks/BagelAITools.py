@@ -1,9 +1,16 @@
-import random, re, base64, requests, json, cv2, time
-from dataclasses import dataclass
+import base64
+import json
+import random
+import re
+
+import cv2
+import requests
 from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
+
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
+
 
 class BagelAITools(NTEOneTimeTask, BaseNTETask):
 
@@ -20,6 +27,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     CONF_PROMPT_REPLY = "回复模块提示词"
     CONF_PROMPT_POST_TITLE = "发帖标题模块提示词"
     CONF_PROMPT_POST_CONTENT = "发帖内容模块提示词"
+    INFO_HELPER_COUNT = "帮助文案生成次数"
+    INFO_LIKE_COUNT = "成功按赞次数"
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "呗果智能体（支持调用模型）"
@@ -146,7 +155,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         self.sleep(2.56)
         is_helper_mode = self.config.get(self.CONF_HELPER_MODE, True)
         if is_helper_mode:
-            self.info_set("帮助文案生成次数", 0)
+            self.info_set(self.INFO_HELPER_COUNT, 0)
             self.log_info("当前运行在：呗果文案助手模式")
             self.sleep(1.14)
             target_action = self.do_helper_run
@@ -154,7 +163,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         else:
             self.info_set("成功发帖次数", 0)
             self.info_set("成功回复次数", 0)
-            self.info_set("成功按赞次数", 0)
+            self.info_set(self.INFO_LIKE_COUNT, 0)
             self.ensure_main(esc=True, time_out=60)
             
             target_action = self.do_run
@@ -180,7 +189,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                     continue
                 if self.find_area(area="reply_area"):
                     self.reply_helper()
-                    self.info_add("帮助文案生成次数", 1)
+                    self.info_add(self.INFO_HELPER_COUNT, 1)
                     self.sleep(1.14)
                     continue
                 elif self.find_area(area="post_check_area"):
@@ -190,13 +199,13 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                     post_title_area = self.find_area(area="post_title_area")
                     if post_title_area:
                         self.post_helper(area=post_title_area, post_type='title')
-                        self.info_add("帮助文案生成次数", 1)
+                        self.info_add(self.INFO_HELPER_COUNT, 1)
                         self.sleep(1.14)
                         continue
                     post_content_area = self.find_area(area="post_content_area")
                     if post_content_area:
                         self.post_helper(area=post_content_area, post_type='content')
-                        self.info_add("帮助文案生成次数", 1)
+                        self.info_add(self.INFO_HELPER_COUNT, 1)
                         self.sleep(1.14)
                         continue
                     self.sleep(1.14)
@@ -306,6 +315,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         if getattr(self, '_global_hotkey_listener', None) is not None:
             return self._global_hotkey_listener
         import ctypes
+
         from pynput import keyboard
 
         try:
@@ -338,8 +348,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     # 智能体模快 回帖按赞相关
     # ========================================== 
     _RE_PATTERN_WATER = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
-    _RE_PATTERN_SPAM = re.compile(r"(^[a-zA-Z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
-    _RE_SPAM_CLEANER = re.compile(r'[\d\s\=\÷\+\*\/\\|\[\]\{\}\(\)\<\>\?¿¡§¶†‡•■□▲△▼▽◆◇○●•★☆\-]')
+    _RE_PATTERN_SPAM = re.compile(r"(^[a-z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
+    _RE_SPAM_CLEANER = re.compile(r'[\d\s\=\÷\+\*\/\\|\[\]\{\}\(\)\<\>\?¿¡§¶†‡■□▲△▼▽◆◇○●•★☆\-]')
 
     _RE_ALBUM_PREFER = re.compile(r"(\d+)[/|]\d+")
     _RE_ALBUM_BACKUP = re.compile(r"历史(?:记录)?_?(\d{1,2})")
@@ -362,7 +372,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_sort = self.find_area(area="sort_menu_area", action="click")
                 self.wait_until(
                     lambda: self.find_area(area="sort_menu_area_done") or not self.find_area(area="sort_menu_list"),
-                    pre_action=lambda: self.operate_click(btn_sort, interval=3.14),
+                    pre_action=lambda btn=btn_sort: self.operate_click(btn, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
@@ -370,7 +380,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_sort_list = self.find_area(area="sort_menu_select", action="click")
                 self.wait_until(
                     lambda: self.find_area(area="sort_menu_list"),
-                    pre_action=lambda: self.operate_click(btn_sort_list, interval=3.14),
+                    pre_action=lambda btn=btn_sort_list: self.operate_click(btn, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
@@ -431,13 +441,13 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 self.sleep(0.42)
                 self.operate_click(0.53, 0.85)
                 self.like_count += 1
-                self.info_add("成功按赞次数", 1)
+                self.info_add(self.INFO_LIKE_COUNT, 1)
             elif "自动按赞" in self.auto_config_list and self.like_count < 5:
                 # 点赞
                 self.sleep(0.2)
                 self.operate_click(0.53, 0.85)
                 self.like_count += 1
-                self.info_add("成功按赞次数", 1)
+                self.info_add(self.INFO_LIKE_COUNT, 1)
                 self.interacted_posts.add(post_title_text)
             else:
                 pass # 万一以后准备加点啥
@@ -534,8 +544,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         # water_pattern: 匹配互赞、互粉、求回、秒回、点赞、留名、dd顶帖等
         # spam_char_pattern: 匹配纯数字、纯英文字母、或者全是无意义符号凑字数的垃圾贴（如: "asdfghjk", "11111111", "......"）
         # ^[a-zA-Z0-9\s\W]+$ 配合长度限制，或者直接判定中文字符极少且全是指头狂飙出来的无意义串
-        water_pattern = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
-        spam_char_pattern = re.compile(r"(^[a-zA-Z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
+        # water_pattern = re.compile(r"(互赞|互粉|求.*回|秒回|点赞|回赞|互.*关|留名|顶帖|\bdd\b)", re.IGNORECASE)
+        # spam_char_pattern = re.compile(r"(^[a-zA-Z\s]+$|^[0-9\s]+$|^[\W_]+$)", re.IGNORECASE)
 
         clean_posts = []
 
@@ -593,7 +603,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_select_photo = self.find_area(area="post_photo_zone_area", action="click")
                 self.wait_until(
                     lambda: not self.find_area(area="post_check_area"),
-                    pre_action=lambda: self.operate_click(btn_select_photo, interval=3.14),
+                    pre_action=lambda btn=btn_select_photo: self.operate_click(btn, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
@@ -605,7 +615,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_photo_confirm = self.find_area(area="post_photo_confirm", action ="click")
                 self.wait_until(
                     lambda: self.find_area(area="post_check_area") and not self.find_area(area="post_photo_zone_area"),
-                    pre_action=lambda: self.operate_click(btn_photo_confirm, interval=3.14),
+                    pre_action=lambda btn=btn_photo_confirm: self.operate_click(btn, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True
                 )
@@ -618,7 +628,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             self.sleep(0.50)
             self.wait_until(
                 lambda: self.find_area(area="sort_menu_area") and not self.find_area(area="post_check_area"),
-                pre_action=lambda: self.operate_click(btn_post_confirm, interval=3.14),
+                pre_action=lambda btn=btn_post_confirm: self.operate_click(btn, interval=3.14),
                 time_out=60,
                 raise_if_not_found=True
             )
@@ -867,7 +877,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             time_out=30,
             raise_if_not_found=True,
         )
-        self.log_info(f"已打开手机")
+        self.log_info("已打开手机")
 
     # 进入功能模块
     def enter_app(self,app='bagel'):
@@ -1095,7 +1105,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                         self.log_info(f"未找到指定模型，加载其他视觉模型: '{model_name}'")
                     # 没有视觉模型，抛出异常降级到本地词库
                     else:
-                        raise Exception("未找到指定模型和其他视觉模型")
+                        raise RuntimeError("未找到指定模型和其他视觉模型")
 
         # ==========================================
         # 后续的标准 Vision 请求逻辑
@@ -1141,8 +1151,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         if response.status_code == 200:
             model_reply = response.json()['choices'][0]['message']['content'].strip()
             if not model_reply:
-                raise Exception(f"VLM 返回内容异常, 详情: {response.text}")
+                raise RuntimeError(f"VLM 返回内容异常, 详情: {response.text}")
             model_reply= self.text_length(model_reply,max_len=25)
             return model_reply
         else:
-            raise Exception(f"VLM 推理失败，HTTP 状态码: {response.status_code}, 详情: {response.text}")
+            raise RuntimeError(f"VLM 推理失败，HTTP 状态码: {response.status_code}, 详情: {response.text}")
