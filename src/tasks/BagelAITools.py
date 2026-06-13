@@ -170,7 +170,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     # 文案助手模式
     def do_helper_run(self):
         self.is_running = False 
-        self.log_info("|🟢F10】启动呗果文案助手 |🔴F12】暂停呗果文案助手")
+        self.log_info("【F1】🟢启动 /🔴暂停 呗果文案助手")
         # 注册快捷键监听
         listener = self.setup_helper_hotkeys()
         try:
@@ -203,7 +203,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                     continue
                 else:
                     if self.in_team_and_world():
-                        self.log_info("【🔴】检测在大世界，呗果文案助手自动暂停！")
+                        self.log_info("🔴 检测在大世界，呗果文案助手自动暂停！")
                         self.is_running = False
                         continue
                     self.sleep(1.14)
@@ -303,6 +303,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     # 注册快捷键
     def setup_helper_hotkeys(self):
         """使用现有的 pynput 注册全局快捷键（返回 listener 实例以便后续销毁）"""
+        if getattr(self, '_global_hotkey_listener', None) is not None:
+            return self._global_hotkey_listener
         import ctypes
         from pynput import keyboard
 
@@ -316,20 +318,18 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         except Exception:
             pass
 
-        def on_press(key):
+        def on_release(key):
             try:
-                if key == keyboard.Key.f10 and not self.is_running:
-                    self.is_running = True
-                    self.log_info("【🟢】呗果文案助手已就绪！")
-                    self.sleep(0.25)
-                elif key == keyboard.Key.f12 and self.is_running:
-                    self.is_running = False
-                    self.log_info("【🔴】呗果文案助手已暂停！")
-                    self.sleep(0.25)
+                if key == keyboard.Key.f1:
+                    self.is_running = not self.is_running
+                    if self.is_running:
+                        self.log_info("🟢 呗果文案助手已就绪！")
+                    else:
+                        self.log_info("🔴 呗果文案助手已暂停！")
             except Exception as e:
                 self.log_error(f"快捷键响应异常: {e}")
 
-        listener = keyboard.Listener(on_press=on_press)
+        listener = keyboard.Listener(on_release=on_release)
         listener.start()
         return listener  # 把实例丢出去
 
@@ -362,7 +362,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_sort = self.find_area(area="sort_menu_area", action="click")
                 self.wait_until(
                     lambda: self.find_area(area="sort_menu_area_done") or not self.find_area(area="sort_menu_list"),
-                    pre_action=lambda: self.operate_click(btn_sort, action_name="sort_bagel_menu", interval=3.00),
+                    pre_action=lambda: self.operate_click(btn_sort, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
@@ -370,7 +370,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_sort_list = self.find_area(area="sort_menu_select", action="click")
                 self.wait_until(
                     lambda: self.find_area(area="sort_menu_list"),
-                    pre_action=lambda: self.operate_click(btn_sort_list, action_name="sort_bagel_click", interval=3.14),
+                    pre_action=lambda: self.operate_click(btn_sort_list, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
@@ -583,31 +583,34 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 continue
             self.wait_until(
                 lambda: self.find_area(area="post_check_area"),
-                pre_action=lambda: self.operate_click(0.05, 0.93, action_name="enter_post_page", interval=3.14),
+                pre_action=lambda: self.operate_click(0.05, 0.93, interval=3.14),
                 time_out=30,
                 raise_if_not_found=True,
             )
+            self.log_info("进入发帖界面")
             self.sleep(1.14)
             if self.find_area(area="post_photo_zone_area"):
                 btn_select_photo = self.find_area(area="post_photo_zone_area", action="click")
                 self.wait_until(
                     lambda: not self.find_area(area="post_check_area"),
-                    pre_action=lambda: self.operate_click(btn_select_photo, action_name="photo_select", interval=3.14),
+                    pre_action=lambda: self.operate_click(btn_select_photo, interval=3.14),
                     time_out=30,
                     raise_if_not_found=True,
                 )
+                self.log_info("选择发帖用图片")
                 self.sleep(1.14)
-            # 这里写好选照片的方法
-            self.select_latest_photos(photo_new_count=self.post_count+1, photo_total=self.gallery_total_count)
-            self.sleep(0.50)
-            btn_photo_confirm = self.find_area(area="post_photo_confirm", action ="click")
-            self.wait_until(
-                lambda: self.find_area(area="post_check_area") and not self.find_area(area="post_photo_zone_area"),
-                pre_action=lambda: self.operate_click(btn_photo_confirm, action_name="photo_selected", interval=3.14),
-                time_out=30,
-                raise_if_not_found=True
-            )
-            self.sleep(0.50)
+                # 这里写好选照片的方法
+                self.select_latest_photos(photo_new_count=self.post_count+1, photo_total=self.gallery_total_count)
+                self.sleep(0.50)
+                btn_photo_confirm = self.find_area(area="post_photo_confirm", action ="click")
+                self.wait_until(
+                    lambda: self.find_area(area="post_check_area") and not self.find_area(area="post_photo_zone_area"),
+                    pre_action=lambda: self.operate_click(btn_photo_confirm, interval=3.14),
+                    time_out=30,
+                    raise_if_not_found=True
+                )
+                self.log_info("发帖用图片选择完成")
+            self.sleep(1.14)
             if not self.process_bagel_post(): # 选完照片后调用发帖文案生成并发送方法，返回 True 则说明生成并发布成功了
                 continue
             # 扫描“发布”按钮
@@ -615,11 +618,12 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             self.sleep(0.50)
             self.wait_until(
                 lambda: self.find_area(area="sort_menu_area") and not self.find_area(area="post_check_area"),
-                pre_action=lambda: self.operate_click(btn_post_confirm, action_name="post_confirm", interval=3.14),
+                pre_action=lambda: self.operate_click(btn_post_confirm, interval=3.14),
                 time_out=60,
                 raise_if_not_found=True
             )
             self.post_count += 1
+            self.log_info("成功发帖")
             self.info_add("成功发帖次数", 1)
             self.sleep(5.14)
 
@@ -712,7 +716,8 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
 
         if action == 'clear_album':
             self.sleep(1.14)
-            self.operate_click(0.035, 0.94, action_name="enter_gallery")
+            self.operate_click(0.035, 0.94)
+            self.log_info("进入相册")
             self.sleep(1.14)
             current_total = self.get_gallery_total()
             if current_total <= number:
@@ -748,15 +753,15 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                     photo_count = 11
                     
                 target_target = photo_grid_locations[photo_count]
-                
-                self.log_info(f" [{i+1}/{number}]：当前剩 {current_total} 张，坐标: {target_target}")
                 self.operate_click(*target_target)
                 self.sleep(1.14)
                 # 点击物理删除确认
                 self.operate_click(0.89, 0.94, action_name="del_photo")
-                self.sleep(2.56)
                 # 账本同步扣减：物理删一张，内存账本减一张
                 current_total -= 1
+                self.log_info(f" [{i+1}/{number}]：删去1张照片，当前剩 {current_total} 张待删除")
+                self.sleep(2.56)
+                
 
         else:
             take_photo_actions = ['phone_third', 'phone_self', 'uav_third', 'uav_first']
@@ -764,14 +769,14 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 if target_action == 'phone_third':
                     self.log_info("使用手机拍照：第三人称")
                 elif target_action == 'phone_self':
-                    self.operate_click(0.84, 0.05, action_name="phone_self")
+                    self.operate_click(0.84, 0.05)
                     self.log_info("使用手机拍照：自拍模式")
                     self.sleep(1.14)
                 elif target_action in ['uav_third', 'uav_first']:
-                    self.operate_click(0.895, 0.05, action_name="uav_third")
+                    self.operate_click(0.895, 0.05)
                     self.sleep(1.14)
                     if target_action == 'uav_first':
-                        self.operate_click(0.89, 0.05, action_name="uav_first")
+                        self.operate_click(0.89, 0.05)
                         self.log_info("使用无人机拍照：第一人称")
                         self.sleep(1.14)
                     else:
@@ -803,9 +808,10 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 if current_take_photo_action != 'phone_third':
                     self.send_key('esc', down_time=0.15)
                     self.sleep(1.14)
-            self.log_info("照片拍摄完毕，进入相册核对总数...")
             self.sleep(1.14)
-            self.operate_click(0.035, 0.94, action_name="enter_gallery")
+            self.log_info("照片拍摄完毕，进入相册核对总数...")
+            self.operate_click(0.035, 0.94)
+
             self.sleep(1.14)
 
         # 刷新最终总数
@@ -857,10 +863,11 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     def open_phone(self):
         self.wait_until(
             lambda: self.find_area(area="bagel_icon"),
-            pre_action=lambda: self.send_key("esc", action_name="call_phone", interval=3.14),
+            pre_action=lambda: self.send_key("esc", interval=3.14),
             time_out=30,
             raise_if_not_found=True,
         )
+        self.log_info(f"已打开手机")
 
     # 进入功能模块
     def enter_app(self,app='bagel'):
@@ -868,14 +875,14 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             btn_bagel = self.find_area(area="bagel_icon", action="click")
             self.wait_until(
                 lambda: not self.find_area(area="bagel_icon"),
-                pre_action=lambda: self.operate_click(btn_bagel, action_name="enter_bagel", interval=3.14),
+                pre_action=lambda: self.operate_click(btn_bagel, interval=3.14),
                 time_out=30,
                 raise_if_not_found=True,
             )
         elif app == 'camera':
             self.wait_until(
                 lambda: not self.find_area(area="bagel_icon"),
-                pre_action=lambda: self.operate_click(0.75, 0.875, action_name="enter_camera", interval=3.14),
+                pre_action=lambda: self.operate_click(0.75, 0.875, interval=3.14),
                 time_out=30,
                 raise_if_not_found=True,
             )
