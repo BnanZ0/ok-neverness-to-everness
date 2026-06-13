@@ -72,7 +72,7 @@ temp_images/
 .ruff_cache
 
 # fingerprint template caches (computed at runtime next to the .wav)
-*.fpcache
+*.fpcache.npz
 
 #midi
 !mid_lib/

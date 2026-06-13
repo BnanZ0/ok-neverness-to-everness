@@ -17,11 +17,12 @@
 # ============================================================================
 from __future__ import annotations
 
-import hashlib
-import pickle
+import json
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
+
+import numpy as np
 
 from src.sound_trigger.fingerprint.matcher import HOP_SIZE, TemplateData, Tuning, load_template
 
@@ -101,12 +102,13 @@ FINGERPRINT_CACHE_VERSION = 1
 
 
 def _cache_key(wav_path: Path, tuning: Tuning) -> str:
+    # Plain signature string, stored inside the cache and compared on load — a
+    # staleness check, not a security/crypto use (so no hashing needed).
     try:
         stat = wav_path.stat()
-        signature = (FINGERPRINT_CACHE_VERSION, int(stat.st_mtime_ns), stat.st_size, repr(tuning))
+        return repr((FINGERPRINT_CACHE_VERSION, int(stat.st_mtime_ns), stat.st_size, repr(tuning)))
     except OSError:
-        signature = (FINGERPRINT_CACHE_VERSION, repr(tuning))
-    return hashlib.sha1(repr(signature).encode("utf-8")).hexdigest()
+        return repr((FINGERPRINT_CACHE_VERSION, repr(tuning)))
 
 
 def load_cached_template(wav_path, tuning: Tuning) -> TemplateData:
@@ -114,24 +116,58 @@ def load_cached_template(wav_path, tuning: Tuning) -> TemplateData:
 
     Mirrors the project's existing next-to-asset caching (the legacy engine's
     `.npy` files): the expensive peak/hash/index/verifier computation runs once
-    and is reused across runs. Any cache miss, version mismatch, corruption or
-    IO error (e.g. a read-only asset dir) silently falls back to recomputing.
+    and is reused across runs. Stored as a plain `.npz` (loaded with
+    allow_pickle=False — no pickle). Any cache miss, version mismatch, corruption
+    or IO error (e.g. a read-only asset dir) silently falls back to recomputing.
     """
     wav_path = Path(wav_path)
-    cache_path = wav_path.with_name(wav_path.name + ".fpcache")
+    cache_path = wav_path.with_name(wav_path.name + ".fpcache.npz")
     key = _cache_key(wav_path, tuning)
     try:
         if cache_path.exists():
-            with open(cache_path, "rb") as handle:
-                blob = pickle.load(handle)
-            if isinstance(blob, dict) and blob.get("key") == key:
-                return blob["template"]
+            with np.load(cache_path, allow_pickle=False) as data:
+                if str(data["key"].item()) == key:
+                    return _template_from_cache(data)
     except Exception:
         pass  # corrupt / incompatible cache -> recompute
     template = load_template(wav_path, tuning)
     try:
-        with open(cache_path, "wb") as handle:
-            pickle.dump({"key": key, "template": template}, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        _write_template_cache(cache_path, key, template)
     except Exception:
         pass  # read-only location etc. -> skip caching
     return template
+
+
+def _write_template_cache(cache_path: Path, key: str, template: TemplateData) -> None:
+    meta = {
+        "peaks": template.peaks,
+        "index": [[list(bins), frames] for bins, frames in template.index.items()],
+        "source_seconds": template.source_seconds,
+        "trimmed_seconds": template.trimmed_seconds,
+        "has_verifier": template.verifier is not None,
+    }
+    verifier = template.verifier if template.verifier is not None else np.zeros(0, dtype=np.float32)
+    np.savez(
+        str(cache_path),
+        key=np.array(key),
+        samples=template.samples,
+        verifier=verifier,
+        meta=np.array(json.dumps(meta)),
+    )
+
+
+def _template_from_cache(data) -> TemplateData:
+    meta = json.loads(str(data["meta"].item()))
+    peaks = [[(int(b), int(q)) for b, q in frame] for frame in meta["peaks"]]
+    index = {
+        (int(k[0]), int(k[1]), int(k[2])): [int(x) for x in frames]
+        for k, frames in meta["index"]
+    }
+    return TemplateData(
+        samples=data["samples"],
+        peaks=peaks,
+        index=index,
+        source_seconds=float(meta["source_seconds"]),
+        trimmed_seconds=float(meta["trimmed_seconds"]),
+        verifier=data["verifier"] if meta["has_verifier"] else None,
+    )

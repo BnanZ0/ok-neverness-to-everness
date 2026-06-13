@@ -171,7 +171,7 @@ class TestTemplateCache(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             wav = Path(tmp) / cfg.wav
             shutil.copy(BANK_DIR / cfg.wav, wav)
-            cache = wav.with_name(wav.name + ".fpcache")
+            cache = wav.with_name(wav.name + ".fpcache.npz")
 
             self.assertFalse(cache.exists())
             first = load_cached_template(wav, cfg.tuning)  # computes + writes cache
