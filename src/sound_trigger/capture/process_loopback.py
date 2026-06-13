@@ -240,6 +240,16 @@ class IActivateAudioInterfaceCompletionHandler(IUnknown):
     )
 
 
+class IAgileObject(IUnknown):
+    # Marker interface (no methods). Declaring support tells COM the object is
+    # safe to call from any apartment, so ActivateAudioInterfaceAsync does not
+    # try to marshal the completion handler — without this, marshaling a plain
+    # (non-agile) comtypes COMObject fails synchronously with E_ILLEGAL_METHOD_CALL
+    # (0x8000000E).
+    _iid_ = GUID("{94EA2B94-E9CC-49E0-C0FF-EE64CA8F5B90}")
+    _methods_ = ()
+
+
 _mmdevapi = ctypes.WinDLL("mmdevapi.dll")
 _ActivateAudioInterfaceAsync = _mmdevapi.ActivateAudioInterfaceAsync
 _ActivateAudioInterfaceAsync.restype = ctypes.c_long
@@ -325,7 +335,9 @@ def process_is_alive(pid: int, process_name) -> bool:
 
 
 class _ActivateHandler(COMObject):
-    _com_interfaces_ = [IActivateAudioInterfaceCompletionHandler]
+    # IAgileObject marks the handler agile so ActivateAudioInterfaceAsync does
+    # not attempt to marshal it across apartments (avoids E_ILLEGAL_METHOD_CALL).
+    _com_interfaces_ = [IActivateAudioInterfaceCompletionHandler, IAgileObject]
 
     def __init__(self):
         super().__init__()
