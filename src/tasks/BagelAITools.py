@@ -380,7 +380,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 btn_sort = self.find_area(area="sort_menu_area", action="click")
                 self.wait_until(
                     lambda: (
-                        self.find_area(area="sort_menu_area_done")
+                        not self.find_area(area="sort_menu_area_done")
                         or not self.find_area(area="sort_menu_list")
                     ),
                     pre_action=lambda btn=btn_sort: self.operate_click(btn, interval=3.14),
