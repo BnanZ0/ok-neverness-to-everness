@@ -9,9 +9,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 msgstr "「キャラクター」と「{combo}」は入力して作成でき、既存の項目を選択することもできます。"
 
 msgid "Arc Key"
@@ -56,8 +54,7 @@ msgstr "タスク実行時に月額カードによる中断を避けるために
 msgid "Ultimate Key"
 msgstr "アルティメットキー"
 
-msgid ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月額カードがポップアップするコンピュータのローカル時間（1-24時）"
 
 msgid "[内置代码]"
@@ -154,14 +151,8 @@ msgstr "マップ内で自動テレポート"
 msgid "填入扫描"
 msgstr "スキャン結果を入力"
 
-msgid ""
-"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
-msgstr ""
-"<b style=\"color: #0078d7;\">キャラクター特徴</b>を関連付けると、現在のキャラクターを自動的に判別します。<br><b "
-"style=\"color: #0078d7;\">キャラクター特徴</b>を管理したくない場合は、<b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 機能を直接有効にできます。"
+msgid "关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgstr "<b style=\"color: #0078d7;\">キャラクター特徴</b>を関連付けると、現在のキャラクターを自動的に判別します。<br><b style=\"color: #0078d7;\">キャラクター特徴</b>を管理したくない場合は、<b style=\"color: #0078d7;\">{fixed_team}</b> 機能を直接有効にできます。"
 
 msgid "完成每日活跃度"
 msgstr "デイリーアクティビティを完了"
@@ -383,9 +374,7 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反撃のしきい値"
 
-msgid ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 msgstr "反撃音認識のしきい値 (0.0-1.0、低いほど感度が高くなります)"
 
 msgid "Dodge Threshold"
@@ -626,9 +615,7 @@ msgstr "ダークレース"
 msgid "Record has been reset"
 msgstr "記録をリセットしました"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
 msgstr "記録済みの操作が見つかりません。記録の案内が表示されるまで待ち、指示に従って慎重に操作を記録してください。"
 
 msgid "Updated successfully"
@@ -827,3 +814,118 @@ msgstr "MIDI分析失敗"
 
 msgid "MIDI 播放失败"
 msgstr "MIDI再生失敗"
+
+msgid "de_DE"
+msgstr ""
+
+msgid "en_US"
+msgstr ""
+
+msgid "es_ES"
+msgstr ""
+
+msgid "fr_FR"
+msgstr ""
+
+msgid "ja_JP"
+msgstr ""
+
+msgid "ru_RU"
+msgstr ""
+
+msgid "zh_CN"
+msgstr ""
+
+msgid "zh_TW"
+msgstr ""
+
+msgid "使用模型根据图片生成文案, 推荐本地部署"
+msgstr ""
+
+msgid "关闭后将降级使用本地词库抽取发帖回复文案"
+msgstr ""
+
+msgid "发帖内容模块提示词"
+msgstr ""
+
+msgid "发帖内容模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "发帖标题模块提示词"
+msgstr ""
+
+msgid "发帖标题模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "呗果智能体"
+msgstr ""
+
+msgid "回复模块提示词"
+msgstr ""
+
+msgid "回复模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "开启助手模式后, 将只会辅助生成文案"
+msgstr ""
+
+msgid "所调用模型名称"
+msgstr ""
+
+msgid "文案助手模式"
+msgstr ""
+
+msgid "智能体模式选项"
+msgstr ""
+
+msgid ""
+"智能体模式选项\n"
+"自动回帖会同时点赞"
+msgstr ""
+
+msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr ""
+
+msgid "模型调用API_Key"
+msgstr ""
+
+msgid "模型调用地址"
+msgstr ""
+
+msgid "次数"
+msgstr ""
+
+msgid "游戏语言"
+msgstr ""
+
+msgid ""
+"游戏语言/遊戲語言/ゲーム言語/게임 언어\n"
+"Game Language/Язык игры"
+msgstr ""
+
+msgid "留言"
+msgstr ""
+
+msgid "自动发帖"
+msgstr ""
+
+msgid "自动呗果"
+msgstr ""
+
+msgid "自动回帖"
+msgstr ""
+
+msgid "自动按赞"
+msgstr ""
+
+msgid "请详阅使用说明"
+msgstr ""
+
+msgid "调用模型"
+msgstr ""
+
+msgid "过滤水贴"
+msgstr ""
+
+msgid "键盘布局"
+msgstr ""

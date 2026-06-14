@@ -9,12 +9,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支援輸入並建立，也支援選擇已有項。"
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支援輸入並建立，也支援選擇已有項。"
 
 msgid "Arc Key"
 msgstr "弓箭按鍵"
@@ -58,8 +54,7 @@ msgstr "執行任務時開啟以避免月卡中斷"
 msgid "Ultimate Key"
 msgstr "極軌技快速鍵"
 
-msgid ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月卡彈出時的電腦本地時間，小時 (1-24)"
 
 msgid "[内置代码]"
@@ -156,14 +151,8 @@ msgstr "地圖中自動點擊傳送"
 msgid "填入扫描"
 msgstr "填入掃描"
 
-msgid ""
-"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
-msgstr ""
-"關聯 <b style=\"color: #0078d7;\">角色特徵</b> 後將自動判斷當前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特徵</b>，可以直接啟用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
+msgid "关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgstr "關聯 <b style=\"color: #0078d7;\">角色特徵</b> 後將自動判斷當前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特徵</b>，可以直接啟用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
 
 msgid "完成每日活跃度"
 msgstr "完成每日活躍度"
@@ -385,9 +374,7 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反擊觸發閾值"
 
-msgid ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 msgstr "反擊聲音識別閾值（0.0-1.0，越低越靈敏）"
 
 msgid "Dodge Threshold"
@@ -628,9 +615,7 @@ msgstr "黑暗賽車"
 msgid "Record has been reset"
 msgstr "記錄已重置"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
 msgstr "未找到已記錄的操作。請等待錄製提示出現，然後依照指示，仔細完成操作錄製。"
 
 msgid "Updated successfully"
@@ -829,3 +814,118 @@ msgstr "MIDI 分析失敗"
 
 msgid "MIDI 播放失败"
 msgstr "MIDI 播放失敗"
+
+msgid "de_DE"
+msgstr ""
+
+msgid "en_US"
+msgstr ""
+
+msgid "es_ES"
+msgstr ""
+
+msgid "fr_FR"
+msgstr ""
+
+msgid "ja_JP"
+msgstr ""
+
+msgid "ru_RU"
+msgstr ""
+
+msgid "zh_CN"
+msgstr ""
+
+msgid "zh_TW"
+msgstr ""
+
+msgid "使用模型根据图片生成文案, 推荐本地部署"
+msgstr ""
+
+msgid "关闭后将降级使用本地词库抽取发帖回复文案"
+msgstr ""
+
+msgid "发帖内容模块提示词"
+msgstr ""
+
+msgid "发帖内容模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "发帖标题模块提示词"
+msgstr ""
+
+msgid "发帖标题模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "呗果智能体"
+msgstr ""
+
+msgid "回复模块提示词"
+msgstr ""
+
+msgid "回复模块提示词, 请先调试好文案再使用"
+msgstr ""
+
+msgid "开启助手模式后, 将只会辅助生成文案"
+msgstr ""
+
+msgid "所调用模型名称"
+msgstr ""
+
+msgid "文案助手模式"
+msgstr ""
+
+msgid "智能体模式选项"
+msgstr ""
+
+msgid ""
+"智能体模式选项\n"
+"自动回帖会同时点赞"
+msgstr ""
+
+msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr ""
+
+msgid "模型调用API_Key"
+msgstr ""
+
+msgid "模型调用地址"
+msgstr ""
+
+msgid "次数"
+msgstr ""
+
+msgid "游戏语言"
+msgstr ""
+
+msgid ""
+"游戏语言/遊戲語言/ゲーム言語/게임 언어\n"
+"Game Language/Язык игры"
+msgstr ""
+
+msgid "留言"
+msgstr ""
+
+msgid "自动发帖"
+msgstr ""
+
+msgid "自动呗果"
+msgstr ""
+
+msgid "自动回帖"
+msgstr ""
+
+msgid "自动按赞"
+msgstr ""
+
+msgid "请详阅使用说明"
+msgstr ""
+
+msgid "调用模型"
+msgstr ""
+
+msgid "过滤水贴"
+msgstr ""
+
+msgid "键盘布局"
+msgstr ""
