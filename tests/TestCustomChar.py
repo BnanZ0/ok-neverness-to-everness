@@ -34,7 +34,7 @@ class TestCustomChar(TaskTestCase):
         try:
             # 執行真正的掃描 (會運用到 OCR 和 CV)
             with (
-                patch.object(tab, "_ensure_scan_capture", return_value=""),
+                patch("src.ui.util.ensure_scan_capture", return_value=""),
                 patch.object(tab, "get_task", return_value=self.task),
             ):
                 tab.scan_team()

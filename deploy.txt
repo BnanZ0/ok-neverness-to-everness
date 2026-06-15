@@ -9,4 +9,5 @@ SPONSOR.md
 i18n
 pyappify
 assets
+mid_lib
 pyappify.yml

@@ -1,6 +1,7 @@
+from enum import Enum
 from typing import Any
 
-from ok import og
+from ok import get_path_relative_to_exe, og
 from PySide6.QtCore import (
     QEasingCurve,
     QObject,
@@ -23,6 +24,8 @@ from qfluentwidgets import (
     IconWidget,
     ListWidget,
     SearchLineEdit,
+    Theme,
+    getIconColor,
 )
 
 
@@ -243,3 +246,18 @@ class SmoothSearchBar(QWidget):
             self.search_edit.clearFocus()
 
         super().leaveEvent(event)
+
+
+class FluentSystemIcon(FluentIconBase, Enum):
+    """Custom icons"""
+
+    MUSIC_NOTE = "MusicNote1"
+    NEXT = "Next"
+    PREVIOUS = "Previous"
+    HEART_FILL = "HeartFill"
+
+    def path(self, theme=Theme.AUTO):
+        path = get_path_relative_to_exe(
+            "assets", "fluenticons", f"{self.value}_{getIconColor(theme)}.svg"
+        )
+        return path or ""

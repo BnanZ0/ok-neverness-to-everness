@@ -1080,7 +1080,7 @@ class BaseNTETask(CharUIMixin, BaseTask):
         )
 
     @staticmethod
-    def get_app_locale() -> bool:
+    def get_app_locale() -> str | None:
         """get app locale."""
 
         try:

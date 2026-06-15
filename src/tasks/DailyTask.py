@@ -293,13 +293,22 @@ class DailyTask(NTEOneTimeTask, BaseNTETask):
         activity_box = self.box_of_screen(0.184, 0.188, 0.256, 0.255, name="activity", hcenter=True)
 
         activity = self.ocr(box=activity_box, match=activity_re)
-        mission = self.ocr(box=mission_box, match=mission_re)
 
-        if mission:
-            match = mission_re.search(mission[0].name)
-            if match:
-                used_stamina = int(match.group(1))
-                self.log_info(f"ocr found used stamina {used_stamina}")
+        for _ in range(2):
+            mission = self.ocr(box=mission_box, match=mission_re)
+
+            if mission:
+                match = mission_re.search(mission[0].name)
+                if match:
+                    used_stamina = int(match.group(1))
+                    self.log_info(f"ocr found used stamina {used_stamina}")
+                    break
+            else:
+                self.operate(
+                    lambda: self.scroll_relative(0.2379, 0.7285, -42),
+                    block=True,
+                )
+                self.sleep(0.25)
 
         if activity:
             match = activity_re.search(activity[0].name)

@@ -250,7 +250,7 @@ class Hotori(BaseChar):
             )
 
     def _execute_hotori_ultimate(self, context: CombatContext = None):
-        success = self.click_ultimate(wait_if_cd_ready=0)
+        success = self.click_ultimate()
         if success:
             self.records_ready = False
             self.record_window_start = 0

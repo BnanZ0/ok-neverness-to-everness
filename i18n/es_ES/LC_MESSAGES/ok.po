@@ -9,13 +9,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr ""
-"<b style=\"color: #0078d7;\">Personaje</b> y <b style=\"color: "
-"#0078d7;\">{combo}</b> permiten la entrada y creación, también admiten la "
-"selección de elementos existentes."
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr "<b style=\"color: #0078d7;\">Personaje</b> y <b style=\"color: #0078d7;\">{combo}</b> permiten la entrada y creación, también admiten la selección de elementos existentes."
 
 msgid "Arc Key"
 msgstr "Tecla de Arco"
@@ -24,8 +19,7 @@ msgid "Check Monthly Card"
 msgstr "Comprobar tarjeta mensual"
 
 msgid "Check for monthly card to avoid interruption of tasks"
-msgstr ""
-"Comprobar la tarjeta mensual para evitar la interrupción de las tareas"
+msgstr "Comprobar la tarjeta mensual para evitar la interrupción de las tareas"
 
 msgid "F10"
 msgstr "F10"
@@ -60,8 +54,7 @@ msgstr "Activar para evitar la interrupción por la tarjeta mensual"
 msgid "Ultimate Key"
 msgstr "Tecla definitiva"
 
-msgid ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "Hora local para el aviso de tarjeta mensual (1-24)"
 
 msgid "[内置代码]"
@@ -141,9 +134,7 @@ msgid "匹配文字"
 msgstr "Coincidir texto"
 
 msgid "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
-msgstr ""
-"Debido a la singularidad de la interfaz de Neverness-to-Everness, la "
-"estabilidad del reconocimiento puede fluctuar en algunos escenarios."
+msgstr "Debido a la singularidad de la interfaz de Neverness-to-Everness, la estabilidad del reconocimiento puede fluctuar en algunos escenarios."
 
 msgid "可用指令"
 msgstr "Comandos disponibles"
@@ -160,16 +151,8 @@ msgstr "Clic automático de teletransporte en el mapa"
 msgid "填入扫描"
 msgstr "Completar escaneo"
 
-msgid ""
-"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
-msgstr ""
-"Al vincular <b style=\"color: #0078d7;\">Características del personaje</b>, "
-"se identificará automáticamente al personaje actual.<br>Si no desea "
-"gestionar las <b style=\"color: #0078d7;\">Características del "
-"personaje</b>, puede activar directamente la función <b style=\"color: "
-"#0078d7;\">{fixed_team}</b>."
+msgid "关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgstr "Al vincular <b style=\"color: #0078d7;\">Características del personaje</b>, se identificará automáticamente al personaje actual.<br>Si no desea gestionar las <b style=\"color: #0078d7;\">Características del personaje</b>, puede activar directamente la función <b style=\"color: #0078d7;\">{fixed_team}</b>."
 
 msgid "完成每日活跃度"
 msgstr "Completar actividad diaria"
@@ -208,8 +191,7 @@ msgid "已恢复自动识别"
 msgstr "Reconocimiento automático restaurado"
 
 msgid "已成功删除角色: {} 以及关联的特征图"
-msgstr ""
-"Personaje eliminado con éxito: {} y sus mapas de características asociados"
+msgstr "Personaje eliminado con éxito: {} y sus mapas de características asociados"
 
 msgid "已清空槽位"
 msgstr "Espacios vaciados"
@@ -298,9 +280,7 @@ msgid "点按时长倍率"
 msgstr "Multiplicador de duración del toque"
 
 msgid "点按模式专用。用于微调每次按键的持续时间"
-msgstr ""
-"Solo para el modo Tocar. Se usa para ajustar la duración de cada pulsación "
-"de tecla."
+msgstr "Solo para el modo Tocar. Se usa para ajustar la duración de cada pulsación de tecla."
 
 msgid "编辑名称"
 msgstr "Editar nombre"
@@ -336,9 +316,7 @@ msgid "解除绑定"
 msgstr "Desvincular"
 
 msgid "请在左侧选择一个角色以管理特征和{combo}"
-msgstr ""
-"Seleccione un personaje a la izquierda para gestionar las características y "
-"el {combo}"
+msgstr "Seleccione un personaje a la izquierda para gestionar las características y el {combo}"
 
 msgid "跳过剧情"
 msgstr "Omitir historia"
@@ -384,9 +362,7 @@ msgid "使用ESC"
 msgstr "Usar ESC"
 
 msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
-msgstr ""
-"Cuando está desactivado, el combate solo comienza si se selecciona un "
-"enemigo con el botón central y se detecta 'Lv' en pantalla"
+msgstr "Cuando está desactivado, el combate solo comienza si se selecciona un enemigo con el botón central y se detecta 'Lv' en pantalla"
 
 msgid ""
 "开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
@@ -398,28 +374,20 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "Umbral de contraataque"
 
-msgid ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
-msgstr ""
-"Umbral de reconocimiento de sonido de contraataque (0,0-1,0, más bajo es más"
-" sensible)"
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgstr "Umbral de reconocimiento de sonido de contraataque (0,0-1,0, más bajo es más sensible)"
 
 msgid "Dodge Threshold"
 msgstr "Umbral de esquiva"
 
 msgid "Dodge sound recognition threshold (0.0-1.0, lower is more sensitive)"
-msgstr ""
-"Umbral de reconocimiento de sonido de esquiva (0,0-1,0, más bajo es más "
-"sensible)"
+msgstr "Umbral de reconocimiento de sonido de esquiva (0,0-1,0, más bajo es más sensible)"
 
 msgid "Enable Sound Trigger"
 msgstr "Activar disparador de sonido"
 
 msgid "Enable sound recognition for automatic dodge and counter attacks"
-msgstr ""
-"Activar el reconocimiento de sonido para esquivas y contraataques "
-"automáticos"
+msgstr "Activar el reconocimiento de sonido para esquivas y contraataques automáticos"
 
 msgid "Sound Trigger Config"
 msgstr "Configuración del disparador de sonido"
@@ -485,9 +453,7 @@ msgid "角色经验"
 msgstr "Experiencia de personaje"
 
 msgid "选择经验与甲硬币任务的具体奖励目标"
-msgstr ""
-"Seleccionar el objetivo de recompensa específico para tareas de EXP y "
-"Monedas Escarabajo"
+msgstr "Seleccionar el objetivo de recompensa específico para tareas de EXP y Monedas Escarabajo"
 
 msgid "选择要进行的任务类型"
 msgstr "Seleccionar el tipo de tarea a realizar"
@@ -529,9 +495,7 @@ msgid "自动补饵卖鱼"
 msgstr "Auto-recarga cebo y vende pescado"
 
 msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
-msgstr ""
-"Si falla el lanzamiento, reponer cebo predeterminado, vender capturas y "
-"reintentar"
+msgstr "Si falla el lanzamiento, reponer cebo predeterminado, vender capturas y reintentar"
 
 msgid "4列对应的键盘按键"
 msgstr "Teclas para 4 columnas"
@@ -573,9 +537,7 @@ msgid "声音闪避反击"
 msgstr "Esquiva y contraataque por sonido"
 
 msgid "未处于自动战斗时, 响应声音闪避或反击"
-msgstr ""
-"Cuando el combate automático no está activo, responde a esquivas o "
-"contraataques por sonido"
+msgstr "Cuando el combate automático no está activo, responde a esquivas o contraataques por sonido"
 
 msgid ""
 "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
@@ -597,9 +559,7 @@ msgid "游戏启动后自动登录游戏"
 msgstr "Iniciar sesión automáticamente después de iniciar el juego"
 
 msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
-msgstr ""
-"Entrar y salir de fases en bucle automáticamente (requiere una build AFK "
-"dentro del juego)"
+msgstr "Entrar y salir de fases en bucle automáticamente (requiere una build AFK dentro del juego)"
 
 msgid "自动登录游戏"
 msgstr "Inicio de sesión automático"
@@ -644,8 +604,7 @@ msgid "清空已记录的操作"
 msgstr "Borrar operaciones grabadas"
 
 msgid "自动执行黑暗赛车,请在大世界开始执行"
-msgstr ""
-"Ejecutar automáticamente Carrera oscura; inicia desde el mundo abierto"
+msgstr "Ejecutar automáticamente Carrera oscura; inicia desde el mundo abierto"
 
 msgid "重置记录"
 msgstr "Restablecer grabación"
@@ -656,12 +615,8 @@ msgstr "Carrera oscura"
 msgid "Record has been reset"
 msgstr "La grabación se ha restablecido"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
-msgstr ""
-"No se encontraron operaciones grabadas. Espera a que aparezca el aviso de "
-"grabación y sigue las instrucciones con atención para grabar tus acciones."
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
+msgstr "No se encontraron operaciones grabadas. Espera a que aparezca el aviso de grabación y sigue las instrucciones con atención para grabar tus acciones."
 
 msgid "Updated successfully"
 msgstr "Actualizado correctamente"
@@ -714,20 +669,262 @@ msgstr ""
 "Si cambias de equipo en el juego, actualiza manualmente los espacios completados en el software."
 
 msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
-msgstr ""
-"<span style=\"color: #2ecc71;\">● Reconocimiento automático: activado</span>"
+msgstr "<span style=\"color: #2ecc71;\">● Reconocimiento automático: activado</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
-msgstr ""
-"<span style=\"color: #95a5a6;\">○ Reconocimiento automático: solo espacios "
-"vacíos</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ Reconocimiento automático: solo espacios vacíos</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
-msgstr ""
-"<span style=\"color: #2ecc71;\">● {fixed_team}: activado ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: activado ({count}/4)</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: desactivado</span>"
 
 msgid "启动失败"
 msgstr "Error al iniciar"
+
+msgid "21键自然音布局 (已禁用)"
+msgstr "Diseño diatónico de 21 teclas (Desactivado)"
+
+msgid "36键半音布局 (12x3)"
+msgstr "Diseño cromático de 36 teclas (12x3)"
+
+msgid "中音"
+msgstr "Medios"
+
+msgid "低音"
+msgstr "Graves"
+
+msgid "全部歌曲"
+msgstr "Todas las canciones"
+
+msgid "单曲循环"
+msgstr "Repetir una"
+
+msgid "可以弹奏"
+msgstr "Jugable"
+
+msgid "右下按键中心: "
+msgstr "Centro del botón inf. derecho:"
+
+msgid "定时关闭"
+msgstr "Apagado programado"
+
+msgid "导入 MIDI"
+msgstr "Importar MIDI"
+
+msgid "尚未载入音轨"
+msgstr "Sin pistas cargadas"
+
+msgid "左上按键中心: "
+msgstr "Centro del botón sup. izquierdo:"
+
+msgid "已收藏"
+msgstr "En favoritos"
+
+msgid "当前游戏钢琴使用 36 键半音布局"
+msgstr "El piano del juego usa un diseño cromático de 36 teclas"
+
+msgid "打印键位映射"
+msgstr "Imprimir mapeo de teclas"
+
+msgid "打开 mid_lib"
+msgstr "Abrir mid_lib"
+
+msgid "按键坐标配置"
+msgstr "Config. de coordenadas de teclas"
+
+msgid "搜索歌曲"
+msgstr "Buscar canciones"
+
+msgid "播放"
+msgstr "Reproducir"
+
+msgid "播放模式"
+msgstr "Modo de reprod."
+
+msgid "播放设置"
+msgstr "Ajustes de reprod."
+
+msgid "播放速度"
+msgstr "Velocidad de reprod."
+
+msgid "收藏歌曲"
+msgstr "Añadir a favoritos"
+
+msgid "无法弹奏"
+msgstr "No se puede tocar"
+
+msgid "智能音域压缩"
+msgstr "Compresión intel. del registro"
+
+msgid "未选择歌曲"
+msgstr "Ninguna canción selecc."
+
+msgid "每个测试音间隔约 1 秒，请用调音器确认实际发音。"
+msgstr "Cada tono de prueba dura ~1s. Usa un afinador para confirmar el tono."
+
+msgid "测试中音行"
+msgstr "Probar fila media"
+
+msgid "测试全部键"
+msgstr "Probar todas las teclas"
+
+msgid "自动弹琴"
+msgstr "Piano Auto"
+
+msgid "自动战斗任务不可用"
+msgstr "Tareas de combate automático no disponibles"
+
+msgid "自动音高"
+msgstr "Tono automático"
+
+msgid "试听选中音轨"
+msgstr "Escuchar pista selecc."
+
+msgid "调试校准"
+msgstr "Calibración de depuración"
+
+msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
+msgstr "Tras seleccionar una canción, elige qué pistas MIDI analizar y reproducir."
+
+msgid "选择 MIDI 档案"
+msgstr "Seleccionar archivo MIDI"
+
+msgid "随机播放"
+msgstr "Aleatorio"
+
+msgid "音轨选择"
+msgstr "Selección de pista"
+
+msgid "音高与音域分析"
+msgstr "Análisis de tono y rango"
+
+msgid "音高调整 (半音):"
+msgstr "Ajuste de tono (Semitonos):"
+
+msgid "顺序播放"
+msgstr "Reproducción secuencial"
+
+msgid "高音"
+msgstr "Agudos"
+
+msgid "MIDI 分析失败"
+msgstr "Fallo en análisis MIDI"
+
+msgid "MIDI 播放失败"
+msgstr "Fallo en reproducción MIDI"
+
+msgid "键盘布局"
+msgstr "Distribución del teclado"
+
+msgid "de_DE"
+msgstr "Deutsch"
+
+msgid "en_US"
+msgstr "English"
+
+msgid "es_ES"
+msgstr "Español"
+
+msgid "fr_FR"
+msgstr "Français"
+
+msgid "ja_JP"
+msgstr "日本語"
+
+msgid "ru_RU"
+msgstr "Русский"
+
+msgid "zh_CN"
+msgstr "简体中文"
+
+msgid "zh_TW"
+msgstr "繁體中文"
+
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
+msgstr "URL de llamada al modelo, debe ser compatible con el formato de API de OpenAI"
+
+msgid "关闭后将降级使用本地词库抽取发帖回复文案"
+msgstr "Al desactivarlo, se utilizará la base de datos léxica local"
+
+msgid "发帖内容生成提示词"
+msgstr "Prompt de contenido de publicación"
+
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
+msgstr "Prompt de contenido de publicación, por favor ajústelo antes de usar"
+
+msgid "发帖标题生成提示词"
+msgstr "Prompt de título de publicación"
+
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
+msgstr "Prompt de título de publicación, por favor ajústelo antes de usar"
+
+msgid "呗果智能体"
+msgstr "Bagel Agente"
+
+msgid "回复生成提示词"
+msgstr "Prompt de respuesta"
+
+msgid "回复生成提示词, 请先调试好提示词再使用"
+msgstr "Prompt de respuesta, por favor ajústelo antes de usar"
+
+msgid "开启助手模式后, 将只会辅助生成文案"
+msgstr "Al activar el modo asistente, solo ayudará a generar el texto"
+
+msgid "所调用模型名称"
+msgstr "Nombre del modelo"
+
+msgid "文案助手模式"
+msgstr "Modo asistente de redacción"
+
+msgid "智能体模式选项"
+msgstr "Opciones del modo agente"
+
+msgid "自动回帖会同时点赞"
+msgstr "Las respuestas automáticas también incluirán un 'me gusta'"
+
+msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr "Déjelo en blanco si no se usa. ¡No comparta su API_Key!"
+
+msgid "需要支持视觉输入的视觉语言模型"
+msgstr "Requiere un modelo de lenguaje visual (VLM) con soporte de entrada visual"
+
+msgid "模型调用API_Key"
+msgstr "API_Key del modelo"
+
+msgid "模型调用地址"
+msgstr "URL de llamada al modelo"
+
+msgid "次数"
+msgstr "Frecuencia"
+
+msgid "游戏语言"
+msgstr "Idioma del juego"
+
+msgid "请选择游戏所设置的语言"
+msgstr "Seleccione el idioma configurado en el juego"
+
+msgid "留言"
+msgstr "Comentario"
+
+msgid "自动发帖"
+msgstr "Publicación automática"
+
+msgid "自动呗果"
+msgstr "Bagel automático"
+
+msgid "自动回帖"
+msgstr "Respuesta automática"
+
+msgid "自动按赞"
+msgstr "Me gusta automático"
+
+msgid "请详阅使用说明"
+msgstr "Por favor, lea las instrucciones cuidadosamente"
+
+msgid "调用模型"
+msgstr "Usar Modelo"
+
+msgid "过滤水贴"
+msgstr "Filtrar SPAM"

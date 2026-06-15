@@ -9,13 +9,8 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr ""
-"<b style=\"color: #0078d7;\">Character</b> and <b style=\"color: "
-"#0078d7;\">{combo}</b> support input and creation, and also support "
-"selecting existing items."
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgstr "<b style=\"color: #0078d7;\">Character</b> and <b style=\"color: #0078d7;\">{combo}</b> support input and creation, and also support selecting existing items."
 
 msgid "Arc Key"
 msgstr "Arc Key"
@@ -59,10 +54,8 @@ msgstr "Turn on to avoid interruption by monthly card when executing tasks"
 msgid "Ultimate Key"
 msgstr "Ultimate Key"
 
-msgid ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
-msgstr ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgstr "Your computer's local time when the monthly card will popup, hour in (1-24)"
 
 msgid "[内置代码]"
 msgstr "[Built-in Code]"
@@ -141,9 +134,7 @@ msgid "匹配文字"
 msgstr "Match Text"
 
 msgid "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
-msgstr ""
-"Due to the uniqueness of Neverness-to-Everness UI, recognition stability may"
-" fluctuate in some scenarios."
+msgstr "Due to the uniqueness of Neverness-to-Everness UI, recognition stability may fluctuate in some scenarios."
 
 msgid "可用指令"
 msgstr "Available Commands"
@@ -160,15 +151,8 @@ msgstr "Auto-click teleport in map"
 msgid "填入扫描"
 msgstr "Fill Scan"
 
-msgid ""
-"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
-msgstr ""
-"Linking <b style=\"color: #0078d7;\">Character Features</b> will "
-"automatically identify the current character.<br>If you don't want to manage"
-" <b style=\"color: #0078d7;\">Character Features</b>, you can directly "
-"enable the <b style=\"color: #0078d7;\">{fixed_team}</b> function."
+msgid "关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
+msgstr "Linking <b style=\"color: #0078d7;\">Character Features</b> will automatically identify the current character.<br>If you don't want to manage <b style=\"color: #0078d7;\">Character Features</b>, you can directly enable the <b style=\"color: #0078d7;\">{fixed_team}</b> function."
 
 msgid "完成每日活跃度"
 msgstr "Complete Daily Activity"
@@ -378,9 +362,7 @@ msgid "使用ESC"
 msgstr "Use ESC"
 
 msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
-msgstr ""
-"When disabled, combat starts only if an enemy is middle-clicked and 'Lv' is "
-"detected on screen"
+msgstr "When disabled, combat starts only if an enemy is middle-clicked and 'Lv' is detected on screen"
 
 msgid ""
 "开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
@@ -392,12 +374,8 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "Counter Attack Threshold"
 
-msgid ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
-msgstr ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
+msgstr "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 
 msgid "Dodge Threshold"
 msgstr "Dodge Threshold"
@@ -565,8 +543,7 @@ msgid "声音闪避反击"
 msgstr "Sound Dodge Counterattack"
 
 msgid "未处于自动战斗时, 响应声音闪避或反击"
-msgstr ""
-"Respond to sound dodge or counterattack when auto combat is not active"
+msgstr "Respond to sound dodge or counterattack when auto combat is not active"
 
 msgid ""
 "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
@@ -588,9 +565,7 @@ msgid "游戏启动后自动登录游戏"
 msgstr "Automatically log in after the game starts"
 
 msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
-msgstr ""
-"Automatically loop entering and exiting stages (requires an in-game AFK "
-"build)"
+msgstr "Automatically loop entering and exiting stages (requires an in-game AFK build)"
 
 msgid "自动登录游戏"
 msgstr "Auto Login"
@@ -640,12 +615,8 @@ msgstr "Dark Race"
 msgid "Record has been reset"
 msgstr "Record has been reset"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
-msgstr ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
+msgstr "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
 
 msgid "Updated successfully"
 msgstr "Updated successfully"
@@ -701,15 +672,259 @@ msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
 msgstr "<span style=\"color: #2ecc71;\">● Auto recognition: enabled</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
-msgstr ""
-"<span style=\"color: #95a5a6;\">○ Auto recognition: empty slots only</span>"
+msgstr "<span style=\"color: #95a5a6;\">○ Auto recognition: empty slots only</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
-msgstr ""
-"<span style=\"color: #2ecc71;\">● {fixed_team}: enabled ({count}/4)</span>"
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}: enabled ({count}/4)</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: disabled</span>"
 
 msgid "启动失败"
 msgstr "Failed to start"
+
+msgid "21键自然音布局 (已禁用)"
+msgstr "21-Key Diatonic Layout (Disabled)"
+
+msgid "36键半音布局 (12x3)"
+msgstr "36-Key Chromatic Layout (12x3)"
+
+msgid "中音"
+msgstr "Mid"
+
+msgid "低音"
+msgstr "Low"
+
+msgid "全部歌曲"
+msgstr "All Songs"
+
+msgid "单曲循环"
+msgstr "Loop Single"
+
+msgid "可以弹奏"
+msgstr "Playable"
+
+msgid "右下按键中心: "
+msgstr "Bottom-Right Button Center:"
+
+msgid "定时关闭"
+msgstr "Scheduled Stop"
+
+msgid "导入 MIDI"
+msgstr "Import MIDI"
+
+msgid "尚未载入音轨"
+msgstr "No Tracks Loaded"
+
+msgid "左上按键中心: "
+msgstr "Top-Left Button Center:"
+
+msgid "已收藏"
+msgstr "Favorited"
+
+msgid "当前游戏钢琴使用 36 键半音布局"
+msgstr "Current game piano uses a 36-key chromatic layout"
+
+msgid "打印键位映射"
+msgstr "Print Key Mapping"
+
+msgid "打开 mid_lib"
+msgstr "Open mid_lib"
+
+msgid "按键坐标配置"
+msgstr "Key Coordinates Config"
+
+msgid "搜索歌曲"
+msgstr "Search Songs"
+
+msgid "播放"
+msgstr "Play"
+
+msgid "播放模式"
+msgstr "Play Mode"
+
+msgid "播放设置"
+msgstr "Play Settings"
+
+msgid "播放速度"
+msgstr "Playback Speed"
+
+msgid "收藏歌曲"
+msgstr "Favorite Song"
+
+msgid "无法弹奏"
+msgstr "Unplayable"
+
+msgid "智能音域压缩"
+msgstr "Smart Range Compression"
+
+msgid "未选择歌曲"
+msgstr "No Song Selected"
+
+msgid "每个测试音间隔约 1 秒，请用调音器确认实际发音。"
+msgstr "Each test tone is spaced by ~1s. Please use a tuner to confirm the pitch."
+
+msgid "测试中音行"
+msgstr "Test Mid Row"
+
+msgid "测试全部键"
+msgstr "Test All Keys"
+
+msgid "自动弹琴"
+msgstr "Auto Piano"
+
+msgid "自动战斗任务不可用"
+msgstr "Auto-combat Tasks Unavailable"
+
+msgid "自动音高"
+msgstr "Auto Pitch"
+
+msgid "试听选中音轨"
+msgstr "Audition Selected Track"
+
+msgid "调试校准"
+msgstr "Debug Calibration"
+
+msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
+msgstr "After selecting a song, choose which MIDI tracks to analyze and play."
+
+msgid "选择 MIDI 档案"
+msgstr "Select MIDI File"
+
+msgid "随机播放"
+msgstr "Shuffle"
+
+msgid "音轨选择"
+msgstr "Track Selection"
+
+msgid "音高与音域分析"
+msgstr "Pitch & Range Analysis"
+
+msgid "音高调整 (半音):"
+msgstr "Pitch Adjustment (Semitones):"
+
+msgid "顺序播放"
+msgstr "Sequential Play"
+
+msgid "高音"
+msgstr "High"
+
+msgid "MIDI 分析失败"
+msgstr "MIDI Analysis Failed"
+
+msgid "MIDI 播放失败"
+msgstr "MIDI Playback Failed"
+
+msgid "键盘布局"
+msgstr "Keyboard Layout"
+
+msgid "de_DE"
+msgstr "Deutsch"
+
+msgid "en_US"
+msgstr "English"
+
+msgid "es_ES"
+msgstr "Español"
+
+msgid "fr_FR"
+msgstr "Français"
+
+msgid "ja_JP"
+msgstr "日本語"
+
+msgid "ru_RU"
+msgstr "Русский"
+
+msgid "zh_CN"
+msgstr "简体中文"
+
+msgid "zh_TW"
+msgstr "繁體中文"
+
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
+msgstr "Model API URL, must be compatible with OpenAI API format"
+
+msgid "关闭后将降级使用本地词库抽取发帖回复文案"
+msgstr "When disabled, it will fallback to the local vocabulary database"
+
+msgid "发帖内容生成提示词"
+msgstr "Post content Generation prompt"
+
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
+msgstr "Post content Generation prompt; please refine the prompt before use"
+
+msgid "发帖标题生成提示词"
+msgstr "Post title Generation prompt"
+
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
+msgstr "Post title Generation prompt; please refine the prompt before use"
+
+msgid "呗果智能体"
+msgstr "Bagel Agent"
+
+msgid "回复生成提示词"
+msgstr "Reply Generation prompt"
+
+msgid "回复生成提示词, 请先调试好提示词再使用"
+msgstr "Reply Generation prompt; please refine the prompt before use"
+
+msgid "开启助手模式后, 将只会辅助生成文案"
+msgstr "After enabling Assistant Mode, it will only assist in generating content"
+
+msgid "所调用模型名称"
+msgstr "Model Name"
+
+msgid "文案助手模式"
+msgstr "Assistant Mode"
+
+msgid "智能体模式选项"
+msgstr "Agent Mode Options"
+
+msgid "自动回帖会同时点赞"
+msgstr "Automatic replies will also include likes"
+
+msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr "Leave blank if not set, Do not leak your API_Key!"
+
+msgid "需要支持视觉输入的视觉语言模型"
+msgstr "Requires a VL Model with visual input support"
+
+msgid "模型调用API_Key"
+msgstr "Model API_Key"
+
+msgid "模型调用地址"
+msgstr "Model API URL"
+
+msgid "次数"
+msgstr "Count"
+
+msgid "游戏语言"
+msgstr "Game Language"
+
+msgid "请选择游戏所设置的语言"
+msgstr "Please select the language you set in Game"
+
+msgid "留言"
+msgstr "Comment"
+
+msgid "自动发帖"
+msgstr "Auto Post"
+
+msgid "自动呗果"
+msgstr "Auto Bagel"
+
+msgid "自动回帖"
+msgstr "Auto Reply"
+
+msgid "自动按赞"
+msgstr "Auto Like"
+
+msgid "请详阅使用说明"
+msgstr "Please read the instructions carefully"
+
+msgid "调用模型"
+msgstr "Use Model"
+
+msgid "过滤水贴"
+msgstr "Filter SPAM"

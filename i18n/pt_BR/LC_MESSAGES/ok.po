@@ -730,3 +730,9 @@ msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}: desativada</span>"
 
 msgid "启动失败"
 msgstr "Falha ao iniciar"
+
+msgid "MIDI 分析失败"
+msgstr "Falha na análise MIDI"
+
+msgid "MIDI 播放失败"
+msgstr "Falha na reprodução MIDI"

@@ -341,6 +341,18 @@ wheels = [
 ]
 
 [[package]]
+name = "mido"
+version = "1.3.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/14/cfda3fe61ce4c0f50a9f707ae02b46cb53211732b2cd4522bf06272848f4/mido-1.3.3.tar.gz", hash = "sha256:1aecb30b7f282404f17e43768cbf74a6a31bf22b3b783bdd117a1ce9d22cb74c", size = 124288, upload-time = "2024-10-25T15:05:21.847Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/fd/28/45deb15c11859d2f10702b32e71de9328a9fa494f989626916db39a9617f/mido-1.3.3-py3-none-any.whl", hash = "sha256:01033c9b10b049e4436fca2762194ca839b09a4334091dd3c34e7f4ae674fd8a", size = 54614, upload-time = "2024-10-25T15:05:20.349Z" },
+]
+
+[[package]]
 name = "mouse"
 version = "0.7.1"
 source = { registry = "https://pypi.org/simple" }
@@ -505,11 +517,13 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "librosa" },
+    { name = "mido" },
     { name = "ok-script" },
     { name = "onnxocr-ppocrv5" },
     { name = "opencc" },
     { name = "opencv-python" },
     { name = "openvino" },
+    { name = "polib" },
     { name = "pynput" },
     { name = "pyside6" },
     { name = "scikit-image" },
@@ -524,11 +538,13 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "librosa", specifier = ">=0.11.0" },
-    { name = "ok-script", specifier = ">=1.0.155" },
+    { name = "mido", specifier = ">=1.3.3" },
+    { name = "ok-script", specifier = ">=1.0.159" },
     { name = "onnxocr-ppocrv5", specifier = ">=0.0.18" },
     { name = "opencc", specifier = ">=1.2.0" },
     { name = "opencv-python", specifier = ">=4.13.0.92" },
     { name = "openvino", specifier = ">=2026.1.0" },
+    { name = "polib", specifier = ">=1.2.0" },
     { name = "pynput", specifier = ">=1.8.1" },
     { name = "pyside6", specifier = "==6.9.1" },
     { name = "scikit-image", specifier = ">=0.26.0" },
@@ -540,7 +556,7 @@ dev = [{ name = "polib", specifier = ">=1.2.0" }]
 
 [[package]]
 name = "ok-script"
-version = "1.0.155"
+version = "1.0.159"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "mouse" },
@@ -553,9 +569,9 @@ dependencies = [
     { name = "requests" },
     { name = "typing-extensions" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bb/80/2bf4813366b19fae84c15e08b682e8033b56bdc967005486dd398307a327/ok_script-1.0.155.tar.gz", hash = "sha256:7b77e9a639b1603c12c8aee7719bf6b8b8055a7b22ce50860b23539ee60ebece", size = 623861, upload-time = "2026-06-05T12:45:41.097Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/be/1f/2494cd5189b61845c4a2aa15fd4696699620eb97af6b07ce18c763272f29/ok_script-1.0.159.tar.gz", hash = "sha256:3a523242105730bd7f42d9e59c63676566dd04f64c592d2c865973e03327c80c", size = 624684, upload-time = "2026-06-11T13:39:11.635Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/fb/73/c69bd8445b9bdbf7422a8345126b2e4de0dec193596f0ef69a238419a20d/ok_script-1.0.155-py3-none-any.whl", hash = "sha256:e011cb19be23f3018352f65ba50934924c558887d1951cd59c51844862b543f9", size = 694185, upload-time = "2026-06-05T12:45:36.797Z" },
+    { url = "https://files.pythonhosted.org/packages/ba/b5/5819028d25a0f207f86d809010c57e908a2b12e5138146f8b53af0114d28/ok_script-1.0.159-py3-none-any.whl", hash = "sha256:0bb5a22c4f2a73e955ef595e5c1e0a62785867886b5cf40c50bf21b35510ac7e", size = 694905, upload-time = "2026-06-11T13:39:07.722Z" },
 ]
 
 [[package]]
@@ -789,11 +805,11 @@ wheels = [
 
 [[package]]
 name = "pyappify"
-version = "1.0.4"
+version = "1.0.5"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/e8/3b/9538e43076a15c8847c119a03439260242eaa6b5c81ae72a7575cf9f6fd4/pyappify-1.0.4.tar.gz", hash = "sha256:a39817944944736265cf26f12014479b534d66e1c71463c7e40164280cba5cf6", size = 6341, upload-time = "2026-05-30T04:43:52.543Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/b6/87/2603b6738c9539e2c64902fa426ffada6572e1ba8b3eb93858fe5124a67b/pyappify-1.0.5.tar.gz", hash = "sha256:c72a6d4e667606e722ed51392dbbd3c5bc8bae939379d1fce8b30993141d7609", size = 7307, upload-time = "2026-06-11T09:57:04.271Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c0/c7/947450fb460ec7f0673f5e1dacc997329bbf1114b236af26e8caada6afce/pyappify-1.0.4-py3-none-any.whl", hash = "sha256:ea27d4098f9168880d2bbf939838cbfa67d7203298c15d50e15e5e8649b38b29", size = 4401, upload-time = "2026-05-30T04:43:51.277Z" },
+    { url = "https://files.pythonhosted.org/packages/d6/b2/4014b23a4aeca4e2f8e12c999e98822fed1633b00440f4f834e6dc1ae795/pyappify-1.0.5-py3-none-any.whl", hash = "sha256:9bb4dfe5bf65c78353a4247569bb96b41522c3fcf7d02729430045e45d715cf0", size = 4756, upload-time = "2026-06-11T09:57:03.074Z" },
 ]
 
 [[package]]

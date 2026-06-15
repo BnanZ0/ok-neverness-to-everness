@@ -9,9 +9,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-msgid ""
-"<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: "
-"#0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
+msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 msgstr ""
 
 msgid "Arc Key"
@@ -56,8 +54,7 @@ msgstr "执行任务时开启以避免月卡中断"
 msgid "Ultimate Key"
 msgstr "极轨技快捷键"
 
-msgid ""
-"Your computer's local time when the monthly card will popup, hour in (1-24)"
+msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月卡弹出时的电脑本地时间，小时 (1-24)"
 
 msgid "[内置代码]"
@@ -152,10 +149,7 @@ msgstr ""
 msgid "填入扫描"
 msgstr ""
 
-msgid ""
-"关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b "
-"style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: "
-"#0078d7;\">{fixed_team}</b> 功能。"
+msgid "关联 <b style=\"color: #0078d7;\">角色特征</b> 后将自动判断当前角色。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接启用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
 msgstr ""
 
 msgid "完成每日活跃度"
@@ -370,9 +364,7 @@ msgstr ""
 msgid "Counter Attack Threshold"
 msgstr "反击触发阈值"
 
-msgid ""
-"Counter attack sound recognition threshold (0.0-1.0, lower is more "
-"sensitive)"
+msgid "Counter attack sound recognition threshold (0.0-1.0, lower is more sensitive)"
 msgstr "反击声音识别阈值（0.0-1.0，越低越灵敏）"
 
 msgid "Dodge Threshold"
@@ -610,9 +602,7 @@ msgstr ""
 msgid "Record has been reset"
 msgstr "记录已重置"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, "
-"then follow the instructions carefully to record your actions."
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions."
 msgstr "未找到已记录的操作。请等待录制提示出现，然后按照指引，仔细完成操作录制。"
 
 msgid "Updated successfully"
@@ -668,4 +658,250 @@ msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 msgstr ""
 
 msgid "启动失败"
+msgstr ""
+
+msgid "21键自然音布局 (已禁用)"
+msgstr ""
+
+msgid "36键半音布局 (12x3)"
+msgstr ""
+
+msgid "中音"
+msgstr ""
+
+msgid "低音"
+msgstr ""
+
+msgid "全部歌曲"
+msgstr ""
+
+msgid "单曲循环"
+msgstr ""
+
+msgid "可以弹奏"
+msgstr ""
+
+msgid "右下按键中心: "
+msgstr ""
+
+msgid "定时关闭"
+msgstr ""
+
+msgid "导入 MIDI"
+msgstr ""
+
+msgid "尚未载入音轨"
+msgstr ""
+
+msgid "左上按键中心: "
+msgstr ""
+
+msgid "已收藏"
+msgstr ""
+
+msgid "当前游戏钢琴使用 36 键半音布局"
+msgstr ""
+
+msgid "打印键位映射"
+msgstr ""
+
+msgid "打开 mid_lib"
+msgstr ""
+
+msgid "按键坐标配置"
+msgstr ""
+
+msgid "搜索歌曲"
+msgstr ""
+
+msgid "播放"
+msgstr ""
+
+msgid "播放模式"
+msgstr ""
+
+msgid "播放设置"
+msgstr ""
+
+msgid "播放速度"
+msgstr ""
+
+msgid "收藏歌曲"
+msgstr ""
+
+msgid "无法弹奏"
+msgstr ""
+
+msgid "智能音域压缩"
+msgstr ""
+
+msgid "未选择歌曲"
+msgstr ""
+
+msgid "每个测试音间隔约 1 秒，请用调音器确认实际发音。"
+msgstr ""
+
+msgid "测试中音行"
+msgstr ""
+
+msgid "测试全部键"
+msgstr ""
+
+msgid "自动弹琴"
+msgstr ""
+
+msgid "自动战斗任务不可用"
+msgstr ""
+
+msgid "自动音高"
+msgstr ""
+
+msgid "试听选中音轨"
+msgstr ""
+
+msgid "调试校准"
+msgstr ""
+
+msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
+msgstr ""
+
+msgid "选择 MIDI 档案"
+msgstr ""
+
+msgid "随机播放"
+msgstr ""
+
+msgid "音轨选择"
+msgstr ""
+
+msgid "音高与音域分析"
+msgstr ""
+
+msgid "音高调整 (半音):"
+msgstr ""
+
+msgid "顺序播放"
+msgstr ""
+
+msgid "高音"
+msgstr ""
+
+msgid "MIDI 分析失败"
+msgstr ""
+
+msgid "MIDI 播放失败"
+msgstr ""
+
+msgid "键盘布局"
+msgstr ""
+
+msgid "de_DE"
+msgstr "Deutsch"
+
+msgid "en_US"
+msgstr "English"
+
+msgid "es_ES"
+msgstr "Español"
+
+msgid "fr_FR"
+msgstr "Français"
+
+msgid "ja_JP"
+msgstr "日本語"
+
+msgid "ru_RU"
+msgstr "Русский"
+
+msgid "zh_CN"
+msgstr "简体中文"
+
+msgid "zh_TW"
+msgstr "繁體中文"
+
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
+msgstr ""
+
+msgid "关闭后将降级使用本地词库抽取发帖回复文案"
+msgstr ""
+
+msgid "发帖内容生成提示词"
+msgstr ""
+
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
+msgstr ""
+
+msgid "发帖标题生成提示词"
+msgstr ""
+
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
+msgstr ""
+
+msgid "呗果智能体"
+msgstr ""
+
+msgid "回复生成提示词"
+msgstr ""
+
+msgid "回复生成提示词, 请先调试好提示词再使用"
+msgstr ""
+
+msgid "开启助手模式后, 将只会辅助生成文案"
+msgstr ""
+
+msgid "所调用模型名称"
+msgstr ""
+
+msgid "文案助手模式"
+msgstr ""
+
+msgid "智能体模式选项"
+msgstr ""
+
+msgid "自动回帖会同时点赞"
+msgstr ""
+
+msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr ""
+
+msgid "需要支持视觉输入的视觉语言模型"
+msgstr ""
+
+msgid "模型调用API_Key"
+msgstr ""
+
+msgid "模型调用地址"
+msgstr ""
+
+msgid "次数"
+msgstr ""
+
+msgid "游戏语言"
+msgstr ""
+
+msgid "请选择游戏所设置的语言"
+msgstr ""
+
+msgid "留言"
+msgstr ""
+
+msgid "自动发帖"
+msgstr ""
+
+msgid "自动呗果"
+msgstr ""
+
+msgid "自动回帖"
+msgstr ""
+
+msgid "自动按赞"
+msgstr ""
+
+msgid "请详阅使用说明"
+msgstr ""
+
+msgid "调用模型"
+msgstr ""
+
+msgid "过滤水贴"
 msgstr ""
