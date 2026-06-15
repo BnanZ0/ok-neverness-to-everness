@@ -111,7 +111,7 @@ class SkipDialogTask(TriggerTask, BaseNTETask):
         skipped = False
         while skip := self.find_skip():
             logger.info("Click Skip Dialog")
-            box = self.box_of_screen(0.671, 0.594, 0.733, 0.670)
+            box = self.box_of_screen(0.671, 0.58, 0.733, 0.670)
             if self.find_confirm(box, threshold=0.8):
                 return True
             self.operate_click(skip)
