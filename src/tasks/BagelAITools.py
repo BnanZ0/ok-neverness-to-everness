@@ -152,6 +152,17 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             self.log_error(f"Error loading i18n from {json_path}", e)
         return _i18n_cache
 
+    @cached_property
+    def def_prompt(self):
+        try:
+            _prompt_cache = []
+            for lang_data in self.BASE_BAGEL_I18N["model_prompt"].values():
+                _prompt_cache.extend(lang_data.values())
+        except Exception as e:
+            self.log_error("Error loading default prompts", e)
+            return []
+        return _prompt_cache
+
     # ==========================================
     # 主模块
     # ==========================================
@@ -1164,7 +1175,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                     self.CONF_PROMPT_REPLY,
                     "",
                 )
-                if reply_prompt == "":
+                if reply_prompt == "" or reply_prompt in self.def_prompt:
                     reply_prompt = self.model_prompt["REPLY"]
                 model_reply = self.get_vlm_response(
                     reply_prompt, temp_img_path, post_title=title_text, author=author_name
@@ -1213,14 +1224,14 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                         self.CONF_PROMPT_POST_TITLE,
                         "",
                     )
-                    if post_prompt == "":
+                    if post_prompt == "" or post_prompt in self.def_prompt:
                         post_prompt = self.model_prompt["POST_TITLE"]
                 else:
                     post_prompt = self.config.get(
                         self.CONF_PROMPT_POST_CONTENT,
                         "",
                     )
-                    if post_prompt == "":
+                    if post_prompt == "" or post_prompt in self.def_prompt:
                         post_prompt = self.model_prompt["POST_CONTENT"]
                 model_post = self.get_vlm_response(post_prompt, temp_img_path)
                 self.log_info(f"模型生成 | 为所选图片生成{action}: '{model_post}'")
