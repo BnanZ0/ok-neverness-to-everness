@@ -792,55 +792,58 @@ msgstr ""
 msgid "MIDI 播放失败"
 msgstr ""
 
-msgid "de_DE"
+msgid "键盘布局"
 msgstr ""
+
+msgid "de_DE"
+msgstr "Deutsch"
 
 msgid "en_US"
-msgstr ""
+msgstr "English"
 
 msgid "es_ES"
-msgstr ""
+msgstr "Español"
 
 msgid "fr_FR"
-msgstr ""
+msgstr "Français"
 
 msgid "ja_JP"
-msgstr ""
+msgstr "日本語"
 
 msgid "ru_RU"
-msgstr ""
+msgstr "Русский"
 
 msgid "zh_CN"
-msgstr ""
+msgstr "简体中文"
 
 msgid "zh_TW"
-msgstr ""
+msgstr "繁體中文"
 
-msgid "使用模型根据图片生成文案, 推荐本地部署"
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
 msgstr ""
 
 msgid "关闭后将降级使用本地词库抽取发帖回复文案"
 msgstr ""
 
-msgid "发帖内容模块提示词"
+msgid "发帖内容生成提示词"
 msgstr ""
 
-msgid "发帖内容模块提示词, 请先调试好文案再使用"
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
 msgstr ""
 
-msgid "发帖标题模块提示词"
+msgid "发帖标题生成提示词"
 msgstr ""
 
-msgid "发帖标题模块提示词, 请先调试好文案再使用"
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
 msgstr ""
 
 msgid "呗果智能体"
 msgstr ""
 
-msgid "回复模块提示词"
+msgid "回复生成提示词"
 msgstr ""
 
-msgid "回复模块提示词, 请先调试好文案再使用"
+msgid "回复生成提示词, 请先调试好提示词再使用"
 msgstr ""
 
 msgid "开启助手模式后, 将只会辅助生成文案"
@@ -855,12 +858,13 @@ msgstr ""
 msgid "智能体模式选项"
 msgstr ""
 
-msgid ""
-"智能体模式选项\n"
-"自动回帖会同时点赞"
+msgid "自动回帖会同时点赞"
 msgstr ""
 
 msgid "未设置请留空, 请勿泄露API_Key!"
+msgstr ""
+
+msgid "需要支持视觉输入的视觉语言模型"
 msgstr ""
 
 msgid "模型调用API_Key"
@@ -875,9 +879,7 @@ msgstr ""
 msgid "游戏语言"
 msgstr ""
 
-msgid ""
-"游戏语言/遊戲語言/ゲーム言語/게임 언어\n"
-"Game Language/Язык игры"
+msgid "请选择游戏所设置的语言"
 msgstr ""
 
 msgid "留言"
@@ -902,7 +904,4 @@ msgid "调用模型"
 msgstr ""
 
 msgid "过滤水贴"
-msgstr ""
-
-msgid "键盘布局"
 msgstr ""

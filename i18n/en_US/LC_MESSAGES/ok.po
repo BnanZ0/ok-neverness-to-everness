@@ -815,117 +815,116 @@ msgstr "MIDI Analysis Failed"
 msgid "MIDI 播放失败"
 msgstr "MIDI Playback Failed"
 
+msgid "键盘布局"
+msgstr "Keyboard Layout"
+
 msgid "de_DE"
-msgstr ""
+msgstr "Deutsch"
 
 msgid "en_US"
-msgstr ""
+msgstr "English"
 
 msgid "es_ES"
-msgstr ""
+msgstr "Español"
 
 msgid "fr_FR"
-msgstr ""
+msgstr "Français"
 
 msgid "ja_JP"
-msgstr ""
+msgstr "日本語"
 
 msgid "ru_RU"
-msgstr ""
+msgstr "Русский"
 
 msgid "zh_CN"
-msgstr ""
+msgstr "简体中文"
 
 msgid "zh_TW"
-msgstr ""
+msgstr "繁體中文"
 
-msgid "使用模型根据图片生成文案, 推荐本地部署"
-msgstr ""
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
+msgstr "Model API URL, must be compatible with OpenAI API format"
 
 msgid "关闭后将降级使用本地词库抽取发帖回复文案"
-msgstr ""
+msgstr "When disabled, it will fallback to the local vocabulary database"
 
-msgid "发帖内容模块提示词"
-msgstr ""
+msgid "发帖内容生成提示词"
+msgstr "Post content Generation prompt"
 
-msgid "发帖内容模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
+msgstr "Post content Generation prompt; please refine the prompt before use"
 
-msgid "发帖标题模块提示词"
-msgstr ""
+msgid "发帖标题生成提示词"
+msgstr "Post title Generation prompt"
 
-msgid "发帖标题模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
+msgstr "Post title Generation prompt; please refine the prompt before use"
 
 msgid "呗果智能体"
-msgstr ""
+msgstr "Bagel Agent"
 
-msgid "回复模块提示词"
-msgstr ""
+msgid "回复生成提示词"
+msgstr "Reply Generation prompt"
 
-msgid "回复模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "回复生成提示词, 请先调试好提示词再使用"
+msgstr "Reply Generation prompt; please refine the prompt before use"
 
 msgid "开启助手模式后, 将只会辅助生成文案"
-msgstr ""
+msgstr "After enabling Assistant Mode, it will only assist in generating content"
 
 msgid "所调用模型名称"
-msgstr ""
+msgstr "Model Name"
 
 msgid "文案助手模式"
-msgstr ""
+msgstr "Assistant Mode"
 
 msgid "智能体模式选项"
-msgstr ""
+msgstr "Agent Mode Options"
 
-msgid ""
-"智能体模式选项\n"
-"自动回帖会同时点赞"
-msgstr ""
+msgid "自动回帖会同时点赞"
+msgstr "Automatic replies will also include likes"
 
 msgid "未设置请留空, 请勿泄露API_Key!"
-msgstr ""
+msgstr "Leave blank if not set, Do not leak your API_Key!"
+
+msgid "需要支持视觉输入的视觉语言模型"
+msgstr "Requires a VL Model with visual input support"
 
 msgid "模型调用API_Key"
-msgstr ""
+msgstr "Model API_Key"
 
 msgid "模型调用地址"
-msgstr ""
+msgstr "Model API URL"
 
 msgid "次数"
-msgstr ""
+msgstr "Count"
 
 msgid "游戏语言"
-msgstr ""
+msgstr "Game Language"
 
-msgid ""
-"游戏语言/遊戲語言/ゲーム言語/게임 언어\n"
-"Game Language/Язык игры"
-msgstr ""
+msgid "请选择游戏所设置的语言"
+msgstr "Please select the language you set in Game"
 
 msgid "留言"
-msgstr ""
+msgstr "Comment"
 
 msgid "自动发帖"
-msgstr ""
+msgstr "Auto Post"
 
 msgid "自动呗果"
-msgstr ""
+msgstr "Auto Bagel"
 
 msgid "自动回帖"
-msgstr ""
+msgstr "Auto Reply"
 
 msgid "自动按赞"
-msgstr ""
+msgstr "Auto Like"
 
 msgid "请详阅使用说明"
-msgstr ""
+msgstr "Please read the instructions carefully"
 
 msgid "调用模型"
-msgstr ""
+msgstr "Use Model"
 
 msgid "过滤水贴"
-msgstr ""
-
-msgid "键盘布局"
-msgstr ""
+msgstr "Filter SPAM"

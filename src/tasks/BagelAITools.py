@@ -25,9 +25,9 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
     CONF_MODEL_URL = "模型调用地址"
     CONF_MODEL_API = "模型调用API_Key"
     CONF_MODEL_NAME = "所调用模型名称"
-    CONF_PROMPT_REPLY = "回复模块提示词"
-    CONF_PROMPT_POST_TITLE = "发帖标题模块提示词"
-    CONF_PROMPT_POST_CONTENT = "发帖内容模块提示词"
+    CONF_PROMPT_REPLY = "回复生成提示词"
+    CONF_PROMPT_POST_TITLE = "发帖标题生成提示词"
+    CONF_PROMPT_POST_CONTENT = "发帖内容生成提示词"
     INFO_HELPER_COUNT = "帮助文案生成次数"
     INFO_LIKE_COUNT = "成功按赞次数"
 
@@ -36,7 +36,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         self.name = "呗果智能体"
         self.description = "请详阅使用说明"
         self.icon = FluentIcon.HEART
-        self.instructions = """【呗果智能体】\n自动模式下将自动发帖回帖点赞；\n助手模式下可辅助生成文案。\n支持调用支持图片输入的模型生成文案。\n项目开发版地址与配置教程：<a href="https://github.com/HazukiKaguya/BagelAIToolsDev">呗果智能体</a>"""
+        self.instructions = """【呗果智能体】\n自动模式下将自动发帖回帖点赞；\n助手模式下可辅助生成文案。\n支持调用支持图片输入的模型生成文案。\n本地模型配置教程：<a href="https://github.com/HazukiKaguya/BagelAIToolsDev/blob/main/BagelAIToolsModelDeploy.pdf">后端服务器部署教程</a>"""
         self.bagel_supported_languages = [
             "zh_CN",
             "zh_TW",
@@ -72,15 +72,16 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         )
         self.config_description.update(
             {
-                self.CONF_GAME_LANG: "游戏语言/遊戲語言/ゲーム言語/게임 언어\nGame Language/Язык игры",
+                self.CONF_GAME_LANG: "请选择游戏所设置的语言",
                 self.CONF_MODEL: "关闭后将降级使用本地词库抽取发帖回复文案",
                 self.CONF_HELPER_MODE: "开启助手模式后, 将只会辅助生成文案",
                 self.CONF_AUTO_AICONFIG: "智能体模式选项\n自动回帖会同时点赞",
-                self.CONF_MODEL_URL: "使用模型根据图片生成文案, 推荐本地部署",
+                self.CONF_MODEL_URL: "文案生成模型调用地址, 需兼容OpenAI接口请求格式",
                 self.CONF_MODEL_API: "未设置请留空, 请勿泄露API_Key!",
-                self.CONF_PROMPT_REPLY: "回复模块提示词, 请先调试好文案再使用",
-                self.CONF_PROMPT_POST_TITLE: "发帖标题模块提示词, 请先调试好文案再使用",
-                self.CONF_PROMPT_POST_CONTENT: "发帖内容模块提示词, 请先调试好文案再使用",
+                self.CONF_MODEL_NAME: "需要支持视觉输入的视觉语言模型",
+                self.CONF_PROMPT_REPLY: "回复生成提示词, 请先调试好提示词再使用",
+                self.CONF_PROMPT_POST_TITLE: "发帖标题生成提示词, 请先调试好提示词再使用",
+                self.CONF_PROMPT_POST_CONTENT: "发帖内容生成提示词, 请先调试好提示词再使用",
             }
         )
         options = ["自动发帖", "自动回帖", "自动按赞", "过滤水贴"]
@@ -401,6 +402,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
             return self.find_area(area="sort_menu_area_done")
 
         is_page_ok = False
+
         while self.enabled and (self.reply_count < 5 or self.like_count < 5):
             if not find_sort_menu_new():
                 self.sleep(1.00)
@@ -444,7 +446,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
         for i, post in enumerate(posts):
             if self.reply_count >= 5 and self.like_count >= 5:
                 self.log_info("已完成自动回复按赞任务！")
-                return False  # 只是返回掉，因为结束了
+                return False  # 只是返回掉，因为结束了 
             if not self.find_area(area="reply_area"):
                 self.log_info(f"正在点击目标帖子【{post.name}】")
                 self.operate_click(post)
@@ -485,6 +487,7 @@ class BagelAITools(NTEOneTimeTask, BaseNTETask):
                 self.info_add(self.INFO_LIKE_COUNT, 1)
             elif "自动按赞" in self.auto_config_list and self.like_count < 5:
                 # 点赞
+                self.reply_count = 5 # 避免一直点赞
                 self.sleep(0.2)
                 self.operate_click(0.53, 0.85)
                 self.like_count += 1

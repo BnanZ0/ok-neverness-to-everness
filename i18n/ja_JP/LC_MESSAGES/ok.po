@@ -815,117 +815,116 @@ msgstr "MIDI分析失敗"
 msgid "MIDI 播放失败"
 msgstr "MIDI再生失敗"
 
+msgid "键盘布局"
+msgstr "キーボードレイアウト"
+
 msgid "de_DE"
-msgstr ""
+msgstr "Deutsch"
 
 msgid "en_US"
-msgstr ""
+msgstr "English"
 
 msgid "es_ES"
-msgstr ""
+msgstr "Español"
 
 msgid "fr_FR"
-msgstr ""
+msgstr "Français"
 
 msgid "ja_JP"
-msgstr ""
+msgstr "日本語"
 
 msgid "ru_RU"
-msgstr ""
+msgstr "Русский"
 
 msgid "zh_CN"
-msgstr ""
+msgstr "简体中文"
 
 msgid "zh_TW"
-msgstr ""
+msgstr "繁體中文"
 
-msgid "使用模型根据图片生成文案, 推荐本地部署"
-msgstr ""
+msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
+msgstr "テキスト生成モデルのAPIエンドポイント（OpenAI互換形式）"
 
 msgid "关闭后将降级使用本地词库抽取发帖回复文案"
-msgstr ""
+msgstr "オフにすると、ローカル辞書を使用して投稿・返信テキストを生成します"
 
-msgid "发帖内容模块提示词"
-msgstr ""
+msgid "发帖内容生成提示词"
+msgstr "投稿内容生成プロンプト"
 
-msgid "发帖内容模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "发帖内容生成提示词, 请先调试好提示词再使用"
+msgstr "投稿内容生成プロンプト（使用前に調整してください）"
 
-msgid "发帖标题模块提示词"
-msgstr ""
+msgid "发帖标题生成提示词"
+msgstr "投稿タイトル生成プロンプト"
 
-msgid "发帖标题模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "发帖标题生成提示词, 请先调试好提示词再使用"
+msgstr "投稿タイトル生成プロンプト（使用前に調整してください）"
 
 msgid "呗果智能体"
-msgstr ""
+msgstr "ベーグル エージェント"
 
-msgid "回复模块提示词"
-msgstr ""
+msgid "回复生成提示词"
+msgstr "返信生成プロンプト"
 
-msgid "回复模块提示词, 请先调试好文案再使用"
-msgstr ""
+msgid "回复生成提示词, 请先调试好提示词再使用"
+msgstr "返信生成プロンプト（使用前に調整してください）"
 
 msgid "开启助手模式后, 将只会辅助生成文案"
-msgstr ""
+msgstr "アシスタントモードを有効にすると、テキスト生成の支援のみを行います"
 
 msgid "所调用模型名称"
-msgstr ""
+msgstr "使用するモデル名"
 
 msgid "文案助手模式"
-msgstr ""
+msgstr "ライティングアシスタントモード"
 
 msgid "智能体模式选项"
-msgstr ""
+msgstr "エージェントモード設定"
 
-msgid ""
-"智能体模式选项\n"
-"自动回帖会同时点赞"
-msgstr ""
+msgid "自动回帖会同时点赞"
+msgstr "返信時にいいねも実行"
 
 msgid "未设置请留空, 请勿泄露API_Key!"
-msgstr ""
+msgstr "未設定の場合は空欄にしてください。APIキーの流出にご注意ください！"
+
+msgid "需要支持视觉输入的视觉语言模型"
+msgstr "視覚入力に対応したVLMモデルが必要です"
 
 msgid "模型调用API_Key"
-msgstr ""
+msgstr "モデルAPI_Key"
 
 msgid "模型调用地址"
-msgstr ""
+msgstr "モデルAPIエンドポイント"
 
 msgid "次数"
-msgstr ""
+msgstr "回数"
 
 msgid "游戏语言"
-msgstr ""
+msgstr "ゲーム言語"
 
-msgid ""
-"游戏语言/遊戲語言/ゲーム言語/게임 언어\n"
-"Game Language/Язык игры"
-msgstr ""
+msgid "请选择游戏所设置的语言"
+msgstr "ゲーム内で設定されている言語を選択してください"
 
 msgid "留言"
-msgstr ""
+msgstr "コメント"
 
 msgid "自动发帖"
-msgstr ""
+msgstr "自動投稿"
 
 msgid "自动呗果"
-msgstr ""
+msgstr "ベーグル自動実行"
 
 msgid "自动回帖"
-msgstr ""
+msgstr "自動返信"
 
 msgid "自动按赞"
-msgstr ""
+msgstr "自動いいね"
 
 msgid "请详阅使用说明"
-msgstr ""
+msgstr "使用説明書をよくお読みください"
 
 msgid "调用模型"
-msgstr ""
+msgstr "モデル使用"
 
 msgid "过滤水贴"
-msgstr ""
-
-msgid "键盘布局"
-msgstr ""
+msgstr "スパム除外"
