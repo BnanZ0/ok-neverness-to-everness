@@ -109,8 +109,11 @@ class AutoCinemaTask(BaseNTETask):
     # 选择邀约电影对象
     def select_date(self):
         have_date = False
-        regex_str = self.config.get(self.CONF_MOVIE_CHAR,"薄荷")
-        match_regex = re.compile(regex_str)
+        regex_str = (self.config.get(self.CONF_MOVIE_CHAR, "薄荷") or "薄荷").strip() or "薄荷"
+        try:
+            match_regex = re.compile(regex_str)
+        except re.error as e:
+            raise RuntimeError(f"邀约角色配置无效: {regex_str} ({e})") from e
         attempts = 0
         while self.enabled and not have_date and attempts < 12:
             if self.ocr(0.77, 0.22, 0.9, 0.86, match=match_regex):
