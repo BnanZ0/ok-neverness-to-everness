@@ -178,6 +178,7 @@ config = {
         ["src.tasks.RhythmTask", "RhythmTask"],
         ["src.tasks.OwnerSelectionTask", "OwnerSelectionTask"],
         ["src.tasks.AutoHeistTask", "AutoHeistTask"],
+        ["src.tasks.AutoCinemaTask", "AutoCinemaTask"],
         ["src.tasks.DarkTask", "DarkTask"],
         ["src.tasks.BagelAITools", "BagelAITools"],
         # ["src.tasks.MyOneTimeWithAGroup", "MyOneTimeWithAGroup"],
