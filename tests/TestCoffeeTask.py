@@ -52,18 +52,26 @@ class TestCoffeeRuntime(unittest.TestCase):
             [("鲜鱼套餐", 100), ("鲜鱼套餐", 120)],
         )
 
-    def test_recent_supply_no_op_evidence_is_preserved(self):
+    def test_replenish_supply_ignores_cumulative_business_time(self):
+        # Regression for issue #185: 累计营业时间 is reset when income is claimed, so a
+        # small cumulative time must NOT be read as "recently supplied". Even when the
+        # shop shows 00:05:00 and no 补货 button, replenish_supply proceeds to the 补货
+        # lookup (returning the safe no-op) instead of short-circuiting on business time.
+        # A legacy skip threshold left in config stays inert.
         task = _runtime_task({"coffee_recent_supply_skip_seconds": 1800})
+        task.ocr_ui = Mock(
+            return_value=[SimpleNamespace(text="累计营业时间 00:05:00", x=0, y=0, width=10, height=10)]
+        )
         runtime = CoffeeRuntime(task)
-        runtime.current_business_seconds = Mock(return_value=60)
-        runtime.find_text_box = Mock(side_effect=AssertionError("supply UI should not be touched for recent no-op"))
 
         ok, skip_reason, real_purchase = runtime.replenish_supply()
 
         self.assertTrue(ok)
         self.assertFalse(real_purchase)
-        self.assertEqual(skip_reason, "supply_recently_active_not_needed")
-        self.assertIn("supply_recently_active_not_needed:60", runtime.actions)
+        self.assertEqual(skip_reason, "supply_not_needed_or_not_found")
+        self.assertFalse(
+            any(action.startswith("supply_recently_active_not_needed") for action in runtime.actions)
+        )
 
     def test_runtime_falls_back_to_task_ocr_when_ocr_ui_absent(self):
         box = SimpleNamespace(text="一咖舍")
@@ -192,7 +200,6 @@ class TestCoffeeRuntime(unittest.TestCase):
         runtime.wait_for = Mock(return_value=True)
         runtime.claim_or_exit_coffee_challenge_result_if_present()
 
-        runtime.current_business_seconds = Mock(return_value=None)
         runtime.find_text_box = Mock(return_value=None)
 
         ok, skip_reason, real_purchase = runtime.replenish_supply()

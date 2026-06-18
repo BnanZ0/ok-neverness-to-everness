@@ -108,7 +108,6 @@ class CoffeeRuntime:
     COFFEE_PRODUCT_DEFAULT_SCAN_SCROLLS = 5
     COFFEE_SUPPLY_CLICK_SETTLE_SECONDS = 1.2
     COFFEE_SUPPLY_CLICK_DOWN_TIME = 0.04
-    COFFEE_RECENT_SUPPLY_SKIP_SECONDS = 30 * 60
     COFFEE_KEY_SETTLE_SECONDS = 1.0
     COFFEE_SUPPLY_BLOCKER_TEXTS = (
         "库存提示", "缺少", "方斯不足", "不足", "失败", "无法", "已满", "上限",
@@ -406,11 +405,6 @@ class CoffeeRuntime:
             self.actions.append("supply_already_completed_from_pending_confirm")
             return True, "", not self._dry_run()
 
-        active_seconds = self.current_business_seconds()
-        if self._recent_supply_active(active_seconds):
-            self.actions.append(f"supply_recently_active_not_needed:{active_seconds}")
-            return True, "supply_recently_active_not_needed", False
-
         supply_target = self.find_text_box("补货", self.COFFEE_LEFT_REGION)
         if supply_target is None:
             self.actions.append("supply_not_needed_or_not_found")
@@ -604,33 +598,6 @@ class CoffeeRuntime:
             return "未检测到送货上门确认按钮，未回到一咖舍界面，未验证补货成功"
         self.actions.append("supply_purchase_verified_without_delivery_prompt")
         return ""
-
-    def current_business_seconds(self):
-        texts = [self.box_text(box) for box in self.ocr_region(self.COFFEE_LEFT_REGION)]
-        if not any("累计营业时间" in text for text in texts):
-            return None
-        for text in texts:
-            match = re.search(r"(\d{1,2})[:：](\d{2})[:：](\d{2})", text)
-            if not match:
-                continue
-            hours, minutes, seconds = (int(part) for part in match.groups())
-            return hours * 3600 + minutes * 60 + seconds
-        return None
-
-    def _recent_supply_active(self, active_seconds):
-        if active_seconds is None or active_seconds <= 0:
-            return False
-        try:
-            threshold = int(
-                self._config_get(
-                    "coffee_recent_supply_skip_seconds",
-                    self.COFFEE_RECENT_SUPPLY_SKIP_SECONDS,
-                )
-                or 0
-            )
-        except (TypeError, ValueError):
-            threshold = self.COFFEE_RECENT_SUPPLY_SKIP_SECONDS
-        return threshold > 0 and active_seconds <= threshold
 
     def wait_for_supply_blocker_text(self, timeout=2):
         return self.wait_for(self.find_supply_blocker_text, timeout=timeout)
