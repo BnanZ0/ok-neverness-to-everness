@@ -20,13 +20,14 @@ logger = Logger.get_logger(__name__)
 CUSTOM_CHARS_DIR = "custom_chars"
 FEATURES_DIR = os.path.join(CUSTOM_CHARS_DIR, "features")
 DB_PATH = os.path.join(CUSTOM_CHARS_DIR, "db.json")
-DB_SCHEMA_VERSION = 4
+DB_SCHEMA_VERSION = 6
 
 
 class CustomCharManager:
     _instance = None
     _lock = Lock()
     CUSTOM_COMBO_PREFIX = "custom:"
+    CUSTOM_TEAM_AXIS_PREFIX = "custom_team_axis:"
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
@@ -58,6 +59,21 @@ class CustomCharManager:
     def _default_fixed_team():
         return {"enabled": False, "slots": [{"char_name": "", "combo_ref": ""} for _ in range(4)]}
 
+    @staticmethod
+    def _default_fixed_team_axis():
+        return {"enabled": False, "axis_id": ""}
+
+    @classmethod
+    def _default_custom_team_axis(cls, axis_id: str = ""):
+        return {
+            "axis_id": axis_id,
+            "name": "",
+            "description": "",
+            "content": "",
+            "team_signature": ["", "", "", ""],
+            "enabled": True,
+        }
+
     @classmethod
     def _normalize_fixed_team_slot(cls, slot) -> dict:
         slot = slot if isinstance(slot, dict) else {}
@@ -83,6 +99,66 @@ class CustomCharManager:
                 normalized["slots"][i] = cls._normalize_fixed_team_slot(raw_slots[i])
         return normalized
 
+    @classmethod
+    def _normalize_fixed_team_axis_config(cls, config) -> dict:
+        normalized = cls._default_fixed_team_axis()
+        if not isinstance(config, dict):
+            return normalized
+
+        normalized["axis_id"] = str(config.get("axis_id", "") or "").strip()
+        normalized["enabled"] = bool(config.get("enabled", False)) and bool(
+            normalized["axis_id"]
+        )
+        return normalized
+
+    @staticmethod
+    def _normalize_team_axis_id(axis_id: str) -> str:
+        axis_id = str(axis_id or "").strip()
+        if not axis_id:
+            return ""
+        if axis_id.startswith(CustomCharManager.CUSTOM_TEAM_AXIS_PREFIX):
+            return axis_id
+        return f"{CustomCharManager.CUSTOM_TEAM_AXIS_PREFIX}{axis_id}"
+
+    @classmethod
+    def _normalize_team_signature(cls, signature) -> list[str]:
+        normalized = ["", "", "", ""]
+        if not isinstance(signature, (list, tuple)):
+            return normalized
+        for i in range(min(4, len(signature))):
+            normalized[i] = str(signature[i] or "").strip()
+        return normalized
+
+    @classmethod
+    def _normalize_custom_team_axis_config(cls, axis_config, axis_id: str = "") -> dict:
+        axis_config = axis_config if isinstance(axis_config, dict) else {}
+        normalized_axis_id = cls._normalize_team_axis_id(
+            axis_config.get("axis_id", axis_id)
+        )
+        normalized = cls._default_custom_team_axis(normalized_axis_id)
+        normalized["name"] = str(axis_config.get("name", "") or "").strip()
+        normalized["description"] = str(axis_config.get("description", "") or "").strip()
+        normalized["content"] = str(axis_config.get("content", "") or "").strip()
+        normalized["team_signature"] = cls._normalize_team_signature(
+            axis_config.get("team_signature")
+        )
+        normalized["enabled"] = bool(axis_config.get("enabled", True))
+        return normalized
+
+    @classmethod
+    def _normalize_custom_team_axes_config(cls, axes) -> dict:
+        if not isinstance(axes, dict):
+            return {}
+
+        normalized = {}
+        for raw_axis_id, axis_config in axes.items():
+            axis = cls._normalize_custom_team_axis_config(axis_config, raw_axis_id)
+            axis_id = axis.get("axis_id", "")
+            if not axis_id:
+                continue
+            normalized[axis_id] = axis
+        return normalized
+
     @staticmethod
     def _default_db():
         return {
@@ -91,6 +167,8 @@ class CustomCharManager:
             "characters": {},
             "features": {},
             "fixed_team": CustomCharManager._default_fixed_team(),
+            "fixed_team_axis": CustomCharManager._default_fixed_team_axis(),
+            "team_axes": {},
         }
 
     @staticmethod
@@ -166,6 +244,10 @@ class CustomCharManager:
                         loaded["characters"] = data.get("characters", loaded["characters"])
                         loaded["features"] = data.get("features", loaded["features"])
                         loaded["fixed_team"] = data.get("fixed_team", loaded["fixed_team"])
+                        loaded["fixed_team_axis"] = data.get(
+                            "fixed_team_axis", loaded["fixed_team_axis"]
+                        )
+                        loaded["team_axes"] = data.get("team_axes", loaded["team_axes"])
             except Exception as e:
                 logger.error("Failed to load custom char DB", e)
         self.db = loaded
@@ -182,9 +264,25 @@ class CustomCharManager:
                 self.db["features"] = {}
                 modified = True
 
+            if not isinstance(self.db.get("team_axes"), dict):
+                self.db["team_axes"] = {}
+                modified = True
+
             fixed_team = self._normalize_fixed_team_config(self.db.get("fixed_team"))
             if fixed_team != self.db.get("fixed_team"):
                 self.db["fixed_team"] = fixed_team
+                modified = True
+
+            fixed_team_axis = self._normalize_fixed_team_axis_config(
+                self.db.get("fixed_team_axis")
+            )
+            if fixed_team_axis != self.db.get("fixed_team_axis"):
+                self.db["fixed_team_axis"] = fixed_team_axis
+                modified = True
+
+            team_axes = self._normalize_custom_team_axes_config(self.db.get("team_axes"))
+            if team_axes != self.db.get("team_axes"):
+                self.db["team_axes"] = team_axes
                 modified = True
 
             for char_id, char_data in self.db["characters"].items():
@@ -303,6 +401,9 @@ class CustomCharManager:
             if not isinstance(self.db.get("features"), dict):
                 self.db["features"] = {}
                 modified = True
+            if not isinstance(self.db.get("team_axes"), dict):
+                self.db["team_axes"] = {}
+                modified = True
 
             normalized_combos = {}
             combo_key_remap = {}
@@ -402,6 +503,13 @@ class CustomCharManager:
 
             if normalized_characters != self.db["characters"]:
                 self.db["characters"] = normalized_characters
+                modified = True
+
+            normalized_team_axes = self._normalize_custom_team_axes_config(
+                self.db.get("team_axes")
+            )
+            if normalized_team_axes != self.db.get("team_axes"):
+                self.db["team_axes"] = normalized_team_axes
                 modified = True
 
             if self.db.get("schema_version") != DB_SCHEMA_VERSION:
@@ -840,6 +948,86 @@ class CustomCharManager:
     def clear_fixed_team(self):
         with self._data_lock:
             self.db["fixed_team"] = self._default_fixed_team()
+            self.save_db()
+
+    def generate_custom_team_axis_id(self) -> str:
+        with self._data_lock:
+            while True:
+                axis_id = f"{self.CUSTOM_TEAM_AXIS_PREFIX}{uuid.uuid4().hex}"
+                if axis_id not in self.db.get("team_axes", {}):
+                    return axis_id
+
+    def get_custom_team_axes(self):
+        with self._data_lock:
+            axes = self._normalize_custom_team_axes_config(self.db.get("team_axes"))
+            return {axis_id: dict(axis) for axis_id, axis in axes.items()}
+
+    def get_custom_team_axis(self, axis_id: str):
+        with self._data_lock:
+            axis_id = self._normalize_team_axis_id(axis_id)
+            axis = self._normalize_custom_team_axes_config(
+                self.db.get("team_axes")
+            ).get(axis_id)
+            return dict(axis) if axis else None
+
+    def set_custom_team_axis(
+        self,
+        axis_id: str,
+        name: str,
+        description: str,
+        content: str,
+        team_signature,
+        enabled: bool = True,
+    ) -> str:
+        with self._data_lock:
+            if not axis_id:
+                axis_id = self.generate_custom_team_axis_id()
+            axis_id = self._normalize_team_axis_id(axis_id)
+            self.db["team_axes"] = self._normalize_custom_team_axes_config(
+                self.db.get("team_axes")
+            )
+            self.db["team_axes"][axis_id] = self._normalize_custom_team_axis_config(
+                {
+                    "axis_id": axis_id,
+                    "name": name,
+                    "description": description,
+                    "content": content,
+                    "team_signature": team_signature,
+                    "enabled": enabled,
+                },
+                axis_id,
+            )
+            self.save_db()
+            return axis_id
+
+    def delete_custom_team_axis(self, axis_id: str):
+        with self._data_lock:
+            axis_id = self._normalize_team_axis_id(axis_id)
+            if not axis_id:
+                return
+            if axis_id in self.db.get("team_axes", {}):
+                del self.db["team_axes"][axis_id]
+            fixed_team_axis = self._normalize_fixed_team_axis_config(
+                self.db.get("fixed_team_axis")
+            )
+            if fixed_team_axis.get("axis_id") == axis_id:
+                self.db["fixed_team_axis"] = self._default_fixed_team_axis()
+            self.save_db()
+
+    def get_fixed_team_axis(self):
+        with self._data_lock:
+            return dict(
+                self._normalize_fixed_team_axis_config(self.db.get("fixed_team_axis"))
+            )
+
+    def set_fixed_team_axis(self, enabled: bool, axis_id: str):
+        with self._data_lock:
+            self.db["fixed_team_axis"] = self._normalize_fixed_team_axis_config(
+                {
+                    "enabled": enabled,
+                    "axis_id": axis_id,
+                }
+            )
             self.save_db()
 
 

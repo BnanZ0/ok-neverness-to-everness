@@ -235,6 +235,70 @@ class TestCustomCharCore(unittest.TestCase):
         self.assertIn(existing_fid, manager.db["features"])
         self.assertNotIn(missing_fid, manager.db["features"])
 
+    def test_fixed_team_axis_config_persists(self):
+        manager = CustomCharManager()
+        manager.set_fixed_team_axis(True, "nanally_zero_jiuyuan_hotori")
+
+        self.assertEqual(
+            manager.get_fixed_team_axis(),
+            {
+                "enabled": True,
+                "axis_id": "nanally_zero_jiuyuan_hotori",
+            },
+        )
+
+        CustomCharManager._instance = None
+        reloaded = CustomCharManager()
+        self.assertEqual(
+            reloaded.get_fixed_team_axis(),
+            {
+                "enabled": True,
+                "axis_id": "nanally_zero_jiuyuan_hotori",
+            },
+        )
+
+        reloaded.set_fixed_team_axis(False, "nanally_zero_jiuyuan_hotori")
+        self.assertEqual(
+            reloaded.get_fixed_team_axis(),
+            {
+                "enabled": False,
+                "axis_id": "nanally_zero_jiuyuan_hotori",
+            },
+        )
+
+    def test_custom_team_axis_config_persists_and_deletes(self):
+        manager = CustomCharManager()
+        axis_id = manager.set_custom_team_axis(
+            "",
+            "测试固定轴",
+            "测试简介",
+            "p1_skill, p2_wait(0.1)",
+            ("char_a", "char_b", "char_c", "char_d"),
+        )
+
+        self.assertTrue(axis_id.startswith(manager.CUSTOM_TEAM_AXIS_PREFIX))
+        self.assertEqual(
+            manager.get_custom_team_axis(axis_id),
+            {
+                "axis_id": axis_id,
+                "name": "测试固定轴",
+                "description": "测试简介",
+                "content": "p1_skill, p2_wait(0.1)",
+                "team_signature": ["char_a", "char_b", "char_c", "char_d"],
+                "enabled": True,
+            },
+        )
+
+        manager.set_fixed_team_axis(True, axis_id)
+        CustomCharManager._instance = None
+        reloaded = CustomCharManager()
+        self.assertEqual(reloaded.get_custom_team_axis(axis_id)["name"], "测试固定轴")
+        self.assertEqual(reloaded.get_fixed_team_axis()["axis_id"], axis_id)
+
+        reloaded.delete_custom_team_axis(axis_id)
+        self.assertIsNone(reloaded.get_custom_team_axis(axis_id))
+        self.assertEqual(reloaded.get_fixed_team_axis(), {"enabled": False, "axis_id": ""})
+
 
 if __name__ == "__main__":
     unittest.main()

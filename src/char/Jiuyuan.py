@@ -30,15 +30,15 @@ class Jiuyuan(BaseChar):
             ),
         )
 
-    def fire_bullets(self, context: CombatContext = None):
-        if context.has_strict_route():
+    def fire_bullets(self, context: CombatContext = None, duration=0.6):
+        if context is not None and context.has_strict_route():
             return
         box = self.task.box_of_screen(
             0.4191, 0.8799, 0.4348, 0.9076, name="jiuyuan_bullet", hcenter=True
         )
         if not self.has_bullets(box):
             return
-        self.heavy_attack()
+        self.heavy_attack(duration=duration)
         return True
 
     def has_bullets(self, box):

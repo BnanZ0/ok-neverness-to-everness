@@ -10,7 +10,9 @@ from src.char.custom.CustomChar import CustomChar
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.config import config
 from src.tasks.trigger.AutoCombatTask import AutoCombatTask
+from src.ui.CharHubTab import CharHubTab
 from src.ui.CharManagerTab import CharManagerTab
+from src.ui.TeamAxisTab import TeamAxisTab
 from src.ui.TeamManagerTab import TeamManagerTab
 
 PREDEFINED_CHARACTER_REF = "builtin:char_zero"
@@ -226,6 +228,67 @@ class TestCustomChar(TaskTestCase):
 
         # 槽位 2: 未收到掃描結果，應被清空並寫著無畫面
         self.assertEqual(tab.slots[2].status.text(), tab.tr_no_feature)
+
+    def test_fixed_team_axis_tab_matches_builtin_team(self):
+        slots = []
+        for name, key in (
+            ("娜娜莉", "char_nanally"),
+            ("零", "char_zero"),
+            ("九原", "char_jiuyuan"),
+            ("浔", "char_hotori"),
+        ):
+            slots.append(
+                {
+                    "char_name": name,
+                    "combo_ref": f"builtin:{key}",
+                }
+            )
+        self.manager.set_fixed_team(True, slots)
+
+        tab = TeamAxisTab(manager=self.manager)
+        valid, _ = tab._match_state()
+
+        self.assertTrue(valid)
+        self.assertEqual(tab.axis_combo.count(), 1)
+        self.assertTrue(tab.enable_btn.isEnabled())
+
+    def test_char_hub_contains_fixed_axis_tab(self):
+        hub = CharHubTab(manager=self.manager)
+
+        self.assertEqual(hub.stacked_widget.count(), 3)
+        self.assertEqual(hub.team_axis_tab.name, "固定轴")
+
+    def test_fixed_team_axis_tab_can_create_custom_axis(self):
+        slots = []
+        for name, key in (
+            ("娜娜莉", "char_nanally"),
+            ("零", "char_zero"),
+            ("九原", "char_jiuyuan"),
+            ("浔", "char_hotori"),
+        ):
+            slots.append(
+                {
+                    "char_name": name,
+                    "combo_ref": f"builtin:{key}",
+                }
+            )
+        self.manager.set_fixed_team(True, slots)
+
+        tab = TeamAxisTab(manager=self.manager)
+        tab.on_new_axis()
+        axis_id = tab.selected_axis_id()
+        self.assertTrue(axis_id.startswith(self.manager.CUSTOM_TEAM_AXIS_PREFIX))
+
+        tab.axis_name_edit.setText("测试自定义固定轴")
+        tab.axis_description_edit.setPlainText("测试简介")
+        tab.axis_content_edit.setPlainText("p1_skill, p2_wait(0.1)")
+        tab.on_save_axis()
+
+        axis_config = self.manager.get_custom_team_axis(axis_id)
+        self.assertEqual(axis_config["name"], "测试自定义固定轴")
+        self.assertEqual(axis_config["description"], "测试简介")
+        self.assertEqual(axis_config["content"], "p1_skill, p2_wait(0.1)")
+        self.assertEqual(tab.axis_combo.count(), 2)
 
     def test_builtin_combo_roundtrip(self):
         builtin_ref = PREDEFINED_CHARACTER_REF

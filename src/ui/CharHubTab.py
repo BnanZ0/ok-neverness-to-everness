@@ -1,11 +1,12 @@
+from ok import og
+from ok.gui.widget.CustomTab import CustomTab
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QStackedWidget, QVBoxLayout
 from qfluentwidgets import FluentIcon, Pivot, isDarkTheme, qconfig
 
-from ok import og
-from ok.gui.widget.CustomTab import CustomTab
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.ui.CharManagerTab import CharManagerTab
+from src.ui.TeamAxisTab import TeamAxisTab
 from src.ui.TeamManagerTab import TeamManagerTab
 
 
@@ -43,9 +44,11 @@ class CharHubTab(CustomTab):
 
         self.team_manager_tab = TeamManagerTab(self.manager, owner=self)
         self.char_manager_tab = CharManagerTab(owner=self)
+        self.team_axis_tab = TeamAxisTab(self.manager, owner=self)
 
         self.add_sub_interface(self.char_manager_tab, "CharManagerTab", self.char_manager_tab.name)
         self.add_sub_interface(self.team_manager_tab, "TeamManagerTab", self.team_manager_tab.name)
+        self.add_sub_interface(self.team_axis_tab, "TeamAxisTab", self.team_axis_tab.name)
 
         self.stacked_widget.currentChanged.connect(self.on_current_index_changed)
         self.pivot.setCurrentItem(self.char_manager_tab.objectName())
