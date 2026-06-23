@@ -12,6 +12,7 @@ from src.team_axis.CustomTeamAxis import CustomTeamAxis, CustomTeamAxisDefinitio
 
 _axis_classes: list[type[BaseTeamAxis]] | None = None
 logger = Logger.get_logger(__name__)
+AxisDefinition = type[BaseTeamAxis] | CustomTeamAxisDefinition
 
 
 def _discover_axis_classes() -> list[type[BaseTeamAxis]]:
@@ -36,21 +37,33 @@ def _discover_axis_classes() -> list[type[BaseTeamAxis]]:
     return sorted(discovered, key=lambda cls: cls.priority, reverse=True)
 
 
-def get_axis_classes() -> list[type[BaseTeamAxis]]:
+def _axis_label(axis_class: AxisDefinition | None) -> str:
+    if axis_class is None:
+        return ""
+    return getattr(axis_class, "axis_id", getattr(axis_class, "__name__", str(axis_class)))
+
+
+def _load_custom_axis_definitions() -> list[CustomTeamAxisDefinition]:
+    manager = CustomCharManager()
+    custom_axes = []
+    for axis_id, axis_config in manager.get_custom_team_axes().items():
+        try:
+            custom_axes.append(CustomTeamAxis.build_definition(axis_config))
+        except Exception as error:
+            logger.error(f"Failed to load custom team axis: {axis_id}", error)
+    return custom_axes
+
+
+def get_axis_classes() -> list[AxisDefinition]:
     global _axis_classes
     if _axis_classes is None:
         _axis_classes = _discover_axis_classes()
     axes = list(_axis_classes)
-    manager = CustomCharManager()
-    custom_axes = [
-        CustomTeamAxis.build_definition(axis)
-        for axis in manager.get_custom_team_axes().values()
-    ]
-    axes.extend(custom_axes)
+    axes.extend(_load_custom_axis_definitions())
     return sorted(axes, key=lambda axis: axis.priority, reverse=True)
 
 
-def get_axis_class(axis_id: str) -> type[BaseTeamAxis] | None:
+def get_axis_class(axis_id: str) -> AxisDefinition | None:
     """Return one registered axis by its stable configuration id."""
     axis_id = str(axis_id or "").strip()
     for axis_class in get_axis_classes():
@@ -65,10 +78,20 @@ def create_matching_team_axis(task, axis_id: str = "") -> BaseTeamAxis | None:
     for axis_class in axis_classes:
         if axis_class is None:
             continue
-        if axis_class.matches(task.chars):
+        try:
+            matches = axis_class.matches(task.chars)
+        except Exception as error:
+            logger.error(f"Failed to match team axis: {_axis_label(axis_class)}", error)
+            continue
+        if not matches:
+            continue
+
+        try:
             if isinstance(axis_class, CustomTeamAxisDefinition):
                 return axis_class.create(task)
             return axis_class(task)
+        except Exception as error:
+            logger.error(f"Failed to create team axis: {_axis_label(axis_class)}", error)
     return None
 
 

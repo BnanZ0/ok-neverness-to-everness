@@ -10,9 +10,51 @@ if TYPE_CHECKING:
     from src.char.BaseChar import BaseChar
 
 
+def _split_example_commands(example: str) -> list[str]:
+    parts = []
+    current = []
+    depth = 0
+    quote = ""
+    escape = False
+
+    for char in example:
+        if quote:
+            current.append(char)
+            if escape:
+                escape = False
+            elif char == "\\":
+                escape = True
+            elif char == quote:
+                quote = ""
+            continue
+
+        if char in ("'", '"'):
+            quote = char
+            current.append(char)
+            continue
+        if char in "([{":
+            depth += 1
+        elif char in ")]}" and depth > 0:
+            depth -= 1
+
+        if char == "," and depth == 0:
+            item = "".join(current).strip()
+            if item:
+                parts.append(item)
+            current = []
+            continue
+
+        current.append(char)
+
+    item = "".join(current).strip()
+    if item:
+        parts.append(item)
+    return parts
+
+
 def _prefixed_example(example: str, command_name: str, prefixed_name: str) -> str:
     examples = []
-    for item in str(example or command_name).split(","):
+    for item in _split_example_commands(str(example or command_name)):
         item = item.strip()
         if not item:
             continue

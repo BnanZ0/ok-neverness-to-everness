@@ -10,6 +10,7 @@ from src.char.custom.CustomChar import CustomChar
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.config import config
 from src.tasks.trigger.AutoCombatTask import AutoCombatTask
+from src.team_axis.TeamAxisRegistry import clear_registry_cache
 from src.ui.CharHubTab import CharHubTab
 from src.ui.CharManagerTab import CharManagerTab
 from src.ui.TeamAxisTab import TeamAxisTab
@@ -93,6 +94,7 @@ class TestCustomChar(TaskTestCase):
 
         # 破壞單例快取，強迫 CustomCharManager 以沙盒的 Path 初始化
         CustomCharManager._instance = None
+        clear_registry_cache()
         self.manager = CustomCharManager()
 
     def tearDown(self):
@@ -108,6 +110,7 @@ class TestCustomChar(TaskTestCase):
 
         # 拔除單例快取，這確保開發中或測試結束後，原本環境要讀 CustomCharManager 都能載入正式的 custom_chars
         CustomCharManager._instance = None
+        clear_registry_cache()
 
     def test_manager_crud(self):
         """測試 CustomCharManager 基本存取功能與特徵匹配"""
@@ -256,7 +259,8 @@ class TestCustomChar(TaskTestCase):
         hub = CharHubTab(manager=self.manager)
 
         self.assertEqual(hub.stacked_widget.count(), 3)
-        self.assertEqual(hub.team_axis_tab.name, "固定轴")
+        self.assertIs(hub.stacked_widget.widget(2), hub.team_axis_tab)
+        self.assertEqual(hub.team_axis_tab.objectName(), "TeamAxisTab")
 
     def test_fixed_team_axis_tab_can_create_custom_axis(self):
         slots = []
@@ -289,6 +293,36 @@ class TestCustomChar(TaskTestCase):
         self.assertEqual(axis_config["description"], "测试简介")
         self.assertEqual(axis_config["content"], "p1_skill, p2_wait(0.1)")
         self.assertEqual(tab.axis_combo.count(), 2)
+
+    def test_custom_fixed_axis_requires_saved_content_before_enable(self):
+        slots = []
+        for name, key in (
+            ("娜娜莉", "char_nanally"),
+            ("零", "char_zero"),
+            ("九原", "char_jiuyuan"),
+            ("浔", "char_hotori"),
+        ):
+            slots.append(
+                {
+                    "char_name": name,
+                    "combo_ref": f"builtin:{key}",
+                }
+            )
+        self.manager.set_fixed_team(True, slots)
+
+        tab = TeamAxisTab(manager=self.manager)
+        tab.on_new_axis()
+        valid, _ = tab._match_state()
+
+        self.assertFalse(valid)
+        self.assertFalse(tab.enable_btn.isEnabled())
+
+        tab.axis_content_edit.setPlainText("p1_skill")
+        tab.on_save_axis()
+        valid, _ = tab._match_state()
+
+        self.assertTrue(valid)
+        self.assertTrue(tab.enable_btn.isEnabled())
 
     def test_builtin_combo_roundtrip(self):
         builtin_ref = PREDEFINED_CHARACTER_REF

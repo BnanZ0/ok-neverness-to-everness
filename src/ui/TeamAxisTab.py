@@ -281,7 +281,8 @@ class TeamAxisTab(CustomTab):
 
     def _match_state(self):
         fixed_team = self.manager.get_fixed_team()
-        axis = get_axis_class(self.selected_axis_id())
+        axis_id = self.selected_axis_id()
+        axis = get_axis_class(axis_id)
         signature = self.fixed_team_signature()
 
         if axis is None:
@@ -290,6 +291,14 @@ class TeamAxisTab(CustomTab):
             return False, og.app.tr("请先在“队伍管理”中启用固定队伍")
         if len(signature) != 4 or any(key is None for key in signature):
             return False, og.app.tr("固定队伍的四个槽位都必须选择内置角色代码")
+        if self.is_custom_axis_id(axis_id):
+            axis_config = self.manager.get_custom_team_axis(axis_id) or {}
+            content = str(axis_config.get("content", "") or "").strip()
+            if not content:
+                return False, og.app.tr("请先保存非空的自定义固定轴内容")
+            is_valid, error = CustomTeamAxis.validate_axis_syntax(content)
+            if not is_valid:
+                return False, error or og.app.tr("自定义固定轴语法错误")
         if not axis.matches_signature(signature):
             return False, og.app.tr("当前固定队伍与所选固定轴不匹配")
         return True, og.app.tr("队伍匹配，可以启用该固定轴")

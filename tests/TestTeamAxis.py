@@ -5,7 +5,11 @@ from src.tasks.trigger.AutoCombatTask import AutoCombatTask
 from src.team_axis.axes.NanallyZeroJiuyuanHotoriAxis import NanallyZeroJiuyuanHotoriAxis
 from src.team_axis.BaseTeamAxis import BaseTeamAxis
 from src.team_axis.CustomTeamAxis import CustomTeamAxis, CustomTeamAxisDefinition
-from src.team_axis.TeamAxisRegistry import create_matching_team_axis, get_axis_class
+from src.team_axis.TeamAxisRegistry import (
+    clear_registry_cache,
+    create_matching_team_axis,
+    get_axis_class,
+)
 
 
 class FakeChar:
@@ -186,6 +190,12 @@ class RotationAxis(NanallyZeroJiuyuanHotoriAxis):
 
 
 class TestTeamAxis(unittest.TestCase):
+    def setUp(self):
+        clear_registry_cache()
+
+    def tearDown(self):
+        clear_registry_cache()
+
     def test_ordered_team_match_is_exact(self):
         chars = [FakeChar(key) for key in ("a", "b", "c", "d")]
         self.assertTrue(LifecycleAxis.matches(chars))
@@ -235,6 +245,15 @@ class TestTeamAxis(unittest.TestCase):
         self.assertFalse(is_valid)
         self.assertIn("unknown command", error or "")
 
+    def test_custom_team_axis_command_examples_keep_nested_commas(self):
+        command_examples = {
+            command.name: command.example
+            for command in CustomTeamAxis.get_command_definitions()
+        }
+
+        self.assertEqual(command_examples["p1_walk"], "p1_walk(w, 0.2)")
+        self.assertEqual(command_examples["p2_skill"], "p2_skill, p2_skill(0.5)")
+
     def test_custom_team_axis_executes_position_commands(self):
         definition = CustomTeamAxisDefinition(
             axis_id="custom_team_axis:test",
@@ -276,6 +295,32 @@ class TestTeamAxis(unittest.TestCase):
             axis_definition = get_axis_class(axis_id)
             self.assertIsInstance(axis_definition, CustomTeamAxisDefinition)
             self.assertIsInstance(create_matching_team_axis(task, axis_id), CustomTeamAxis)
+
+    def test_registry_skips_malformed_custom_team_axis_config(self):
+        good_axis_id = "custom_team_axis:good_registry_test"
+        manager = Mock()
+        manager.get_custom_team_axes.return_value = {
+            "custom_team_axis:bad_registry_test": {
+                "axis_id": "custom_team_axis:bad_registry_test",
+                "team_signature": None,
+            },
+            good_axis_id: {
+                "axis_id": good_axis_id,
+                "name": "good registry test",
+                "description": "",
+                "content": "p1_skill",
+                "team_signature": ["a", "b", "c", "d"],
+                "enabled": True,
+            },
+        }
+
+        with (
+            patch("src.team_axis.TeamAxisRegistry.CustomCharManager", return_value=manager),
+            patch("src.team_axis.TeamAxisRegistry.logger") as logger_mock,
+        ):
+            axis_definition = get_axis_class(good_axis_id)
+            self.assertIsInstance(axis_definition, CustomTeamAxisDefinition)
+            logger_mock.error.assert_called_once()
 
     def test_auto_combat_only_creates_enabled_fixed_team_axis(self):
         task = object.__new__(AutoCombatTask)
