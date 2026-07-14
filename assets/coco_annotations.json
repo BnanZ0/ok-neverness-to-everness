@@ -20,7 +20,7 @@
         },
         {
             "id": 4,
-            "file_name": "images/1.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
@@ -32,13 +32,13 @@
         },
         {
             "id": 7,
-            "file_name": "images/0.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 8,
-            "file_name": "images/1.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
@@ -56,19 +56,19 @@
         },
         {
             "id": 11,
-            "file_name": "images/2.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 12,
-            "file_name": "images/2.png",
+            "file_name": "images/7.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 13,
-            "file_name": "images/0.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
@@ -86,7 +86,7 @@
         },
         {
             "id": 16,
-            "file_name": "images/3.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
@@ -98,7 +98,7 @@
         },
         {
             "id": 18,
-            "file_name": "images/1.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
@@ -116,49 +116,49 @@
         },
         {
             "id": 21,
-            "file_name": "images/4.png",
+            "file_name": "images/3.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 22,
-            "file_name": "images/5.png",
+            "file_name": "images/4.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 23,
-            "file_name": "images/2.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 24,
-            "file_name": "images/6.png",
+            "file_name": "images/5.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 25,
-            "file_name": "images/7.png",
+            "file_name": "images/6.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 26,
-            "file_name": "images/1.png",
+            "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 27,
-            "file_name": "images/2.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
         {
             "id": 28,
-            "file_name": "images/1.png",
+            "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
         },
@@ -195,6 +195,24 @@
         {
             "id": 34,
             "file_name": "images/1.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 35,
+            "file_name": "images/0.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 36,
+            "file_name": "images/0.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 38,
+            "file_name": "images/3.png",
             "width": 2560,
             "height": 1440
         }
@@ -1109,6 +1127,58 @@
             ],
             "area": 18816,
             "iscrowd": 0
+        },
+        {
+            "id": 71,
+            "image_id": 35,
+            "category_id": 70,
+            "bbox": [
+                1348,
+                402,
+                22,
+                31
+            ],
+            "area": 682,
+            "iscrowd": 0
+        },
+        {
+            "id": 72,
+            "image_id": 36,
+            "category_id": 72,
+            "bbox": [
+                1313,
+                391,
+                17,
+                26
+            ],
+            "area": 442,
+            "iscrowd": 0
+        },
+        {
+            "id": 73,
+            "image_id": 38,
+            "category_id": 74,
+            "bbox": [
+                1664,
+                477,
+                28,
+                34
+            ],
+            "area": 952,
+            "iscrowd": 0
+        },
+        {
+            "id": 74,
+            "image_id": 38,
+            "category_id": 73,
+            "bbox": [
+                1558,
+                772,
+                28,
+                28
+            ],
+            "area": 784,
+            "iscrowd": 0
         }
     ],
     "categories": [
@@ -1458,8 +1528,28 @@
             "supercategory": ""
         },
         {
+            "id": 70,
+            "name": "boss_treasure_near",
+            "supercategory": ""
+        },
+        {
             "id": 71,
             "name": "anomaly_hamster_ball",
+            "supercategory": ""
+        },
+        {
+            "id": 72,
+            "name": "boss_treasure_far",
+            "supercategory": ""
+        },
+        {
+            "id": 73,
+            "name": "boss_treasure",
+            "supercategory": ""
+        },
+        {
+            "id": 74,
+            "name": "boss_treasure_big",
             "supercategory": ""
         }
     ]

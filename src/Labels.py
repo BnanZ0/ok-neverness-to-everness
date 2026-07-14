@@ -72,3 +72,7 @@ class Labels(str, Enum):
     teleport = 'teleport'
     treasure = 'treasure'
     ult_ready = 'ult_ready'
+    boss_treasure = 'boss_treasure'
+    boss_treasure_near = 'boss_treasure_near'
+    boss_treasure_far = 'boss_treasure_far'
+    boss_treasure_big = 'boss_treasure_big'
