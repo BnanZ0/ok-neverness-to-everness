@@ -130,15 +130,12 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
 
             self.start_hunter_attempt(target, target_idx, reopen_page=attempt_count > 1)
 
-            while True:
-                self.wait_in_team()
-                self.sleep(1)
-                if self.do_combat_and_claim():
-                    success_count += 1
-                    break
-
+            self.wait_in_team()
+            self.sleep(1)
+            if self.do_combat_and_claim():
+                success_count += 1
+            else:
                 failed_count += 1
-                break
 
             self.sleep(2)
             self.log_info("当前异象追猎任务完成！")
