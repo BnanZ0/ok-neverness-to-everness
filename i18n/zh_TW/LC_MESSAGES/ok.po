@@ -13,7 +13,7 @@ msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">
 msgstr "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支援輸入並建立，也支援選擇已有項。"
 
 msgid "Arc Key"
-msgstr "弓箭按鍵"
+msgstr "弧盤技快捷鍵"
 
 msgid "Check Monthly Card"
 msgstr "檢查月卡"
@@ -34,25 +34,25 @@ msgid "F9"
 msgstr "F9"
 
 msgid "Game Hotkey Config"
-msgstr "遊戲熱鍵設定"
+msgstr "遊戲熱鍵配置"
 
 msgid "In Game Hotkey for Skills"
 msgstr "遊戲內技能熱鍵"
 
 msgid "Monthly Card Config"
-msgstr "月卡設定"
+msgstr "月卡配置"
 
 msgid "Monthly Card Time"
 msgstr "月卡時間"
 
 msgid "Skill Key"
-msgstr "技能按鍵"
+msgstr "變軌技快捷鍵"
 
 msgid "Turn on to avoid interruption by monthly card when executing tasks"
 msgstr "執行任務時開啟以避免月卡中斷"
 
 msgid "Ultimate Key"
-msgstr "極軌技快速鍵"
+msgstr "極軌技快捷鍵"
 
 msgid "Your computer's local time when the monthly card will popup, hour in (1-24)"
 msgstr "月卡彈出時的電腦本地時間，小時 (1-24)"
@@ -393,7 +393,7 @@ msgid "Sound Trigger Config"
 msgstr "聲音觸發配置"
 
 msgid "Sound-based dodge and counter trigger settings"
-msgstr "基於聲音的閃避和反擊觸發設置"
+msgstr "基於聲音的閃避和反擊觸發設定"
 
 msgid "Dodge All Attacks"
 msgstr "閃避所有攻擊"
@@ -543,8 +543,8 @@ msgid ""
 "All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
 "physical positions, not your current layout's printed keys."
 msgstr ""
-"所有字母/數字按鍵，包括上方所有快捷鍵，都會按照美式 QWERTY\n"
-"物理位置替換，而不是目前鍵盤佈局上印刷的按鍵。"
+"所有字母/數字按鍵，包括上方所有熱鍵，都會按照美式 QWERTY\n"
+"物理位置替換，而不是當前鍵盤佈局上印刷的按鍵。"
 
 msgid "Use QWERTY Physical Keys"
 msgstr "使用 QWERTY 物理按鍵"
@@ -801,7 +801,7 @@ msgid "ru_RU"
 msgstr "Русский"
 
 msgid "zh_CN"
-msgstr "简体中文"
+msgstr "簡體中文"
 
 msgid "zh_TW"
 msgstr "繁體中文"
@@ -961,9 +961,9 @@ msgid ""
 "DO NOT manually switch windows!\n"
 "Wait patiently for the software to bring the game window to the foreground."
 msgstr ""
-"未找到已記錄的操作。請等待錄製提示出現，然後依照指示，仔細完成操作錄製。\n"
+"未找到已錄製的操作。請等待錄製提示出現，然後按照指引，仔細完成操作錄製。\n"
 "切勿手動切換視窗！\n"
-"耐心等待軟體將遊戲視窗喚起至前景。"
+"耐心等待軟體將遊戲視窗喚起至前臺。"
 
 msgid "影院约会"
 msgstr "影院約會"
@@ -985,7 +985,6 @@ msgstr "異象家具"
 
 msgid "每2小时重新登入"
 msgstr "每2小時重新登入"
-
 
 msgid "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
 msgstr "除了選擇內建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己輸入名稱來建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
@@ -1009,37 +1008,37 @@ msgid "使用终结技"
 msgstr "使用終結技"
 
 msgid "Background Audio Routing"
-msgstr "背景音訊路由"
+msgstr "後臺音訊路由"
 
 msgid "Enable Background Audio Routing"
-msgstr "啟用背景音訊路由"
+msgstr "啟用後臺音訊路由"
 
 msgid "SoundVolumeCommandLine Path"
 msgstr "SoundVolumeCommandLine 路徑"
 
 msgid "Background Output Device"
-msgstr "背景輸出裝置"
+msgstr "後臺輸出裝置"
 
 msgid "Open SoundVolumeCommandLine Download Page"
 msgstr "開啟 SoundVolumeCommandLine 下載頁面"
 
 msgid "Optionally route the game to a selected Windows output device while it is in the background. SoundVolumeCommandLine is not bundled; select your own downloaded copy."
-msgstr "當遊戲處於背景時，可選擇性地將遊戲音訊路由到選定的 Windows 輸出裝置。本軟體未內置 SoundVolumeCommandLine，請選擇您自己下載的版本。"
+msgstr "當遊戲處於後臺時，可選擇性地將遊戲音訊路由到選定的 Windows 輸出裝置。本軟體未內建 SoundVolumeCommandLine，請選擇您自己下載的版本。"
 
 msgid "Switch game audio output when the game window leaves the foreground"
-msgstr "當遊戲視窗離開前景時，切換遊戲音訊輸出"
+msgstr "當遊戲視窗離開前臺時，切換遊戲音訊輸出"
 
 msgid "Select svcl.exe downloaded from NirSoft"
 msgstr "選擇從 NirSoft 下載的 svcl.exe"
 
 msgid "Output device used while the game is in the background"
-msgstr "遊戲處於背景時使用的輸出裝置"
+msgstr "遊戲處於後臺時使用的輸出裝置"
 
 msgid "Open the official NirSoft SoundVolumeCommandLine page"
 msgstr "開啟 NirSoft SoundVolumeCommandLine 官方頁面"
 
 msgid "SoundVolumeCommandLine (svcl.exe);;Executable Files (*.exe);;All Files (*)"
-msgstr "SoundVolumeCommandLine (svcl.exe);;可執行檔 (*.exe);;所有檔案 (*)"
+msgstr "SoundVolumeCommandLine (svcl.exe);;可執行檔案 (*.exe);;所有檔案 (*)"
 
 msgid "Select svcl.exe"
 msgstr "選擇 svcl.exe"
@@ -1047,8 +1046,14 @@ msgstr "選擇 svcl.exe"
 msgid "Open Download Page"
 msgstr "開啟下載頁面"
 
-msgid "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
-msgstr "⚠️ 正在運行{rob_mode}\n該模式會高頻佔用/爭奪滑鼠。如需停止，請使用熱鍵暫停 ok-nte, 再手動停止任務。\n當前熱鍵: {hotkey} (如無法確認當前熱鍵則點擊取消, 主動確認後再運行)"
+msgid ""
+"⚠️ 正在运行{rob_mode}\n"
+"该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n"
+"当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
+msgstr ""
+"⚠️ 正在運行{rob_mode}\n"
+"該模式會高頻佔用/爭奪滑鼠。如需停止，請使用熱鍵暫停 ok-nte, 再手動停止任務。\n"
+"當前熱鍵: {hotkey} (如無法確認當前熱鍵則點擊取消, 主動確認後再運行)"
 
 msgid "赤龙古堡-残丝长巷篝火"
 msgstr "赤龍古堡-殘絲長巷篝火"
@@ -1059,8 +1064,14 @@ msgstr "戰鬥時長上限"
 msgid "战斗时不切人"
 msgstr "戰鬥時不切人"
 
-msgid "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
-msgstr "主介面檢測失敗。建議操作: \n1. 關閉顯示卡濾鏡與銳化功能；\n2. 嘗試開啟 Windows 「自動管理應用程式的色彩」設定。"
+msgid ""
+"主界面检测失败。建议操作: \n"
+"1. 关闭显卡滤镜与锐化功能；\n"
+"2. 尝试开启 Windows “自动管理应用的颜色”设置。"
+msgstr ""
+"主介面檢測失敗。建議操作: \n"
+"1. 關閉顯示卡濾鏡與銳化功能；\n"
+"2. 嘗試開啟 Windows 「自動管理應用程式的色彩」設定。"
 
 msgid "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
 msgstr "大世界檢測失敗: 請檢查遊戲內 UI 透明度是否已設置為 1.0。"
