@@ -285,6 +285,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
     def prepare_bosstreasure_search(self, middle_click_sleep=0.2):
         self.send_key("a", after_sleep=middle_click_sleep)
         self.middle_click(after_sleep=middle_click_sleep)
+        self.sleep(2)
 
     def find_bosstreasure_in_view(self):
         for feature_name in self.get_bosstreasure_features():
