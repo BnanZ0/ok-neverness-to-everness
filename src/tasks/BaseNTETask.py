@@ -697,10 +697,9 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
         return result
 
     def walk_to_treasure(self):
-        if self.find_treasure():
-            self.walk_to_box(
-                self.find_treasure, end_condition=self.find_interac, y_offset=0.1, x_threshold=0.15
-            )
+        if self.walk_to_box(
+            self.find_treasure, end_condition=self.find_interac, y_offset=0.1, x_threshold=0.15
+        ):
             return True
 
     def send_interac(self, handle_claim=True):

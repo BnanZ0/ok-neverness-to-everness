@@ -11,6 +11,7 @@ from src.Labels import Labels
 from src.tasks.AnomalyTask import AnomalyTask
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.CoffeeTask import CoffeeTask
+from src.tasks.GiftTask import GiftTask
 from src.tasks.mixin.CinemaDateMixin import CinemaDateMixin
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.utils import image_utils as iu
@@ -30,6 +31,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
     CONF_AUTO_CYCLE_SUB_TASK = "自动循环项目"
     CONF_CINEMA_DATE = "影院约会"
     CONF_FURNITURE = "异象家具"
+    CONF_GIFT = "运行羁遇赠礼"
 
     CINEMA_DATE_TARGET = "约会目标"
     DAILY_STAMINA_TARGET = "目标消耗体力"
@@ -58,6 +60,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_CINEMA_DATE: False,
                 self.CINEMA_DATE_TARGET: "",
                 self.CONF_FURNITURE: False,
+                self.CONF_GIFT: False
             }
         )
         self.config_description.update(
@@ -135,6 +138,11 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_FURNITURE,
                 self._task_enabled(self.CONF_FURNITURE, False),
                 self.claim_anomaly_furniture,
+            ),
+            (
+                self.CONF_GIFT,
+                self._task_enabled(self.CONF_GIFT, False),
+                self.run_gift_task,
             ),
         ]
 
@@ -648,3 +656,8 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             )
             self.sleep(2)
             self.ensure_main()
+
+    def run_gift_task(self):
+        with self.set_working_task(GiftTask) as task:
+            summary = task.run_gifts()
+        return len(summary['failed']) == 0

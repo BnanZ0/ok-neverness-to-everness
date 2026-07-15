@@ -65,6 +65,7 @@ pip-delete-this-directory.txt
 autohelper
 working_images/
 custom_chars/
+gift_configs/
 .vscode/
 ok_tasks/
 ok_import/

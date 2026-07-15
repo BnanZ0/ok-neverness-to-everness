@@ -98,6 +98,18 @@ class TestYOLO26OpenVINOAsyncDetector(unittest.TestCase):
         detector.clear_cache()
         communicate.notification.emit.assert_called_once()
 
+    @patch.object(YOLO26OpenVINOAsyncDetector, "_numpy_supports_avx2", return_value=True)
+    @patch.object(YOLO26OpenVINOAsyncDetector, "_windows_supports_avx2", return_value=False)
+    def test_numpy_fallback_accepts_avx2_on_old_windows(self, _windows_supports, _numpy_supports):
+        self.assertTrue(YOLO26OpenVINOAsyncDetector._supports_avx2())
+
+    @patch.object(YOLO26OpenVINOAsyncDetector, "_numpy_supports_avx2", return_value=False)
+    @patch.object(YOLO26OpenVINOAsyncDetector, "_windows_supports_avx2", return_value=False)
+    def test_avx2_requires_both_probes_to_report_unavailable(
+        self, _windows_supports, _numpy_supports
+    ):
+        self.assertFalse(YOLO26OpenVINOAsyncDetector._supports_avx2())
+
     def test_detect_sync_cancels_busy_request_and_waits_for_latest_frame(self):
         old_request = FakeInferRequest()
         new_request = FakeInferRequest(

@@ -81,13 +81,32 @@ class YOLO26OpenVINOAsyncDetector:
 
     @classmethod
     def _supports_avx2(cls) -> bool:
-        """Return whether Windows reports AVX2 support for the current processor."""
+        """Return whether the current process can use AVX2 instructions."""
 
+        return cls._windows_supports_avx2() or cls._numpy_supports_avx2()
+
+    @classmethod
+    def _windows_supports_avx2(cls) -> bool:
+        """Use the Windows AVX2 feature flag when the OS exposes it."""
         try:
             is_feature_available = ctypes.windll.kernel32.IsProcessorFeaturePresent
         except AttributeError:
             return False
         return bool(is_feature_available(cls._PF_AVX2_INSTRUCTIONS_AVAILABLE))
+
+    @staticmethod
+    def _numpy_supports_avx2() -> bool:
+        """Fall back to NumPy's process-level CPU feature detection.
+
+        Windows only started reporting ``PF_AVX2_INSTRUCTIONS_AVAILABLE`` in
+        Windows 10 version 2004. Older LTSC releases otherwise falsely report
+        that supported CPUs lack AVX2.
+        """
+
+        try:
+            return bool(np._core._multiarray_umath.__cpu_features__.get("AVX2"))
+        except AttributeError:
+            return False
 
     def _create_infer_request(self):
         return self.compiled_model.create_infer_request()

@@ -193,6 +193,7 @@ config = {
         ["src.tasks.BagelAITools", "BagelAITools"],
         ["src.tasks.WhirlwindTask", "WhirlwindTask"],
         ["src.tasks.DSDFarmTask", "DSDFarmTask"],
+        ["src.tasks.GiftTask", "GiftTask"],
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
@@ -207,6 +208,7 @@ config = {
     ],
     "custom_tabs": [
         ["src.ui.CharHubTab", "CharHubTab"],
+        ["src.ui.GiftManagerTab", "GiftManagerTab"],
         ["src.ui.MidiPlayerTab", "MidiPlayerTab"],
         # ['src.ui.MyTab', 'MyTab'], #可选, 自定义UI, 显示在侧边栏
     ],
