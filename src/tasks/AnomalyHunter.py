@@ -30,10 +30,12 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         TARGET_SPOTTED_BUTTERFLY,
     ]
 
-    DEFAULT_TREASURE_FEATURES = [Labels.boss_treasure]
+    DEFAULT_TREASURE_FEATURES = [
+        Labels.boss_treasure,
+    ]
     BOSS_TREASURE_THRESHOLD = 0.65
     BOSS_TREASURE_ONCE_SEARCH_TIME = 2
-    BOSS_TREASURE_WALK_TIMEOUT = 10
+    BOSS_TREASURE_WALK_TIMEOUT = 15
 
     TASK_COST = 60
     MAX_CONSECUTIVE_FAILURES = 3
@@ -274,14 +276,6 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
                 self.send_key_up(key)
         return ret
 
-    def exit_anomaly(self):
-        self.wait_click_confirm(
-            lambda: self.send_key("esc", interval=2),
-            range=(0.619, 0.609, 0.709, 0.708),
-            settle_time=0.4,
-        )
-        self.wait_in_team_and_world()
-
     def prepare_bosstreasure_search(self, middle_click_sleep=0.2):
         self.send_key("a", after_sleep=middle_click_sleep)
         self.middle_click(after_sleep=middle_click_sleep)
@@ -337,8 +331,11 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
     def get_bosstreasure_features(self):
         return list(self.DEFAULT_TREASURE_FEATURES)
 
-    def is_claim_page_ready(self):
-        return self.find_one(Labels.claim_page_logo,box=self.main_viewport,threshold=0.7)
+    def is_claim_btn_ready(self):
+        return self.find_confirm(
+            box=self.main_viewport,
+            threshold=0.7,
+        )
 
     def exit_reward_interaction(self):
         self.send_key("esc")
@@ -346,10 +343,11 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         self.operate_click(0.609, 0.659, after_sleep=2)
 
     def do_combat_and_claim(self):
+        pending_reward_ready = False
         self.log_info("战斗前检查是否有上次未领取的BOSS宝箱")
         pending_reward_ready = self.has_bosstreasure(check_once=True)
-        self.send_key("d", after_sleep=0.5)
-        self.middle_click(after_sleep=0.5)
+        self.send_key("d", after_sleep=0.2)
+        self.middle_click(after_sleep=0.6)
         if pending_reward_ready:
             self.log_info("发现BOSS宝箱，跳过战斗")
         else:
@@ -371,10 +369,10 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
             if reward_found:
                 self.log_info("发现宝箱，正在领取交互中")
                 self.send_interac(handle_claim=False)
-                if self.wait_until(self.is_claim_page_ready, raise_if_not_found=False, time_out=5):
+                if self.wait_until(self.is_claim_btn_ready, raise_if_not_found=False, time_out=5):
                     self.log_info("发现奖励领取页面，领取奖励")
-                    #self.log_warning("测试提示：领取成功")
-                    self.operate_click(0.609, 0.659, after_sleep=2)
+                    self.log_warning("测试提示：领取成功")
+                    # self.operate_click(0.609, 0.659, after_sleep=2)
                 else:
                     claimed_reward = False
                     self.log_warning("未能进入领取奖励界面，退出当前环境交互中")
