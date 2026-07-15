@@ -30,8 +30,10 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         TARGET_SPOTTED_BUTTERFLY,
     ]
 
-    DEFAULT_TREASURE_FEATURES = [Labels.boss_treasure,Labels.boss_treasure_big]
+    DEFAULT_TREASURE_FEATURES = [Labels.boss_treasure]
     BOSS_TREASURE_THRESHOLD = 0.65
+    BOSS_TREASURE_ONCE_SEARCH_TIME = 2
+    BOSS_TREASURE_WALK_TIMEOUT = 10
 
     TASK_COST = 60
     MAX_CONSECUTIVE_FAILURES = 3
@@ -144,7 +146,6 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
             self.log_info("当前异象追猎任务完成！")
 
         self.log_info("异象追猎任务完成，尝试传送到最近的电话亭")
-        self.send_key("m")
         self.sleep(1)
         self.click_nearest_map_teleport()
         self.sleep(2)
@@ -281,7 +282,11 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         )
         self.wait_in_team_and_world()
 
-    def find_bosstreasure_once(self):
+    def prepare_bosstreasure_search(self, middle_click_sleep=0.2):
+        self.send_key("a", after_sleep=middle_click_sleep)
+        self.middle_click(after_sleep=middle_click_sleep)
+
+    def find_bosstreasure_in_view(self):
         for feature_name in self.get_bosstreasure_features():
             result = self.find_one(
                 feature_name=feature_name,
@@ -292,30 +297,58 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
             if result:
                 return result
 
+    def find_bosstreasure_once(self):
+        self.prepare_bosstreasure_search()
+        return self.wait_until(
+            self.find_bosstreasure_in_view,
+            time_out=self.BOSS_TREASURE_ONCE_SEARCH_TIME,
+            settle_time=0.2,
+            raise_if_not_found=False,
+        )
+
     def find_bosstreasure(self):
         for attempt in range(1, 5):
             self.log_warning(f"Boss宝箱查找次数：{attempt}/4")
-            self.send_key("a", after_sleep=0.2)
-            self.middle_click(after_sleep=3)
-            result = self.find_bosstreasure_once()
+            self.prepare_bosstreasure_search(middle_click_sleep=0.2)
+            result = self.find_bosstreasure_in_view()
             if result:
                 return result
 
-    def walk_to_bosstreasure(self, check_once=False):
+    def has_bosstreasure(self, check_once=False):
         finder = self.find_bosstreasure_once if check_once else self.find_bosstreasure
-        if finder():
-            self.walk_to_box(
-                self.find_bosstreasure_once, end_condition=self.find_interac, y_offset=0.1, x_threshold=0.15
+        return bool(finder())
+
+    def walk_to_bosstreasure(self, check_once=False):
+        if self.has_bosstreasure(check_once=check_once):
+            self.log_warning("前往BOSS宝箱中")
+            reached_interac = self.walk_to_box(
+                self.find_bosstreasure_in_view,
+                time_out=self.BOSS_TREASURE_WALK_TIMEOUT,
+                end_condition=self.find_interac,
+                y_offset=0.1,
+                x_threshold=0.15,
             )
-            return True
+            if reached_interac:
+                return True
+            self.log_warning("前往BOSS宝箱超时，判定为失败")
         return False
 
     def get_bosstreasure_features(self):
         return list(self.DEFAULT_TREASURE_FEATURES)
 
+    def is_claim_page_ready(self):
+        return self.find_one(Labels.claim_page_logo,box=self.main_viewport,threshold=0.7)
+
+    def exit_reward_interaction(self):
+        self.send_key("esc")
+        self.sleep(1)
+        self.operate_click(0.609, 0.659, after_sleep=2)
+
     def do_combat_and_claim(self):
         self.log_info("战斗前检查是否有上次未领取的BOSS宝箱")
-        pending_reward_ready = self.walk_to_bosstreasure(check_once=True)
+        pending_reward_ready = self.has_bosstreasure(check_once=True)
+        self.send_key("d", after_sleep=0.5)
+        self.middle_click(after_sleep=0.5)
         if pending_reward_ready:
             self.log_info("发现BOSS宝箱，跳过战斗")
         else:
@@ -328,21 +361,26 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
 
         def action(count):
             nonlocal pending_reward_ready, claimed_reward
-            reward_found = pending_reward_ready
-            pending_reward_ready = False
+            reward_found = bool(self.find_interac())
             if not reward_found:
-                reward_found = self.walk_to_bosstreasure()
+                reward_found = self.walk_to_bosstreasure(check_once=pending_reward_ready)
+            pending_reward_ready = False
 
             claimed_reward = bool(reward_found)
             if reward_found:
                 self.log_info("发现宝箱，正在领取交互中")
                 self.send_interac(handle_claim=False)
-                self.operate_click(0.609, 0.659, after_sleep=2)
+                if self.wait_until(self.is_claim_page_ready, raise_if_not_found=False, time_out=5):
+                    self.log_info("发现奖励领取页面，领取奖励")
+                    #self.log_warning("测试提示：领取成功")
+                    self.operate_click(0.609, 0.659, after_sleep=2)
+                else:
+                    claimed_reward = False
+                    self.log_warning("未能进入领取奖励界面，退出当前环境交互中")
+                    self.exit_reward_interaction()
             else:
-                self.log_warning("未发现宝箱，退出当前环境交互中")
-                self.send_key("esc")
-                self.sleep(1)
-                self.operate_click(0.609, 0.659, after_sleep=2)
+                self.log_warning("领取奖励失败，退出当前环境交互中")
+                self.exit_reward_interaction()
             return True
 
         if not self.retry_on_action(action):

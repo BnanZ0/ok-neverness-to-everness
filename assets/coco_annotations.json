@@ -68,7 +68,7 @@
         },
         {
             "id": 13,
-            "file_name": "images/1.png",
+            "file_name": "images/2.png",
             "width": 2560,
             "height": 1440
         },
@@ -92,7 +92,7 @@
         },
         {
             "id": 17,
-            "file_name": "images/0.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
@@ -199,20 +199,8 @@
             "height": 1440
         },
         {
-            "id": 35,
-            "file_name": "images/0.png",
-            "width": 2560,
-            "height": 1440
-        },
-        {
-            "id": 36,
-            "file_name": "images/0.png",
-            "width": 2560,
-            "height": 1440
-        },
-        {
-            "id": 38,
-            "file_name": "images/3.png",
+            "id": 39,
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         }
@@ -1130,54 +1118,28 @@
         },
         {
             "id": 71,
-            "image_id": 35,
+            "image_id": 17,
             "category_id": 70,
             "bbox": [
-                1348,
-                402,
-                22,
-                31
+                1168,
+                469,
+                216,
+                88
             ],
-            "area": 682,
+            "area": 19008,
             "iscrowd": 0
         },
         {
             "id": 72,
-            "image_id": 36,
+            "image_id": 39,
             "category_id": 72,
             "bbox": [
-                1313,
-                391,
-                17,
-                26
-            ],
-            "area": 442,
-            "iscrowd": 0
-        },
-        {
-            "id": 73,
-            "image_id": 38,
-            "category_id": 74,
-            "bbox": [
-                1664,
-                477,
+                503,
+                353,
                 28,
-                34
+                37
             ],
-            "area": 952,
-            "iscrowd": 0
-        },
-        {
-            "id": 74,
-            "image_id": 38,
-            "category_id": 73,
-            "bbox": [
-                1558,
-                772,
-                28,
-                28
-            ],
-            "area": 784,
+            "area": 1036,
             "iscrowd": 0
         }
     ],
@@ -1529,7 +1491,7 @@
         },
         {
             "id": 70,
-            "name": "boss_treasure_near",
+            "name": "claim_page_logo",
             "supercategory": ""
         },
         {
@@ -1539,17 +1501,7 @@
         },
         {
             "id": 72,
-            "name": "boss_treasure_far",
-            "supercategory": ""
-        },
-        {
-            "id": 73,
             "name": "boss_treasure",
-            "supercategory": ""
-        },
-        {
-            "id": 74,
-            "name": "boss_treasure_big",
             "supercategory": ""
         }
     ]
