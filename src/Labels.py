@@ -75,4 +75,3 @@ class Labels(str, Enum):
     ult_ready = 'ult_ready'
     unlimit_gift = 'unlimit_gift'
     boss_treasure = 'boss_treasure'
-    claim_page_logo = 'claim_page_logo'

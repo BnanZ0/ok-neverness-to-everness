@@ -68,7 +68,7 @@
         },
         {
             "id": 13,
-            "file_name": "images/2.png",
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         },
@@ -92,7 +92,7 @@
         },
         {
             "id": 17,
-            "file_name": "images/1.png",
+            "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
         },
@@ -110,7 +110,7 @@
         },
         {
             "id": 20,
-            "file_name": "images/9.png",
+            "file_name": "images/10.png",
             "width": 1920,
             "height": 1080
         },
@@ -176,7 +176,7 @@
         },
         {
             "id": 31,
-            "file_name": "images/10.png",
+            "file_name": "images/11.png",
             "width": 1600,
             "height": 900
         },
@@ -199,8 +199,14 @@
             "height": 1440
         },
         {
-            "id": 39,
-            "file_name": "images/1.png",
+            "id": 35,
+            "file_name": "images/9.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 36,
+            "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
         }
@@ -1118,28 +1124,41 @@
         },
         {
             "id": 71,
-            "image_id": 17,
+            "image_id": 35,
             "category_id": 70,
             "bbox": [
-                1168,
-                469,
-                216,
-                88
+                48,
+                46,
+                61,
+                69
             ],
-            "area": 19008,
+            "area": 4209,
             "iscrowd": 0
         },
         {
             "id": 72,
-            "image_id": 39,
+            "image_id": 35,
             "category_id": 72,
             "bbox": [
-                503,
-                353,
-                28,
-                37
+                1359,
+                678,
+                35,
+                29
             ],
-            "area": 1036,
+            "area": 1015,
+            "iscrowd": 0
+        },
+        {
+            "id": 73,
+            "image_id": 36,
+            "category_id": 73,
+            "bbox": [
+                319,
+                543,
+                29,
+                36
+            ],
+            "area": 1044,
             "iscrowd": 0
         }
     ],
@@ -1491,7 +1510,7 @@
         },
         {
             "id": 70,
-            "name": "claim_page_logo",
+            "name": "bond_panel",
             "supercategory": ""
         },
         {
@@ -1501,6 +1520,11 @@
         },
         {
             "id": 72,
+            "name": "unlimit_gift",
+            "supercategory": ""
+        },
+        {
+            "id": 73,
             "name": "boss_treasure",
             "supercategory": ""
         }
