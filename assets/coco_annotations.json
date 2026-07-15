@@ -110,7 +110,7 @@
         },
         {
             "id": 20,
-            "file_name": "images/10.png",
+            "file_name": "images/9.png",
             "width": 1920,
             "height": 1080
         },
@@ -176,7 +176,7 @@
         },
         {
             "id": 31,
-            "file_name": "images/11.png",
+            "file_name": "images/10.png",
             "width": 1600,
             "height": 900
         },
@@ -199,8 +199,8 @@
             "height": 1440
         },
         {
-            "id": 35,
-            "file_name": "images/9.png",
+            "id": 39,
+            "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
         }
@@ -1118,28 +1118,28 @@
         },
         {
             "id": 71,
-            "image_id": 35,
+            "image_id": 17,
             "category_id": 70,
             "bbox": [
-                48,
-                46,
-                61,
-                69
+                1168,
+                469,
+                216,
+                88
             ],
-            "area": 4209,
+            "area": 19008,
             "iscrowd": 0
         },
         {
             "id": 72,
-            "image_id": 35,
+            "image_id": 39,
             "category_id": 72,
             "bbox": [
-                1359,
-                678,
-                35,
-                29
+                503,
+                353,
+                28,
+                37
             ],
-            "area": 1015,
+            "area": 1036,
             "iscrowd": 0
         }
     ],
@@ -1491,7 +1491,7 @@
         },
         {
             "id": 70,
-            "name": "bond_panel",
+            "name": "claim_page_logo",
             "supercategory": ""
         },
         {
@@ -1501,7 +1501,7 @@
         },
         {
             "id": 72,
-            "name": "unlimit_gift",
+            "name": "boss_treasure",
             "supercategory": ""
         }
     ]
