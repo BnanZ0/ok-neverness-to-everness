@@ -30,15 +30,11 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         TARGET_SPOTTED_BUTTERFLY,
     ]
 
-    DEFAULT_TREASURE_FEATURES = [
-        Labels.boss_treasure_far,
-        Labels.boss_treasure_near,
-        Labels.boss_treasure,
-        Labels.boss_treasure_big,
-    ]
+    DEFAULT_TREASURE_FEATURES = [Labels.boss_treasure,Labels.boss_treasure_big]
     BOSS_TREASURE_THRESHOLD = 0.65
 
     TASK_COST = 60
+    MAX_CONSECUTIVE_FAILURES = 3
     HUNTER_TAB_X = 0.912
     HUNTER_TAB_Y = 0.152
     HUNTER_TRAVEL_X = 0.867
@@ -94,7 +90,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         if config is None:
             config = self.config
 
-        target = config.get(self.CONF_HUNTER_TARGET, self.TARGET_SOUND_KING)
+        target = self.normalize_target(config.get(self.CONF_HUNTER_TARGET, self.TARGET_SOUND_KING))
         target_idx = self.get_target_idx(target)
         stamina_target = self.get_stamina_target(config, stamina_target)
         self.info_set("追猎目标", target)
@@ -120,6 +116,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         self.info_set("计划次数", stamina_units)
         success_count = 0
         failed_count = 0
+        consecutive_failures = 0
         attempt_count = 0
         while success_count < stamina_units:
             attempt_count += 1
@@ -134,8 +131,14 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
             self.sleep(1)
             if self.do_combat_and_claim():
                 success_count += 1
+                consecutive_failures = 0
             else:
                 failed_count += 1
+                consecutive_failures += 1
+                self.log_warning(f"异象追猎连续失败 {consecutive_failures}/{self.MAX_CONSECUTIVE_FAILURES}")
+                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                    self.log_warning("连续失败已达上限，将传送最近的电话亭传送点", notify=True)
+                    break
 
             self.sleep(2)
             self.log_info("当前异象追猎任务完成！")
@@ -144,10 +147,12 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         self.send_key("m")
         self.sleep(1)
         self.click_nearest_map_teleport()
+        self.sleep(2)
         self.log_warning(f"异象追猎执行结果: 成功次数={success_count}, 失败次数={failed_count}，共计消耗体力={success_count*self.TASK_COST}")
         return True
 
     def start_hunter_attempt(self, target: str, target_idx: int, reopen_page=False):
+        target = self.normalize_target(target)
         if reopen_page:
             self.open_hunter_page()
         self.travel_to_hunter_target(target_idx)
@@ -169,10 +174,14 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         except (TypeError, ValueError):
             return 0
 
-    def get_target_idx(self, target: str):
+    def normalize_target(self, target: str) -> str:
         if target not in self.HUNTER_TARGETS:
             self.log_warning(f"未知追猎目标: {target}，默认执行第一个目标")
-            return 0
+            return self.TARGET_SOUND_KING
+        return target
+
+    def get_target_idx(self, target: str):
+        target = self.normalize_target(target)
         return self.HUNTER_TARGETS.index(target)
 
     def travel_to_hunter_target(self, target_idx: int):
@@ -326,7 +335,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
 
             claimed_reward = bool(reward_found)
             if reward_found:
-                self.log_info("发现宝箱，正在领取交互中-测试中跳过点击")
+                self.log_info("发现宝箱，正在领取交互中")
                 self.send_interac(handle_claim=False)
                 self.operate_click(0.609, 0.659, after_sleep=2)
             else:
