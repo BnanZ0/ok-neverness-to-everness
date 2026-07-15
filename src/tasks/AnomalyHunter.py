@@ -371,8 +371,8 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
                 self.send_interac(handle_claim=False)
                 if self.wait_until(self.is_claim_btn_ready, raise_if_not_found=False, time_out=5):
                     self.log_info("发现奖励领取页面，领取奖励")
-                    self.log_warning("测试提示：领取成功")
-                    # self.operate_click(0.609, 0.659, after_sleep=2)
+                    # self.log_warning("测试提示：领取成功")
+                    self.operate_click(0.609, 0.659, after_sleep=2)
                 else:
                     claimed_reward = False
                     self.log_warning("未能进入领取奖励界面，退出当前环境交互中")
