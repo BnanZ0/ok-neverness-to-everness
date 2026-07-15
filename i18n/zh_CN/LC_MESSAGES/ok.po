@@ -1,16 +1,9 @@
 #
 msgid ""
-msgstr ""
-"Project-Id-Version: 1.0\n"
-"Report-Msgid-Bugs-To: you@example.com\n"
-"Last-Translator: you@example.com\n"
-"Language-Team: English\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+msgstr "Project-Id-Version: 1.0\nReport-Msgid-Bugs-To: you@example.com\nLast-Translator: you@example.com\nLanguage-Team: English\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n"
 
 msgid "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
-msgstr ""
+msgstr "<b style=\"color: #0078d7;\">角色</b> 和 <b style=\"color: #0078d7;\">{combo}</b> 支持输入并创建，也支持选择已有项。"
 
 msgid "Arc Key"
 msgstr "弧盘技快捷键"
@@ -22,16 +15,16 @@ msgid "Check for monthly card to avoid interruption of tasks"
 msgstr "检查月卡以避免任务中断"
 
 msgid "F10"
-msgstr ""
+msgstr "F10"
 
 msgid "F11"
-msgstr ""
+msgstr "F11"
 
 msgid "F12"
-msgstr ""
+msgstr "F12"
 
 msgid "F9"
-msgstr ""
+msgstr "F9"
 
 msgid "Game Hotkey Config"
 msgstr "游戏热键配置"
@@ -58,308 +51,298 @@ msgid "Your computer's local time when the monthly card will popup, hour in (1-2
 msgstr "月卡弹出时的电脑本地时间，小时 (1-24)"
 
 msgid "[内置代码]"
-msgstr ""
+msgstr "[内置代码]"
 
 msgid "{combo}: {} 删除成功"
-msgstr ""
+msgstr "{combo}: {} 删除成功"
 
 msgid "{combo}: {} 绑定成功"
-msgstr ""
+msgstr "{combo}: {} 绑定成功"
 
 msgid "{combo}语法错误"
-msgstr ""
+msgstr "{combo}语法错误"
 
 msgid "{fixed_team}已保存"
-msgstr ""
+msgstr "{fixed_team}已保存"
 
 msgid "{fixed_team}已停用"
-msgstr ""
+msgstr "{fixed_team}已停用"
 
 msgid "{fixed_team}已清空"
-msgstr ""
+msgstr "{fixed_team}已清空"
 
 msgid "{} 号位"
-msgstr ""
+msgstr "{} 号位"
 
 msgid "任务跳过对话"
-msgstr ""
+msgstr "任务跳过对话"
 
-msgid ""
-"供非中/英语用户自定义传送文字, 逗号分隔\n"
-"例: Teleport, 传送"
-msgstr ""
+msgid "供非中/英语用户自定义传送文字, 逗号分隔\n例: Teleport, 传送"
+msgstr "供非中/英语用户自定义传送文字, 逗号分隔\n例: Teleport, 传送"
 
 msgid "保存成功"
-msgstr ""
+msgstr "保存成功"
 
 msgid "停用"
-msgstr ""
+msgstr "停用"
 
 msgid "先扫描并关联特征或手动填写"
-msgstr ""
+msgstr "先扫描并关联特征或手动填写"
 
 msgid "出招表"
-msgstr ""
+msgstr "出招表"
 
 msgid "初次使用请先至 [{team_mgmt}] 进行设置"
-msgstr ""
+msgstr "初次使用请先至 [{team_mgmt}] 进行设置"
 
 msgid "删除"
-msgstr ""
+msgstr "删除"
 
 msgid "删除成功"
-msgstr ""
+msgstr "删除成功"
 
 msgid "删除角色"
-msgstr ""
+msgstr "删除角色"
 
 msgid "刷新列表"
-msgstr ""
+msgstr "刷新列表"
 
 msgid "匹配成功: {}"
-msgstr ""
+msgstr "匹配成功: {}"
 
 msgid "置信度: {:.2f}"
-msgstr ""
+msgstr "置信度: {:.2f}"
 
 msgid "特征已加入"
-msgstr ""
+msgstr "特征已加入"
 
 msgid "加入特征"
-msgstr ""
+msgstr "加入特征"
 
 msgid "匹配文字"
-msgstr ""
+msgstr "匹配文字"
 
 msgid "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
-msgstr ""
+msgstr "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
 
 msgid "可用指令"
-msgstr ""
+msgstr "可用指令"
 
 msgid "启用"
-msgstr ""
+msgstr "启用"
 
 msgid "固定队伍"
-msgstr ""
+msgstr "固定队伍"
 
 msgid "地图中自动点击传送"
-msgstr ""
+msgstr "地图中自动点击传送"
 
 msgid "填入扫描"
-msgstr ""
+msgstr "填入扫描"
 
 msgid "这是个用于向数据库关联或添加 <b style=\"color: #0078d7;\">角色特征</b> 的工具面板。<br>点击 <b style=\"color: #0078d7;\">{scan_team}</b> 后点击 <b style=\"color: #0078d7;\">关联或添加</b> 特征，自动战斗时就会识别对应的角色。<br><b style=\"color: #d83b01;\">💡 注意：</b>此面板 <b style=\"color: #d83b01;\">不会</b> 在进入战斗或更换阵容时实时自动刷新或同步显示, 因为这是工具面板。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接使用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
-msgstr ""
+msgstr "这是个用于向数据库关联或添加 <b style=\"color: #0078d7;\">角色特征</b> 的工具面板。<br>点击 <b style=\"color: #0078d7;\">{scan_team}</b> 后点击 <b style=\"color: #0078d7;\">关联或添加</b> 特征，自动战斗时就会识别对应的角色。<br><b style=\"color: #d83b01;\">💡 注意：</b>此面板 <b style=\"color: #d83b01;\">不会</b> 在进入战斗或更换阵容时实时自动刷新或同步显示, 因为这是工具面板。<br>如果不想管理 <b style=\"color: #0078d7;\">角色特征</b>，可以直接使用 <b style=\"color: #0078d7;\">{fixed_team}</b> 功能。"
 
 msgid "完成每日活跃度"
-msgstr ""
+msgstr "完成每日活跃度"
 
 msgid "导入失败"
-msgstr ""
+msgstr "导入失败"
 
 msgid "导入成功"
-msgstr ""
+msgstr "导入成功"
 
 msgid "导入数据"
-msgstr ""
+msgstr "导入数据"
 
 msgid "导出数据"
-msgstr ""
+msgstr "导出数据"
 
 msgid "已保存 {}/4"
-msgstr ""
+msgstr "已保存 {}/4"
 
 msgid "已启用 {}/4"
-msgstr ""
+msgstr "已启用 {}/4"
 
 msgid "已启用{fixed_team}"
-msgstr ""
+msgstr "已启用{fixed_team}"
 
 msgid "已填入 {}"
-msgstr ""
+msgstr "已填入 {}"
 
 msgid "已填入扫描结果"
-msgstr ""
+msgstr "已填入扫描结果"
 
 msgid "已导入 {} 个文件"
-msgstr ""
+msgstr "已导入 {} 个文件"
 
 msgid "已恢复自动识别"
-msgstr ""
+msgstr "已恢复自动识别"
 
 msgid "已成功删除角色: {} 以及关联的特征图"
-msgstr ""
+msgstr "已成功删除角色: {} 以及关联的特征图"
 
 msgid "已清空槽位"
-msgstr ""
+msgstr "已清空槽位"
 
 msgid "已解除 {} 的{combo}绑定"
-msgstr ""
+msgstr "已解除 {} 的{combo}绑定"
 
 msgid "应用更改"
-msgstr ""
+msgstr "应用更改"
 
-msgid ""
-"当前未绑定任何{combo}。\n"
-"遇到此角色将默认使用基础通用脚本(BaseChar)。"
-msgstr ""
+msgid "当前未绑定任何{combo}。\n遇到此角色将默认使用基础通用脚本(BaseChar)。"
+msgstr "当前未绑定任何{combo}。\n遇到此角色将默认使用基础通用脚本(BaseChar)。"
 
 msgid "循环次数"
-msgstr ""
+msgstr "循环次数"
 
 msgid "快速传送"
-msgstr ""
+msgstr "快速传送"
 
 msgid "扫描中..."
-msgstr ""
+msgstr "扫描中..."
 
 msgid "扫描队伍"
-msgstr ""
+msgstr "扫描队伍"
 
 msgid "控条模式"
-msgstr ""
+msgstr "控条模式"
 
 msgid "搜索角色"
-msgstr ""
+msgstr "搜索角色"
 
 msgid "无画面"
-msgstr ""
+msgstr "无画面"
 
 msgid "日常任务"
-msgstr ""
+msgstr "日常任务"
 
 msgid "暂不可用"
-msgstr ""
+msgstr "暂不可用"
 
 msgid "更新"
-msgstr ""
+msgstr "更新"
 
 msgid "未启用"
-msgstr ""
+msgstr "未启用"
 
 msgid "未能识别该特征"
-msgstr ""
+msgstr "未能识别该特征"
 
 msgid "未获取到特征"
-msgstr ""
+msgstr "未获取到特征"
 
 msgid "关联特征"
-msgstr ""
+msgstr "关联特征"
 
-msgid ""
-"此为内建 Python 脚本，不可在此修改。\n"
-"请在对应的源文件中直接修改代码。"
-msgstr ""
+msgid "此为内建 Python 脚本，不可在此修改。\n请在对应的源文件中直接修改代码。"
+msgstr "此为内建 Python 脚本，不可在此修改。\n请在对应的源文件中直接修改代码。"
 
 msgid "没有可用扫描结果"
-msgstr ""
+msgstr "没有可用扫描结果"
 
 msgid "没有找到匹配的指令。"
-msgstr ""
+msgstr "没有找到匹配的指令。"
 
 msgid "清空"
-msgstr ""
+msgstr "清空"
 
 msgid "点击上方按钮扫描..."
-msgstr ""
+msgstr "点击上方按钮扫描..."
 
 msgid "点击时将短暂控制物理鼠标"
-msgstr ""
+msgstr "点击时将短暂控制物理鼠标"
 
 msgid "点按"
-msgstr ""
+msgstr "点按"
 
 msgid "点按时长倍率"
-msgstr ""
+msgstr "点按时长倍率"
 
 msgid "点按模式专用。用于微调每次按键的持续时间"
-msgstr ""
+msgstr "点按模式专用。用于微调每次按键的持续时间"
 
 msgid "编辑名称"
-msgstr ""
+msgstr "编辑名称"
 
 msgid "自动完成一轮或多轮钓鱼"
-msgstr ""
+msgstr "自动完成一轮或多轮钓鱼"
 
 msgid "自动战斗"
-msgstr ""
+msgstr "自动战斗"
 
 msgid "自动消息"
-msgstr ""
+msgstr "自动消息"
 
 msgid "自动目标"
-msgstr ""
+msgstr "自动目标"
 
 msgid "自动钓鱼"
-msgstr ""
+msgstr "自动钓鱼"
 
 msgid "角色中心"
-msgstr ""
+msgstr "角色中心"
 
 msgid "角色名称无效或已存在"
-msgstr ""
+msgstr "角色名称无效或已存在"
 
 msgid "角色已重命名为: {}"
-msgstr ""
+msgstr "角色已重命名为: {}"
 
 msgid "角色管理"
-msgstr ""
+msgstr "角色管理"
 
 msgid "解除绑定"
-msgstr ""
+msgstr "解除绑定"
 
 msgid "请在左侧选择一个角色以管理特征和{combo}"
-msgstr ""
+msgstr "请在左侧选择一个角色以管理特征和{combo}"
 
 msgid "跳过剧情"
-msgstr ""
+msgstr "跳过剧情"
 
 msgid "运行一次测试"
-msgstr ""
+msgstr "运行一次测试"
 
 msgid "下拉选择，或直接输入名称以创建新{combo}"
-msgstr ""
+msgstr "下拉选择，或直接输入名称以创建新{combo}"
 
 msgid "重命名失败"
-msgstr ""
+msgstr "重命名失败"
 
 msgid "长按"
-msgstr ""
+msgstr "长按"
 
-msgid ""
-"长按：平滑流畅, 易过冲\n"
-"点按: 安全较慢, 防过冲"
-msgstr ""
+msgid "长按：平滑流畅, 易过冲\n点按: 安全较慢, 防过冲"
+msgstr "长按：平滑流畅, 易过冲\n点按: 安全较慢, 防过冲"
 
 msgid "队伍不存在"
-msgstr ""
+msgstr "队伍不存在"
 
 msgid "队伍人数少于2人"
-msgstr ""
+msgstr "队伍人数少于2人"
 
 msgid "队伍管理"
-msgstr ""
+msgstr "队伍管理"
 
 msgid "领取活跃度奖励"
-msgstr ""
+msgstr "领取活跃度奖励"
 
 msgid "领取环期任务奖励"
-msgstr ""
+msgstr "领取环期任务奖励"
 
 msgid "领取邮件"
-msgstr ""
+msgstr "领取邮件"
 
 msgid "使用ESC"
-msgstr ""
+msgstr "使用ESC"
 
 msgid "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
-msgstr ""
+msgstr "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗"
 
-msgid ""
-"开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n"
-"若游戏运行不流畅，可能因按键响应延迟导致误退出钓鱼场景"
-msgstr ""
+msgid "开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n若游戏运行不流畅，可能因按键响应延迟导致误退出钓鱼场景"
+msgstr "开启后优先通过 ESC 键关闭成功界面，避免后台抢占鼠标。\n若游戏运行不流畅，可能因按键响应延迟导致误退出钓鱼场景"
 
 msgid "Counter Attack Threshold"
 msgstr "反击触发阈值"
@@ -392,133 +375,133 @@ msgid "Dodge all attacks without performing counter attacks"
 msgstr "闪避所有攻击，不执行反击"
 
 msgid "不支持从OK启动游戏"
-msgstr ""
+msgstr "不支持从OK启动游戏"
 
 msgid "任务完成后自动切换至下一个项目"
-msgstr ""
+msgstr "任务完成后自动切换至下一个项目"
 
 msgid "任务类型"
-msgstr ""
+msgstr "任务类型"
 
 msgid "具体奖励目标"
-msgstr ""
+msgstr "具体奖励目标"
 
 msgid "异能升级材料"
-msgstr ""
+msgstr "异能升级材料"
 
 msgid "异能材料序号"
-msgstr ""
+msgstr "异能材料序号"
 
 msgid "异象界域"
-msgstr ""
+msgstr "异象界域"
 
 msgid "弧盘材料序号"
-msgstr ""
+msgstr "弧盘材料序号"
 
 msgid "弧盘突破材料"
-msgstr ""
+msgstr "弧盘突破材料"
 
 msgid "弧盘经验"
-msgstr ""
+msgstr "弧盘经验"
 
 msgid "甲硬币"
-msgstr ""
+msgstr "甲硬币"
 
 msgid "空幕"
-msgstr ""
+msgstr "空幕"
 
 msgid "空幕序号"
-msgstr ""
+msgstr "空幕序号"
 
 msgid "经验与甲硬币"
-msgstr ""
+msgstr "经验与甲硬币"
 
 msgid "自动循环项目"
-msgstr ""
+msgstr "自动循环项目"
 
 msgid "自动进行异象界域任务"
-msgstr ""
+msgstr "自动进行异象界域任务"
 
 msgid "角色经验"
-msgstr ""
+msgstr "角色经验"
 
 msgid "选择经验与甲硬币任务的具体奖励目标"
-msgstr ""
+msgstr "选择经验与甲硬币任务的具体奖励目标"
 
 msgid "选择要进行的任务类型"
-msgstr ""
+msgstr "选择要进行的任务类型"
 
 msgid "选择列表中的第几个项目 ({}-{})"
-msgstr ""
+msgstr "选择列表中的第几个项目 ({}-{})"
 
 msgid "使用滚轮加速拾取"
-msgstr ""
+msgstr "使用滚轮加速拾取"
 
 msgid "切换角色快速奔跑"
-msgstr ""
+msgstr "切换角色快速奔跑"
 
 msgid "切换角色数量"
-msgstr ""
+msgstr "切换角色数量"
 
 msgid "快速奔跑角色数量"
-msgstr ""
+msgstr "快速奔跑角色数量"
 
 msgid "按住Shift生效"
-msgstr ""
+msgstr "按住Shift生效"
 
 msgid "粉爪大劫案"
-msgstr ""
+msgstr "粉爪大劫案"
 
 msgid "粉爪大劫案便利性功能"
-msgstr ""
+msgstr "粉爪大劫案便利性功能"
 
 msgid "触发按键"
-msgstr ""
+msgstr "触发按键"
 
 msgid "触发连点将同步生效"
-msgstr ""
+msgstr "触发连点将同步生效"
 
 msgid "触发连点的按键 (按住生效)"
-msgstr ""
+msgstr "触发连点的按键 (按住生效)"
 
 msgid "自动补饵卖鱼"
-msgstr ""
+msgstr "自动补饵卖鱼"
 
-msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
-msgstr ""
+msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
+msgstr "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
 
 msgid "4列对应的键盘按键"
-msgstr ""
+msgstr "4列对应的键盘按键"
 
 msgid "单曲超时时间(秒)"
-msgstr ""
+msgstr "单曲超时时间(秒)"
 
 msgid "异环鼓组音游自动打击与重试"
-msgstr ""
+msgstr "异环鼓组音游自动打击与重试"
 
 msgid "打歌次数, 0=无限循环"
-msgstr ""
+msgstr "打歌次数, 0=无限循环"
 
 msgid "自动音游"
-msgstr ""
+msgstr "自动音游"
 
 msgid "调试日志"
-msgstr ""
+msgstr "调试日志"
 
 msgid "超时秒数"
-msgstr ""
+msgstr "超时秒数"
 
 msgid "输出调试日志"
-msgstr ""
+msgstr "输出调试日志"
 
 msgid "输入或选择绑定的{combo} (可选)"
-msgstr ""
+msgstr "输入或选择绑定的{combo} (可选)"
 
 msgid "输入或选择关联的角色名称"
-msgstr ""
+msgstr "输入或选择关联的角色名称"
 
 msgid "键位"
-msgstr ""
+msgstr "键位"
 
 msgid "Start Game"
 msgstr "启动游戏"
@@ -527,68 +510,61 @@ msgid "Launcher Path"
 msgstr "启动器路径"
 
 msgid "目标消耗体力"
-msgstr ""
+msgstr "目标消耗体力"
 
 msgid "声音闪避反击"
-msgstr ""
+msgstr "声音闪避反击"
 
 msgid "未处于自动战斗时, 响应声音闪避或反击"
-msgstr ""
+msgstr "未处于自动战斗时, 响应声音闪避或反击"
 
-msgid ""
-"All letter/number keys, including every hotkey above, are replaced by US QWERTY\n"
-"physical positions, not your current layout's printed keys."
-msgstr ""
-"所有字母/数字按键，包括上方所有热键，都会按照美式 QWERTY\n"
-"物理位置替换，而不是当前键盘布局上印刷的按键。"
+msgid "All letter/number keys, including every hotkey above, are replaced by US QWERTY\nphysical positions, not your current layout's printed keys."
+msgstr "所有字母/数字按键，包括上方所有热键，都会按照美式 QWERTY\n物理位置替换，而不是当前键盘布局上印刷的按键。"
 
 msgid "Use QWERTY Physical Keys"
 msgstr "使用 QWERTY 物理按键"
 
 msgid "店长特供"
-msgstr ""
+msgstr "店长特供"
 
 msgid "抢钱流"
-msgstr ""
+msgstr "抢钱流"
 
 msgid "游戏启动后自动登录游戏"
-msgstr ""
+msgstr "游戏启动后自动登录游戏"
 
 msgid "自动循环进出关卡（需配合游戏内挂机流派使用）"
-msgstr ""
+msgstr "自动循环进出关卡（需配合游戏内挂机流派使用）"
 
 msgid "自动登录游戏"
-msgstr ""
+msgstr "自动登录游戏"
 
 msgid "领取/补货一咖舍"
-msgstr ""
+msgstr "领取/补货一咖舍"
 
 msgid "一咖舍任务"
-msgstr ""
+msgstr "一咖舍任务"
 
 msgid "选择日常任务中的一咖舍处理方式"
-msgstr ""
+msgstr "选择日常任务中的一咖舍处理方式"
 
 msgid "不执行"
 msgstr "不执行"
 
 msgid "循环次数(0为无限次)"
-msgstr ""
-
-msgid "抛竿失败时，补充默认鱼饵并出售鱼获后重试"
-msgstr ""
+msgstr "循环次数(0为无限次)"
 
 msgid "清空已记录的操作"
-msgstr ""
+msgstr "清空已记录的操作"
 
 msgid "自动执行黑暗赛车,请在大世界开始执行"
-msgstr ""
+msgstr "自动执行黑暗赛车,请在大世界开始执行"
 
 msgid "重置记录"
-msgstr ""
+msgstr "重置记录"
 
 msgid "黑暗赛车"
-msgstr ""
+msgstr "黑暗赛车"
 
 msgid "Record has been reset"
 msgstr "记录已重置"
@@ -597,179 +573,172 @@ msgid "Updated successfully"
 msgstr "更新成功"
 
 msgid "都市闲趣"
-msgstr ""
+msgstr "都市闲趣"
 
 msgid "日常/周常"
-msgstr ""
+msgstr "日常/周常"
 
 msgid "※ 列表可直接输入并创建"
-msgstr ""
+msgstr "※ 列表可直接输入并创建"
 
 msgid "输入或选择角色"
-msgstr ""
+msgstr "输入或选择角色"
 
 msgid "自动战斗任务不可用"
-msgstr ""
+msgstr "自动战斗任务不可用"
 
-msgid ""
-"※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n"
-"游戏内换人/换队自动适配，无需手动调整"
-msgstr ""
+msgid "※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n游戏内换人/换队自动适配，无需手动调整"
+msgstr "※ 关联角色特征后，软件将能自动识别角色并使用绑定的出招表；未关联时，将使用通用脚本。\n游戏内换人/换队自动适配，无需手动调整"
 
-msgid ""
-"※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
-"如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
-msgstr ""
+msgid "※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
+msgstr "※ {fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
 
 msgid "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
-msgstr ""
+msgstr "<span style=\"color: #2ecc71;\">● 自动识别：已启用</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
-msgstr ""
+msgstr "<span style=\"color: #95a5a6;\">○ 自动识别：仅空槽启用</span>"
 
 msgid "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
-msgstr ""
+msgstr "<span style=\"color: #2ecc71;\">● {fixed_team}：已启用 ({count}/4)</span>"
 
 msgid "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
-msgstr ""
+msgstr "<span style=\"color: #95a5a6;\">○ {fixed_team}：已停用</span>"
 
 msgid "启动失败"
-msgstr ""
+msgstr "启动失败"
 
 msgid "21键自然音布局 (已禁用)"
-msgstr ""
+msgstr "21键自然音布局 (已禁用)"
 
 msgid "36键半音布局 (12x3)"
-msgstr ""
+msgstr "36键半音布局 (12x3)"
 
 msgid "中音"
-msgstr ""
+msgstr "中音"
 
 msgid "低音"
-msgstr ""
+msgstr "低音"
 
 msgid "全部歌曲"
-msgstr ""
+msgstr "全部歌曲"
 
 msgid "单曲循环"
-msgstr ""
+msgstr "单曲循环"
 
 msgid "可以弹奏"
-msgstr ""
+msgstr "可以弹奏"
 
 msgid "右下按键中心: "
-msgstr ""
+msgstr "右下按键中心: "
 
 msgid "定时关闭"
-msgstr ""
+msgstr "定时关闭"
 
 msgid "导入 MIDI"
-msgstr ""
+msgstr "导入 MIDI"
 
 msgid "尚未载入音轨"
-msgstr ""
+msgstr "尚未载入音轨"
 
 msgid "左上按键中心: "
-msgstr ""
+msgstr "左上按键中心: "
 
 msgid "已收藏"
-msgstr ""
+msgstr "已收藏"
 
 msgid "当前游戏钢琴使用 36 键半音布局"
-msgstr ""
+msgstr "当前游戏钢琴使用 36 键半音布局"
 
 msgid "打印键位映射"
-msgstr ""
+msgstr "打印键位映射"
 
 msgid "打开 mid_lib"
-msgstr ""
+msgstr "打开 mid_lib"
 
 msgid "按键坐标配置"
-msgstr ""
+msgstr "按键坐标配置"
 
 msgid "搜索歌曲"
-msgstr ""
+msgstr "搜索歌曲"
 
 msgid "播放"
-msgstr ""
+msgstr "播放"
 
 msgid "播放模式"
-msgstr ""
+msgstr "播放模式"
 
 msgid "播放设置"
-msgstr ""
+msgstr "播放设置"
 
 msgid "播放速度"
-msgstr ""
+msgstr "播放速度"
 
 msgid "收藏歌曲"
-msgstr ""
+msgstr "收藏歌曲"
 
 msgid "无法弹奏"
-msgstr ""
+msgstr "无法弹奏"
 
 msgid "智能音域压缩"
-msgstr ""
+msgstr "智能音域压缩"
 
 msgid "未选择歌曲"
-msgstr ""
+msgstr "未选择歌曲"
 
 msgid "每个测试音间隔约 1 秒，请用调音器确认实际发音。"
-msgstr ""
+msgstr "每个测试音间隔约 1 秒，请用调音器确认实际发音。"
 
 msgid "测试中音行"
-msgstr ""
+msgstr "测试中音行"
 
 msgid "测试全部键"
-msgstr ""
+msgstr "测试全部键"
 
 msgid "自动弹琴"
-msgstr ""
-
-msgid "自动战斗任务不可用"
-msgstr ""
+msgstr "自动弹琴"
 
 msgid "自动音高"
-msgstr ""
+msgstr "自动音高"
 
 msgid "试听选中音轨"
-msgstr ""
+msgstr "试听选中音轨"
 
 msgid "调试校准"
-msgstr ""
+msgstr "调试校准"
 
 msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
-msgstr ""
+msgstr "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
 
 msgid "选择 MIDI 档案"
-msgstr ""
+msgstr "选择 MIDI 档案"
 
 msgid "随机播放"
-msgstr ""
+msgstr "随机播放"
 
 msgid "音轨选择"
-msgstr ""
+msgstr "音轨选择"
 
 msgid "音高与音域分析"
-msgstr ""
+msgstr "音高与音域分析"
 
 msgid "音高调整 (半音):"
-msgstr ""
+msgstr "音高调整 (半音):"
 
 msgid "顺序播放"
-msgstr ""
+msgstr "顺序播放"
 
 msgid "高音"
-msgstr ""
+msgstr "高音"
 
 msgid "MIDI 分析失败"
-msgstr ""
+msgstr "MIDI 分析失败"
 
 msgid "MIDI 播放失败"
-msgstr ""
+msgstr "MIDI 播放失败"
 
 msgid "键盘布局"
-msgstr ""
+msgstr "键盘布局"
 
 msgid "de_DE"
 msgstr "Deutsch"
@@ -796,206 +765,199 @@ msgid "zh_TW"
 msgstr "繁體中文"
 
 msgid "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
-msgstr ""
+msgstr "文案生成模型调用地址, 需兼容OpenAI接口请求格式"
 
 msgid "模型调用超时时间(s)"
-msgstr ""
+msgstr "模型调用超时时间(s)"
 
 msgid "文案生成调用模型的超时时间, 超时将回退使用本地词库, 留空使用30s"
-msgstr ""
+msgstr "文案生成调用模型的超时时间, 超时将回退使用本地词库, 留空使用30s"
 
 msgid "关闭后将降级使用本地词库抽取发帖回复文案"
-msgstr ""
+msgstr "关闭后将降级使用本地词库抽取发帖回复文案"
 
 msgid "发帖内容生成提示词"
-msgstr ""
+msgstr "发帖内容生成提示词"
 
 msgid "发帖内容生成提示词, 请先调试好提示词再使用"
-msgstr ""
+msgstr "发帖内容生成提示词, 请先调试好提示词再使用"
 
 msgid "发帖标题生成提示词"
-msgstr ""
+msgstr "发帖标题生成提示词"
 
 msgid "发帖标题生成提示词, 请先调试好提示词再使用"
-msgstr ""
+msgstr "发帖标题生成提示词, 请先调试好提示词再使用"
 
 msgid "呗果智能体"
-msgstr ""
+msgstr "呗果智能体"
 
 msgid "回复生成提示词"
-msgstr ""
+msgstr "回复生成提示词"
 
 msgid "回复生成提示词, 请先调试好提示词再使用"
-msgstr ""
+msgstr "回复生成提示词, 请先调试好提示词再使用"
 
 msgid "开启助手模式后, 将只会辅助生成文案"
-msgstr ""
+msgstr "开启助手模式后, 将只会辅助生成文案"
 
 msgid "所调用模型名称"
-msgstr ""
+msgstr "所调用模型名称"
 
 msgid "文案助手模式"
-msgstr ""
+msgstr "文案助手模式"
 
 msgid "智能体模式选项"
-msgstr ""
+msgstr "智能体模式选项"
 
 msgid "自动回帖会同时点赞"
-msgstr ""
+msgstr "自动回帖会同时点赞"
 
 msgid "未设置请留空, 请勿泄露API_Key!"
-msgstr ""
+msgstr "未设置请留空, 请勿泄露API_Key!"
 
 msgid "需要支持视觉输入的视觉语言模型"
-msgstr ""
+msgstr "需要支持视觉输入的视觉语言模型"
 
 msgid "模型调用API_Key"
-msgstr ""
+msgstr "模型调用API_Key"
 
 msgid "模型调用地址"
-msgstr ""
+msgstr "模型调用地址"
 
 msgid "次数"
-msgstr ""
+msgstr "次数"
 
 msgid "游戏语言"
-msgstr ""
+msgstr "游戏语言"
 
 msgid "请选择游戏所设置的语言"
-msgstr ""
+msgstr "请选择游戏所设置的语言"
 
 msgid "留言"
-msgstr ""
+msgstr "留言"
 
 msgid "自动发帖"
-msgstr ""
+msgstr "自动发帖"
 
 msgid "自动呗果"
-msgstr ""
+msgstr "自动呗果"
 
 msgid "自动回帖"
-msgstr ""
+msgstr "自动回帖"
 
 msgid "自动按赞"
-msgstr ""
+msgstr "自动按赞"
 
 msgid "请详阅使用说明"
-msgstr ""
+msgstr "请详阅使用说明"
 
 msgid "调用模型"
-msgstr ""
+msgstr "调用模型"
 
 msgid "过滤水贴"
-msgstr ""
+msgstr "过滤水贴"
 
 msgid "1"
-msgstr ""
+msgstr "1"
 
 msgid "2"
-msgstr ""
+msgstr "2"
 
 msgid "3"
-msgstr ""
+msgstr "3"
 
 msgid "4"
-msgstr ""
+msgstr "4"
 
 msgid "使用任何路径前请先阅读使用说明"
-msgstr ""
+msgstr "使用任何路径前请先阅读使用说明"
 
 msgid "设置为0则一直运行"
-msgstr ""
+msgstr "设置为0则一直运行"
 
 msgid "战斗角色"
-msgstr ""
+msgstr "战斗角色"
 
 msgid "自动粉爪大劫案"
-msgstr ""
+msgstr "自动粉爪大劫案"
 
 msgid "跑图角色"
-msgstr ""
+msgstr "跑图角色"
 
 msgid "路径"
-msgstr ""
+msgstr "路径"
 
 msgid "路径1(路线参考自B站UP: 早柚大魔王丶)"
-msgstr ""
+msgstr "路径1(路线参考自B站UP: 早柚大魔王丶)"
 
 msgid "路径2(在路径1基础上优化了大厅到办公层的路线)"
-msgstr ""
+msgstr "路径2(在路径1基础上优化了大厅到办公层的路线)"
 
 msgid "选0~1个"
-msgstr ""
+msgstr "选0~1个"
 
 msgid "选1~2个"
-msgstr ""
+msgstr "选1~2个"
 
 msgid "选1个"
-msgstr ""
+msgstr "选1个"
 
 msgid "避战方法"
-msgstr ""
+msgstr "避战方法"
 
 msgid "避战角色"
-msgstr ""
+msgstr "避战角色"
 
 msgid "长按shift"
-msgstr ""
+msgstr "长按shift"
 
 msgid "长按攻击"
-msgstr ""
+msgstr "长按攻击"
 
-msgid ""
-"No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions.\n"
-"DO NOT manually switch windows!\n"
-"Wait patiently for the software to bring the game window to the foreground."
-msgstr ""
-"未找到已录制的操作。请等待录制提示出现，然后按照指引，仔细完成操作录制。\n"
-"切勿手动切换窗口！\n"
-"耐心等待软件将游戏窗口唤起至前台。"
+msgid "No recorded operations were found. Please wait for the recording prompt, then follow the instructions carefully to record your actions.\nDO NOT manually switch windows!\nWait patiently for the software to bring the game window to the foreground."
+msgstr "未找到已录制的操作。请等待录制提示出现，然后按照指引，仔细完成操作录制。\n切勿手动切换窗口！\n耐心等待软件将游戏窗口唤起至前台。"
 
 msgid "影院约会"
-msgstr ""
+msgstr "影院约会"
 
 msgid "约会目标"
-msgstr ""
+msgstr "约会目标"
 
 msgid "自动小旋风"
-msgstr ""
+msgstr "自动小旋风"
 
 msgid "可交互「小旋风」下按开始"
-msgstr ""
+msgstr "可交互「小旋风」下按开始"
 
 msgid "难度选项"
-msgstr ""
+msgstr "难度选项"
 
 msgid "异象家具"
-msgstr ""
+msgstr "异象家具"
 
 msgid "每2小时重新登入"
-msgstr ""
-
+msgstr "每2小时重新登入"
 
 msgid "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
-msgstr ""
+msgstr "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
 
 msgid "九百九十九夜"
-msgstr ""
+msgstr "九百九十九夜"
 
 msgid "巧克力火山-底层最左边的篝火"
-msgstr ""
+msgstr "巧克力火山-底层最左边的篝火"
 
 msgid "挂机刷经验"
-msgstr ""
+msgstr "挂机刷经验"
 
 msgid "位置"
-msgstr ""
+msgstr "位置"
 
 msgid "赤龙古堡-龙之高塔室外篝火"
-msgstr ""
+msgstr "赤龙古堡-龙之高塔室外篝火"
 
 msgid "使用终结技"
-msgstr ""
+msgstr "使用终结技"
 
 msgid "Background Audio Routing"
 msgstr "后台音频路由"
@@ -1037,100 +999,106 @@ msgid "Open Download Page"
 msgstr "打开下载页面"
 
 msgid "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
-msgstr ""
+msgstr "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
 
 msgid "赤龙古堡-残丝长巷篝火"
-msgstr ""
+msgstr "赤龙古堡-残丝长巷篝火"
 
 msgid "战斗时长上限"
-msgstr ""
+msgstr "战斗时长上限"
 
 msgid "战斗时不切人"
-msgstr ""
+msgstr "战斗时不切人"
 
 msgid "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
-msgstr ""
+msgstr "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
 
 msgid "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
-msgstr ""
+msgstr "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
 
 msgid "当前 CPU 不支持 AVX2, 无法运行 OpenVINO 2026 CPU 推理；自动战斗的目标检测将不可用。"
-msgstr ""
+msgstr "当前 CPU 不支持 AVX2, 无法运行 OpenVINO 2026 CPU 推理；自动战斗的目标检测将不可用。"
 
 msgid "战斗后等待至时长上限"
-msgstr ""
+msgstr "战斗后等待至时长上限"
 
 msgid "羁遇赠礼"
-msgstr ""
+msgstr "羁遇赠礼"
 
 msgid "新增角色"
-msgstr ""
+msgstr "新增角色"
 
 msgid "更新当前角色"
-msgstr ""
+msgstr "更新当前角色"
 
 msgid "删除当前角色"
-msgstr ""
+msgstr "删除当前角色"
 
 msgid "开始赠礼"
-msgstr ""
+msgstr "开始赠礼"
 
 msgid "继续赠礼"
-msgstr ""
+msgstr "继续赠礼"
 
 msgid "停止"
-msgstr ""
+msgstr "停止"
 
 msgid "在游戏赠礼页点击{}。点击礼物卡片可设定优先级，再次点击取消。"
-msgstr ""
+msgstr "在游戏赠礼页点击{}。点击礼物卡片可设定优先级，再次点击取消。"
 
 msgid "赠礼状态"
-msgstr ""
+msgstr "赠礼状态"
 
 msgid "已启用"
-msgstr ""
+msgstr "已启用"
 
 msgid "名称"
-msgstr ""
+msgstr "名称"
 
 msgid "角色显示名称"
-msgstr ""
+msgstr "角色显示名称"
 
 msgid "赠送次数"
-msgstr ""
+msgstr "赠送次数"
 
 msgid "角色名称"
-msgstr ""
+msgstr "角色名称"
 
 msgid "礼物优先级"
-msgstr ""
+msgstr "礼物优先级"
 
 msgid "不赠送"
-msgstr ""
+msgstr "不赠送"
 
 msgid "优先级 {}"
-msgstr ""
+msgstr "优先级 {}"
 
 msgid "不可赠送"
-msgstr ""
+msgstr "不可赠送"
 
 msgid "未命名角色"
-msgstr ""
+msgstr "未命名角色"
 
 msgid "捕获失败"
-msgstr ""
+msgstr "捕获失败"
 
 msgid "保存失败"
-msgstr ""
+msgstr "保存失败"
 
 msgid "无法开始"
-msgstr ""
+msgstr "无法开始"
 
 msgid "赠礼任务未注册"
-msgstr ""
+msgstr "赠礼任务未注册"
 
 msgid "没有可用的游戏画面"
-msgstr ""
+msgstr "没有可用的游戏画面"
 
 msgid "请先捕获、选择礼物并启用至少一个角色。"
-msgstr ""
+msgstr "请先捕获、选择礼物并启用至少一个角色。"
+
+msgid "no_screen"
+msgstr "没有可用的游戏画面"
+
+msgid "首次抛竿失败时，补充默认鱼饵并出售鱼获"
+msgstr "首次抛竿失败时，补充默认鱼饵并出售鱼获"
