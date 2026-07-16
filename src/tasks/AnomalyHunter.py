@@ -276,10 +276,9 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
                 self.send_key_up(key)
         return ret
 
-    def prepare_bosstreasure_search(self, middle_click_sleep=0.2):
-        self.send_key("a", after_sleep=middle_click_sleep)
+    def prepare_bosstreasure_search(self, middle_click_sleep=2):
+        self.send_key("a", after_sleep=0.2)
         self.middle_click(after_sleep=middle_click_sleep)
-        self.sleep(2)
 
     def find_bosstreasure_in_view(self):
         for feature_name in self.get_bosstreasure_features():
@@ -304,7 +303,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
     def find_bosstreasure(self):
         for attempt in range(1, 5):
             self.log_warning(f"Boss宝箱查找次数：{attempt}/4")
-            self.prepare_bosstreasure_search(middle_click_sleep=0.2)
+            self.prepare_bosstreasure_search()
             result = self.find_bosstreasure_in_view()
             if result:
                 return result
