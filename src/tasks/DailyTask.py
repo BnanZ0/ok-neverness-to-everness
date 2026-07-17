@@ -8,7 +8,6 @@ from qfluentwidgets import FluentIcon
 
 from src import text_white_color
 from src.Labels import Labels
-from src.tasks.AnomalyHunter import AnomalyHunter
 from src.tasks.AnomalyTask import AnomalyTask
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.CoffeeTask import CoffeeTask
@@ -42,8 +41,6 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
     COFFEE_MODE_CLAIM_AND_RESTOCK = "领取/补货一咖舍"
     COFFEE_MODE_AUTO = "运行一咖舍自动化"
 
-    TASK_ANOMALY_HUNTER = "异象狩猎"
-
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "日常任务"
@@ -55,15 +52,6 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         self.working_task: Optional[BaseNTETask] = None
 
         AnomalyTask.setup_config(self)
-        self.default_config.update({AnomalyHunter.CONF_HUNTER_TARGET: AnomalyHunter.TARGET_SOUND_KING})
-        task_type_config = self.config_type[AnomalyTask.CONF_TASK_TYPE]
-        if self.TASK_ANOMALY_HUNTER not in task_type_config["options"]:
-            task_type_config["options"].append(self.TASK_ANOMALY_HUNTER)
-        task_type_config["sub_configs"][self.TASK_ANOMALY_HUNTER] = AnomalyHunter.CONF_HUNTER_TARGET
-        self.config_type[AnomalyHunter.CONF_HUNTER_TARGET] = {
-            "type": "drop_down",
-            "options": AnomalyHunter.HUNTER_TARGETS,
-        }
         self.default_config.update(
             {
                 self.DAILY_STAMINA_TARGET: 180,
@@ -81,7 +69,6 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_COFFEE_TASK: "选择日常任务中的一咖舍处理方式",
             }
         )
-        self.config_description.update({AnomalyHunter.CONF_HUNTER_TARGET: "选择要挑战的异象狩猎目标"})
         coffee_options = [self.COFFEE_MODE_NONE, self.COFFEE_MODE_CLAIM_AND_RESTOCK]
         # 一咖舍自动化页面 OCR 仅匹配简体中文; 在非 zh_CN 下不向用户暴露自动化选项.
         if self.get_app_locale() == "zh_CN":
@@ -311,12 +298,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             return True
         self.info_set("must use stamina", must_use)
 
-        task_cls: Type[WorkingTaskT] = (
-            AnomalyHunter
-            if self.config.get(AnomalyTask.CONF_TASK_TYPE) == self.TASK_ANOMALY_HUNTER
-            else AnomalyTask
-        )
-        with self.set_working_task(task_cls) as task:
+        with self.set_working_task(AnomalyTask) as task:
             ret = task.do_run(self.config, stamina_target=must_use)
             if ret:
                 self.shift_idx(task)
@@ -359,11 +341,6 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                     }.get(task_type)
                     if conf_key:
                         self.config[conf_key] = int(next_idx + 1)  # type: ignore
-            elif isinstance(task, AnomalyHunter):
-                current_target = self.config.get(task.CONF_HUNTER_TARGET, task.TARGET_SOUND_KING)
-                current_idx = task.HUNTER_TARGETS.index(current_target) if current_target in task.HUNTER_TARGETS else 0
-                next_idx = (current_idx + 1) % len(task.HUNTER_TARGETS)
-                self.config[task.CONF_HUNTER_TARGET] = task.HUNTER_TARGETS[next_idx]
             self.sync_config()
 
     def _open_activity(self):
