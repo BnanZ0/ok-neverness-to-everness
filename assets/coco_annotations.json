@@ -215,6 +215,12 @@
             "file_name": "images/1.png",
             "width": 2560,
             "height": 1440
+        },
+        {
+            "id": 36,
+            "file_name": "images/0.png",
+            "width": 2560,
+            "height": 1440
         }
     ],
     "annotations": [
@@ -1205,6 +1211,32 @@
             ],
             "area": 7812,
             "iscrowd": 0
+        },
+        {
+            "id": 77,
+            "image_id": 36,
+            "category_id": 74,
+            "bbox": [
+                247,
+                258,
+                27,
+                31
+            ],
+            "area": 837,
+            "iscrowd": 0
+        },
+        {
+            "id": 78,
+            "image_id": 36,
+            "category_id": 78,
+            "bbox": [
+                1940,
+                681,
+                32,
+                13
+            ],
+            "area": 416,
+            "iscrowd": 0
         }
     ],
     "categories": [
@@ -1574,6 +1606,11 @@
             "supercategory": ""
         },
         {
+            "id": 74,
+            "name": "bookshop_logo",
+            "supercategory": ""
+        },
+        {
             "id": 75,
             "name": "box_house_list_snapshot",
             "supercategory": ""
@@ -1586,6 +1623,11 @@
         {
             "id": 77,
             "name": "reward_popup",
+            "supercategory": ""
+        },
+        {
+            "id": 78,
+            "name": "icecar_lights",
             "supercategory": ""
         }
     ]
