@@ -1,5 +1,6 @@
 name: "ok-nte"
 uac: true
+icon: "icons/icon.png"
 profiles:
   - name: "China"
     git_url: "https://cnb.cool/BnanZ0/ok-nte-update.git"

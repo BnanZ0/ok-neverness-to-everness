@@ -113,6 +113,7 @@ class BaseChar:
     def perform(self):
         """执行当前角色的主要战斗行动序列。"""
         self.last_perform = time.time()
+        self.task.record_first_engage(self)
         if self.has_intro:
             self.add_intro_motion_freeze(self.last_perform)
             self.wait_intro()
@@ -570,7 +571,7 @@ class BaseChar:
         Returns:
             bool: 如果成功释放则返回 True。
         """
-        if not self.task.use_ultimate:
+        if not self.task.combat_session.use_ultimate:
             return False
 
         if self.ultimate_available():
@@ -646,10 +647,12 @@ class BaseChar:
         while not self.has_cd("ultimate") and time.time() < deadline:
             self.sleep(0.1)
 
-    def _wait_ultimate_unfreeze(self, start):
+    def _wait_ultimate_unfreeze(self, start, click=True):
         self.logger.info("waiting for ultimate unfrozen")
         self.task.wait_until(
-            lambda: self.has_cd("ultimate"), post_action=self.click_with_interval, time_out=2
+            lambda: self.has_cd("ultimate"),
+            post_action=lambda: click and self.click_with_interval(),
+            time_out=2,
         )
         box_ultimate = self.task.get_box_by_name(Labels.box_ultimate)
         snapshot = box_ultimate.crop_frame(self.task.frame)
@@ -672,7 +675,7 @@ class BaseChar:
         self.task.wait_until(
             condition,
             time_out=10,
-            post_action=self.click_with_interval,
+            post_action=lambda: click and self.click_with_interval(),
         )
         duration = time.time() - start
         self.add_freeze_duration(start, duration)
@@ -859,7 +862,7 @@ class BaseChar:
         return self.available("skill", check_color=check_color)
 
     def available(self, box, check_color=True, check_cd=True):
-        if box == "ultimate" and not self.task.use_ultimate:
+        if box == "ultimate" and not self.task.combat_session.use_ultimate:
             return False
         if self.is_current_char:
             return self.task.available(box, check_color=check_color, check_cd=check_cd)
@@ -1009,8 +1012,9 @@ class BaseChar:
         return outro
 
     def is_first_engage(self):
-        """判断角色是否为触发战斗时的登场角色。"""
-        result = 0 <= self.last_perform - self.task.combat_start < 0.1
-        if result:
-            self.logger.info("first engage")
-        return result
+        """判断角色是否为本场第一个实际执行战斗逻辑的角色。"""
+        return self.task.is_first_engage(self)
+
+    def consume_first_engage(self):
+        """消费本场首次登场标记, 同一场战斗仅会成功一次。"""
+        return self.task.consume_first_engage(self)

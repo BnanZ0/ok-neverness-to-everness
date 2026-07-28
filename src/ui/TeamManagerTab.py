@@ -3,9 +3,9 @@ from typing import Literal
 
 from ok import og
 from ok.gui.widget.CustomTab import CustomTab
-from PySide6.QtCore import QObject, Qt, Signal
-from PySide6.QtGui import QColor, QPixmap
-from PySide6.QtWidgets import QGraphicsDropShadowEffect, QHBoxLayout, QVBoxLayout
+from PySide6.QtCore import QObject, Qt, QTimer, Signal
+from PySide6.QtGui import QPixmap
+from PySide6.QtWidgets import QHBoxLayout, QSizePolicy, QStackedLayout, QVBoxLayout, QWidget
 from qfluentwidgets import (
     BodyLabel,
     CardWidget,
@@ -27,6 +27,7 @@ from src.tasks.trigger.AutoCombatTask import AutoCombatTask
 from src.ui.common import (
     COMBO,
     TEAM_MANAGEMENT,
+    BorderCardWidget,
     SearchableComboBox,
     char_manager_signals,
     cv_to_pixmap,
@@ -123,9 +124,10 @@ class NewCharDialog(MessageBoxBase):
         return char_name, char_id, combo_id, combo_name
 
 
-class SlotCard(CardWidget):
+class SlotCard(BorderCardWidget):
     def __init__(self, index, manager: CustomCharManager, parent=None):
         super().__init__(parent)
+        self.setBorderWidth(2)
         self.index = index
         self.manager = manager
         self.tr_match_success = og.app.tr("匹配成功: {}")
@@ -137,26 +139,50 @@ class SlotCard(CardWidget):
         self.tr_add_match_feature_btn = og.app.tr("加入特征")
         self.tr_feature_added_btn = og.app.tr("特征已加入")
         self.tr_confidence = og.app.tr("置信度: {:.2f}")
+        self.setMinimumHeight(168)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
-        self.shadow_effect = QGraphicsDropShadowEffect(self)
-        self.shadow_effect.setBlurRadius(30)
-        self.shadow_effect.setOffset(2, 2)
-        self.shadow_effect.setColor(QColor(0, 0, 0, 40))
-        self.setGraphicsEffect(self.shadow_effect)
+        self.stack = QStackedLayout(self)
+        self.stack.setContentsMargins(14, 14, 14, 14)
 
-        self.vbox = QVBoxLayout(self)
+        self.empty_widget = QWidget(self)
+        self.empty_layout = QVBoxLayout(self.empty_widget)
+        self.empty_layout.setContentsMargins(0, 0, 0, 0)
+        self.empty_layout.setSpacing(4)
+        self.empty_title = SubtitleLabel(self.tr_slot_title.format(index + 1), self.empty_widget)
+        self.empty_status = BodyLabel(self.tr_scan_prompt, self.empty_widget)
+        self.empty_layout.addWidget(self.empty_title, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.empty_layout.addWidget(self.empty_status, alignment=Qt.AlignmentFlag.AlignHCenter)
+        self.empty_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.result_widget = QWidget(self)
+        self.result_layout = QHBoxLayout(self.result_widget)
+        self.result_layout.setContentsMargins(0, 0, 0, 0)
+        self.result_layout.setSpacing(12)
         self.title = SubtitleLabel(self.tr_slot_title.format(index + 1))
         self.image = ImageLabel()
-        self.image.setFixedSize(120, 120)
+        self.image.setFixedSize(112, 112)
         self.status = BodyLabel(self.tr_scan_prompt)
-        self.status.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.status.setWordWrap(True)
         self.btn_act = PrimaryPushButton(self.tr_action_btn, self)
         self.btn_act.hide()
 
-        self.vbox.addWidget(self.title, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.vbox.addWidget(self.image, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.vbox.addWidget(self.status, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.vbox.addWidget(self.btn_act, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.info_widget = QWidget(self)
+        self.info_layout = QVBoxLayout(self.info_widget)
+        self.info_layout.setContentsMargins(0, 0, 0, 0)
+        self.info_layout.setSpacing(4)
+        self.info_layout.addWidget(self.title)
+        self.info_layout.addWidget(self.status)
+        self.info_layout.addWidget(self.btn_act, alignment=Qt.AlignmentFlag.AlignLeft)
+
+        self.result_layout.addStretch(1)
+        self.result_layout.addWidget(self.image, alignment=Qt.AlignmentFlag.AlignVCenter)
+        self.result_layout.addWidget(self.info_widget, alignment=Qt.AlignmentFlag.AlignVCenter)
+        self.result_layout.addStretch(1)
+
+        self.stack.addWidget(self.empty_widget)
+        self.stack.addWidget(self.result_widget)
+        self.stack.setCurrentWidget(self.empty_widget)
 
         self.btn_act.clicked.connect(self.on_action)
         self.current_mat = None
@@ -170,6 +196,15 @@ class SlotCard(CardWidget):
             return text
         return f"{text}\n{self.tr_confidence.format(confidence)}"
 
+    def show_empty(self, text=None):
+        text = text or self.tr_scan_prompt
+        self.status.setText(text)
+        self.empty_status.setText(text)
+        self.stack.setCurrentWidget(self.empty_widget)
+
+    def show_result(self):
+        self.stack.setCurrentWidget(self.result_widget)
+
     def update_result(self, mat, w, h, match_char_id, confidence=None):
         self.current_mat = mat
         self.current_w = w
@@ -177,17 +212,18 @@ class SlotCard(CardWidget):
         self.current_match_char_id = match_char_id or ""
         self.current_confidence = confidence
         if mat is not None and getattr(mat, "size", 0) > 0:
+            self.show_result()
             pixmap = cv_to_pixmap(mat)
             self.image.setImage(
                 pixmap.scaled(
-                    120,
-                    120,
+                    112,
+                    112,
                     Qt.AspectRatioMode.KeepAspectRatio,
                     Qt.TransformationMode.SmoothTransformation,
                 )
             )
         else:
-            empty_pixmap = QPixmap(120, 120)
+            empty_pixmap = QPixmap(112, 112)
             empty_pixmap.fill(Qt.GlobalColor.transparent)
             self.image.setImage(empty_pixmap)
 
@@ -209,7 +245,7 @@ class SlotCard(CardWidget):
             self.btn_act.setText(self.tr_action_btn)
             self.btn_act.show()
         else:
-            self.status.setText(self.tr_no_image)
+            self.show_empty(self.tr_no_image)
             self.btn_act.setEnabled(True)
             self.btn_act.hide()
 
@@ -243,7 +279,7 @@ class SlotCard(CardWidget):
                     char_id = self.manager.create_character(char_name, combo_id)
                 elif char_id:
                     self.manager.update_character(char_id, combo_id=combo_id)
-                
+
                 self.manager.add_feature_to_character(
                     char_id,
                     self.current_mat,
@@ -260,24 +296,20 @@ class SlotCard(CardWidget):
                 char_manager_signals.refresh_tab.emit()
 
 
-class FixedTeamSlotCard(CardWidget):
+class FixedTeamSlotCard(BorderCardWidget):
     def __init__(self, index, manager: CustomCharManager, parent=None):
         super().__init__(parent)
+        self.setBorderWidth(2)
         self.index = index
         self.manager = manager
         self.tr_slot_title = og.app.tr("{} 号位")
         self.tr_char_ph = og.app.tr("输入或选择角色")
         self.tr_combo_ph = COMBO
-
-        self.shadow_effect = QGraphicsDropShadowEffect(self)
-        self.shadow_effect.setBlurRadius(30)
-        self.shadow_effect.setOffset(2, 2)
-        self.shadow_effect.setColor(QColor(0, 0, 0, 40))
-        self.setGraphicsEffect(self.shadow_effect)
-
         self.vbox = QVBoxLayout(self)
-        self.vbox.setContentsMargins(14, 14, 14, 14)
-        self.vbox.setSpacing(10)
+        self.vbox.setContentsMargins(12, 12, 12, 12)
+        self.vbox.setSpacing(8)
+        self.setMinimumHeight(138)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
         self.title = SubtitleLabel(self.tr_slot_title.format(index + 1))
         self.char_combo = SearchableComboBox()
@@ -454,7 +486,8 @@ class TeamManagerTab(CustomTab):
             '点击 <b style="color: #0078d7;">{scan_team}</b> 后点击 <b style="color: #0078d7;">关联或添加</b> 特征，自动战斗时就会识别对应的角色。<br>'
             '<b style="color: #d83b01;">💡 注意：</b>此面板 <b style="color: #d83b01;">不会</b> 在进入战斗或更换阵容时实时自动刷新或同步显示, 因为这是工具面板。<br>'
             '如果不想管理 <b style="color: #0078d7;">角色特征</b>，可以直接使用 <b style="color: #0078d7;">{fixed_team}</b> 功能。',
-            fixed_team=self.tr_fixed_team_title, scan_team=og.app.tr("扫描队伍")
+            fixed_team=self.tr_fixed_team_title,
+            scan_team=og.app.tr("扫描队伍"),
         )
         # ruff: enable[E501]
         self.tr_fixed_team_tips = tr_fmt(
@@ -471,7 +504,7 @@ class TeamManagerTab(CustomTab):
 
         self.vbox = self.vBoxLayout
         self.vbox.setContentsMargins(20, 20, 20, 20)
-        self.vbox.setSpacing(20)
+        self.vbox.setSpacing(16)
 
         self.scan_card = CardWidget(self.view)
         self.scan_layout = QVBoxLayout(self.scan_card)
@@ -580,6 +613,14 @@ class TeamManagerTab(CustomTab):
         )
         char_manager_signals.refresh_tab.connect(self.reload_fixed_team_options)
         self.refresh_fixed_team_state()
+        QTimer.singleShot(0, self._scroll_to_top)
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        QTimer.singleShot(0, self._scroll_to_top)
+
+    def _scroll_to_top(self):
+        self.verticalScrollBar().setValue(self.verticalScrollBar().minimum())
 
     @property
     def name(self) -> Literal["CustomTab"]:
@@ -666,6 +707,7 @@ class TeamManagerTab(CustomTab):
         self.scan_btn.setText(self.tr_scanning)
         for card in self.slots:
             card.btn_act.hide()
+            card.show_empty()
         og.app.start_controller.handler.post(self.scan_team)
 
     def scan_team(self):
@@ -753,7 +795,7 @@ class TeamManagerTab(CustomTab):
         if not results:
             for card in self.slots:
                 card.update_result(None, 0, 0, "")
-                card.status.setText(self.tr_no_feature)
+                card.show_empty(self.tr_no_feature)
             return
 
         updated_indices = set()
@@ -771,7 +813,7 @@ class TeamManagerTab(CustomTab):
         for i in range(4):
             if i not in updated_indices:
                 self.slots[i].update_result(None, 0, 0, "")
-                self.slots[i].status.setText(self.tr_no_feature)
+                self.slots[i].show_empty(self.tr_no_feature)
 
     def show_scan_flyout(self):
         Flyout.create(

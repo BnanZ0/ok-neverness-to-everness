@@ -2,7 +2,7 @@ from ok import og, relative_box
 from ok.gui.Communicate import communicate
 from ok.gui.widget.CustomTab import CustomTab
 from PySide6.QtCore import QObject, Qt, Signal
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QColor, QCursor
 from PySide6.QtWidgets import QGridLayout, QHBoxLayout, QListWidgetItem, QVBoxLayout, QWidget
 from qfluentwidgets import (
     BodyLabel,
@@ -24,7 +24,7 @@ from qfluentwidgets import (
 
 from src.gifts.GiftManager import GiftManager
 from src.tasks.GiftTask import GiftTask
-from src.ui.common import cv_to_pixmap
+from src.ui.common import BorderCardWidget, cv_to_pixmap
 from src.ui.util import ensure_scan_capture
 
 
@@ -35,7 +35,7 @@ class GiftManagerSignals(QObject):
 gift_manager_signals = GiftManagerSignals()
 
 
-class GiftPriorityCard(SimpleCardWidget):
+class GiftPriorityCard(BorderCardWidget):
     slot_clicked = Signal(int)
 
     def __init__(self, slot: int, image, parent=None):
@@ -61,23 +61,20 @@ class GiftPriorityCard(SimpleCardWidget):
             )
         )
         self.set_priority(None)
+        self.setBorderWidth(2)
 
     def set_priority(self, priority: int | None) -> None:
         if self.blocked:
             self.caption.setText(og.app.tr("不可赠送"))
-            self.setStyleSheet(
-                "GiftPriorityCard { border: 2px solid #d13438; border-radius: 8px; }"
-            )
+            self.setBorderColor(QColor("#d13438"))
             self._position_content()
             return
         if priority is None:
             self.caption.setText(og.app.tr("不赠送"))
-            self.setStyleSheet("")
+            self.setBorderColor(None)
         else:
             self.caption.setText(og.app.tr("优先级 {}").format(priority))
-            self.setStyleSheet(
-                "GiftPriorityCard { border: 2px solid #00b7c3; border-radius: 8px; }"
-            )
+            self.setBorderColor(QColor("#00b7c3"))
         self._position_content()
 
     def set_blocked(self, blocked: bool) -> None:

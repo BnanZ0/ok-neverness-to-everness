@@ -52,6 +52,18 @@ class TeamSurvivalStatus(Enum):
     WIPED = 3  # 团灭
 
 
+@dataclass
+class CombatSession:
+    """一次实际战斗的生命周期状态。"""
+
+    combat_start: float
+    switch_enabled: bool = True
+    use_ultimate: bool = True
+    start_char: "BaseChar | None" = None
+    first_engage_char: "BaseChar | None" = None
+    first_engage_consumed: bool = False
+
+
 class BaseCombatTask(CharElementUIMixin, CombatCheck):
     """基础战斗任务类，封装了游戏"鸣潮"中角色自动化操作的通用逻辑。"""
 
@@ -89,10 +101,9 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         self.sleep_check_interval = 0.1
         self.chars: list[BaseChar] = []
         self.mouse_pos = None  # 当前鼠标位置
-        self.combat_start = 0  # 战斗开始时间戳
+        self._combat_session: CombatSession | None = None
 
         self.add_text_fix({"Ｅ": "e"})
-        self.use_ultimate = True
         self.vibrate_chars_index: list[int] = []
         self.chars_slot_mat = [None, None, None, None]
         self.element_reaction_counts = {}
@@ -100,6 +111,55 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         self.clear_element_reactions()
         self.preheat_element_template_cache_async()
         CustomCharManager().preheat_feature_cache_async()
+
+    @property
+    def combat_session(self) -> CombatSession:
+        """返回当前战斗会话, 必要时按默认策略创建。"""
+
+        if self._combat_session is None:
+            self._combat_session = CombatSession(combat_start=time.time())
+        return self._combat_session
+
+    @combat_session.setter
+    def combat_session(self, value: CombatSession | None) -> None:
+        self._combat_session = value
+
+    def begin_combat_session(self) -> CombatSession:
+        """初始化本场战斗, 执行一次首切并记录实际首发角色。
+
+        此方法是战斗开始阶段唯一的副作用入口。首发角色已记录时直接复用。
+        """
+
+        session = self.combat_session
+        if session.start_char is None:
+            session.combat_start = time.time()
+            self.click()
+            self.switch_to_combat_start_char()
+            session.start_char = self.get_current_char(raise_exception=False)
+            logger.info(f"combat session started, start char: {session.start_char}")
+        return session
+
+    def record_first_engage(self, char: "BaseChar") -> None:
+        """记录本场首次实际执行战斗逻辑的角色。"""
+
+        session = self.combat_session
+        if session.first_engage_char is None:
+            session.first_engage_char = char
+            logger.info(f"combat first engage: {char}")
+
+    def is_first_engage(self, char: "BaseChar") -> bool:
+        """返回角色是否为本场第一个实际执行战斗逻辑的角色。"""
+
+        return self.combat_session.first_engage_char is char
+
+    def consume_first_engage(self, char: "BaseChar") -> bool:
+        """仅在本场首次登场角色首次消费时返回 ``True``。"""
+
+        session = self.combat_session
+        if session.first_engage_consumed or session.first_engage_char is not char:
+            return False
+        session.first_engage_consumed = True
+        return True
 
     @property
     def team_size(self):
@@ -367,7 +427,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             self.in_combat, time_out=wait_combat_time, raise_if_not_found=raise_if_not_found
         )
         try:
-            self.switch_to_combat_start_char()
+            self.begin_combat_session()
             self.info["Combat Count"] = self.info.get("Combat Count", 0) + 1
             with self.retarget_turn_policy(enable=retarget_turn):
                 deadline = time.time() + max_combat_time
@@ -611,7 +671,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             post_action (callable, optional): 切换后执行的动作 (回调函数)。默认为 None。
             free_intro (bool, optional): 是否强制认为拥有入场技 (通常在协奏值满时)。默认为 False。
         """
-        if self.team_size <= 1:
+        if not self.combat_session.switch_enabled or self.team_size <= 1:
             self.click(action_name="switch_char_click", interval=0.1)
             return
 
@@ -653,6 +713,9 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         if isinstance(self, AutoCombatTask):
             current_char.logger.debug("AutoCombatTask, skip switch_other_char")
             return
+        if not self.combat_session.switch_enabled:
+            current_char.logger.debug("combat character switching disabled by task policy")
+            return
         target = next(
             (
                 char
@@ -684,6 +747,10 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         )
 
     def switch_to_combat_start_char(self):
+        if not self.combat_session.switch_enabled:
+            logger.info("combat start switch disabled by task policy")
+            return
+
         current_char = self.get_current_char(raise_exception=False)
         decision = self.combat_planner.decide_combat_start_char(current_char)
         switch_to = decision.target
@@ -770,18 +837,20 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
 
     def combat_end(self):
         """战斗结束时调用的清理方法。"""
-        self.reset_to_false()
-        SoundCombatContext().clear_task_if(self)
+        try:
+            self.reset_to_false()
+            SoundCombatContext().clear_task_if(self)
 
-        current_char = self.get_current_char(raise_exception=False)
-        if current_char:
-            try:
-                self.get_current_char().on_combat_end(self.chars)
-            except Exception as e:
-                self.log_error(f"{current_char.char_name} on_combat_end error", e)
-                pass
+            current_char = self.get_current_char(raise_exception=False)
+            if current_char:
+                try:
+                    self.get_current_char().on_combat_end(self.chars)
+                except Exception as e:
+                    self.log_error(f"{current_char.char_name} on_combat_end error", e)
 
-        self._clear_dead_chars()
+            self._clear_dead_chars()
+        finally:
+            self.combat_session = None
 
     def _clear_dead_chars(self):
         for char in self.chars:
@@ -958,7 +1027,6 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
                 self.info_add_to_list("chars", f"{char.char_name}: {char.combo_name}")
 
         if self.team_size > 0:
-            self.combat_start = time.time()
             ret = True
             self._apply_sound_config()
         logger.debug(f"load_chars cost {time.perf_counter() - now:.3f}s")

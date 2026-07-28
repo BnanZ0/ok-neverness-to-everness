@@ -202,8 +202,6 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self._interaction_watch_found = False
         self._aborting_heist = False
 
-        self._round_label = ""
-
     def run(self):
         super().run()
         try:
@@ -216,27 +214,25 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
 
     def _run_loop(self):
         self._start_quick_pick_loop()
-        self._round_label = ""
-        self.info_set("成功次数", 0)
-        self.info_set("失败次数", 0)
+        self.start_rounds()
         self.info_set("总方斯获取数", 0)
         self.info_set("总粉爪币获取数", 0)
 
-        count = 0
-        total = self.configured_rounds(default=0)
-
-        while self.should_run_round(count + 1, total):
+        while self.has_remaining_rounds():
             self.ensure_main()
             if not self._ensure_heist_entrance():
                 self.next_frame()
                 continue
 
-            count += 1
-            self._prepare_round(count, total)
+            if not self.begin_round():
+                continue
+            self._prepare_round()
 
             self._run_heist_round()
 
             self.next_frame()
+
+        self.finish_rounds()
 
     def _ensure_heist_entrance(self):
         if self.wait_until(self.find_interac, time_out=10, raise_if_not_found=False):
@@ -261,13 +257,11 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.log_info("quick_pick_loop start")
         self.submit_periodic_task(0.01, self._quick_pick_loop)
 
-    def _prepare_round(self, count, total):
+    def _prepare_round(self):
         self._dead_fighter_keys = []
-        self._round_label = f"第 {count} 轮"
-        self.info_set("轮次", self.rounds_info_text(count, total))
 
     def _add_rewards_to_summary(self, earnfcash, earnpcoin):
-        self.info_add("成功次数", 1)
+        self.add_success()
         self.info_add("总方斯获取数", earnfcash)
         self.info_add("总粉爪币获取数", earnpcoin)
 
@@ -310,7 +304,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
             return
         self._poll_interaction_watch()
         self._poll_character_switch()
-        if self.should_check_monthly_card() and self.handle_monthly_card():
+        if self.check_monthly_card() and self.handle_monthly_card():
             raise AbortException("found monthly_card")
 
     def _update_sleep_check_interval(self):
@@ -472,10 +466,6 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         # logger.debug(f'check_monthly_card {monthly_card}')
         return monthly_card is not None
 
-    def log_round_info(self, message):
-        """输出带当前轮次前缀的路线日志。"""
-        self.log_info(f"{self._round_label}: {message}")
-
     def get_heist_rewards(self):
         cash = self.ocr(
             0.359, 0.595, 0.500, 0.642, frame_processor=gf.isolate_text_to_black, name="cash"
@@ -505,7 +495,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
 
     def abort_heist(self):
         self.log_round_info("出现异常，将退出粉爪副本")
-        self.info_add("失败次数", 1)
+        self.add_failed()
         self._aborting_heist = True
         self._reset_route_checks()
 

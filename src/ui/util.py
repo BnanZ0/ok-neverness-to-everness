@@ -96,6 +96,7 @@ class _CloseDelayGuard(QObject):
         self.button_text = self.button.text() if self.button is not None else ""
         self.timer = QTimer(self)
         self.timer.timeout.connect(self._tick)
+        dialog.finished.connect(self.stop)
 
     def start(self):
         if self.can_close:
@@ -108,13 +109,16 @@ class _CloseDelayGuard(QObject):
             self._update_button_text()
         self.timer.start(1000)
 
+    def stop(self, *_):
+        """Remove the application-wide filter once the dialog has finished."""
+        self.timer.stop()
+        app = QApplication.instance()
+        if app is not None:
+            app.removeEventFilter(self)
+
     def eventFilter(self, obj, event):
         if not self.can_close and self._is_dialog_event(obj):
-            if event.type() == QEvent.Type.Close:
-                event.ignore()
-                return True
             if event.type() == QEvent.Type.KeyPress and event.key() in (
-                Qt.Key.Key_Escape,
                 Qt.Key.Key_Enter,
                 Qt.Key.Key_Return,
             ):
@@ -126,10 +130,7 @@ class _CloseDelayGuard(QObject):
         self.remaining_seconds -= 1
         if self.remaining_seconds <= 0:
             self.can_close = True
-            self.timer.stop()
-            app = QApplication.instance()
-            if app is not None:
-                app.removeEventFilter(self)
+            self.stop()
             if self.button is not None:
                 self.button.setEnabled(True)
                 self.button.setText(self.button_text)

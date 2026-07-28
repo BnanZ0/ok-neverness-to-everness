@@ -71,11 +71,15 @@ class MovementMixin(BaseTask):
         self, find_function, time_out=30, end_condition=None, y_offset=0.05, x_threshold=0.07
     ):
         if find_function:
-            self.wait_until(
+            if not self.wait_until(
                 lambda: (not end_condition or end_condition()) or find_function(),
-                raise_if_not_found=True,
-                time_out=time_out,
-            )
+                raise_if_not_found=False,
+                time_out=min(time_out, 5),
+            ):
+                return False
+        else:
+            return
+
         last_direction = None
         start = time.time()
         ended = False

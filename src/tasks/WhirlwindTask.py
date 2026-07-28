@@ -70,7 +70,7 @@ class WhirlwindTask(NTEOneTimeTask, BaseCombatTask):
 
     def sleep_check(self):
         super().sleep_check()
-        if self.should_check_monthly_card():
+        if self.check_monthly_card():
             self.handle_monthly_card()
 
     def check_relogin(self):
@@ -143,7 +143,7 @@ class WhirlwindTask(NTEOneTimeTask, BaseCombatTask):
                 self.send_key(self.get_ultimate_key())
                 self.sleep(0.15)
                 if not self.is_in_team():
-                    if self.should_check_monthly_card():
+                    if self.check_monthly_card():
                         self.operate_click(0.50, 0.89, interval=2)
                 elif not self.is_boss():
                     break

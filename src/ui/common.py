@@ -10,7 +10,7 @@ from PySide6.QtCore import (
     Qt,
     Signal,
 )
-from PySide6.QtGui import QIcon, QImage, QPixmap
+from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPainterPath, QPen, QPixmap
 from PySide6.QtWidgets import (
     QCompleter,
     QHBoxLayout,
@@ -18,6 +18,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from qfluentwidgets import (
+    CardWidget,
     EditableComboBox,
     FluentIcon,
     FluentIconBase,
@@ -26,6 +27,7 @@ from qfluentwidgets import (
     SearchLineEdit,
     Theme,
     getIconColor,
+    isDarkTheme,
 )
 
 
@@ -67,6 +69,129 @@ class CharManagerSignals(QObject):
 
 
 char_manager_signals = CharManagerSignals()
+
+
+class BorderCardWidget(CardWidget):
+    """A Fluent card widget with adjustable border width and color."""
+
+    def __init__(self, parent=None, border_width: float = 1.0, border_color=None):
+        super().__init__(parent)
+        self._border_width = max(0.0, border_width)
+        self._border_color = None
+        self.setBorderColor(border_color)
+
+    def borderWidth(self) -> float:
+        return self._border_width
+
+    def setBorderWidth(self, width: float):
+        """Set the border width in device-independent pixels."""
+        width = max(0.0, width)
+        if self._border_width != width:
+            self._border_width = width
+            self.update()
+
+    def borderColor(self) -> QColor | None:
+        return QColor(self._border_color) if self._border_color is not None else None
+
+    def setBorderColor(self, color):
+        """Set a solid border color, or ``None`` to use the Fluent default."""
+        border_color = None if color is None else QColor(color)
+        if border_color is not None and not border_color.isValid():
+            raise ValueError(f"Invalid border color: {color!r}")
+        if self._border_color != border_color:
+            self._border_color = border_color
+            self.update()
+
+    def paintEvent(self, e):
+        if self._border_width == 1 and self._border_color is None:
+            super().paintEvent(e)
+            return
+
+        painter = QPainter(self)
+        painter.setRenderHints(QPainter.RenderHint.Antialiasing)
+
+        w, h = self.width(), self.height()
+        r = self.borderRadius
+        d = 2 * r
+        border_width = min(self._border_width, w, h)
+        is_dark = isDarkTheme()
+
+        # draw top border
+        top_border_color = QColor(0, 0, 0, 20)
+        if is_dark:
+            if self.isPressed:
+                top_border_color = QColor(255, 255, 255, 18)
+            elif self.isHover:
+                top_border_color = QColor(255, 255, 255, 13)
+        else:
+            top_border_color = QColor(0, 0, 0, 15)
+
+        # draw bottom border
+        bottom_border_color = top_border_color
+        if not is_dark and self.isHover and not self.isPressed:
+            bottom_border_color = QColor(0, 0, 0, 27)
+
+        if self._border_color is not None:
+            top_border_color = bottom_border_color = self._border_color
+
+        if border_width > 1:
+            inset = border_width / 2
+            r = max(0, min(r, w / 2, h / 2) - inset)
+            d = 2 * r
+            left, top = inset, inset
+            right, bottom = w - inset, h - inset
+
+            path = QPainterPath()
+            path.arcMoveTo(left, bottom - d, d, d, 225)
+            path.arcTo(left, bottom - d, d, d, 225, -60)
+            path.lineTo(left, top + r)
+            path.arcTo(left, top, d, d, -180, -90)
+            path.lineTo(right - r, top)
+            path.arcTo(right - d, top, d, d, 90, -90)
+            path.lineTo(right, bottom - r)
+            path.arcTo(right - d, bottom - d, d, d, 0, -45)
+            pen = QPen(top_border_color, border_width)
+            pen.setCapStyle(Qt.PenCapStyle.FlatCap)
+            painter.strokePath(path, pen)
+
+            path = QPainterPath()
+            path.arcMoveTo(left, bottom - d, d, d, 225)
+            path.arcTo(left, bottom - d, d, d, 225, 45)
+            path.lineTo(right - r, bottom)
+            path.arcTo(right - d, bottom - d, d, d, 270, 45)
+            pen = QPen(bottom_border_color, border_width)
+            pen.setCapStyle(Qt.PenCapStyle.FlatCap)
+            painter.strokePath(path, pen)
+        elif border_width > 0:
+            path = QPainterPath()
+            path.arcMoveTo(1, h - d - 1, d, d, 240)
+            path.arcTo(1, h - d - 1, d, d, 225, -60)
+            path.lineTo(1, r)
+            path.arcTo(1, 1, d, d, -180, -90)
+            path.lineTo(w - r, 1)
+            path.arcTo(w - d - 1, 1, d, d, 90, -90)
+            path.lineTo(w - 1, h - r)
+            path.arcTo(w - d - 1, h - d - 1, d, d, 0, -60)
+            painter.strokePath(path, top_border_color)
+
+            path = QPainterPath()
+            path.arcMoveTo(1, h - d - 1, d, d, 240)
+            path.arcTo(1, h - d - 1, d, d, 240, 30)
+            path.lineTo(w - r - 1, h - 1)
+            path.arcTo(w - d - 1, h - d - 1, d, d, 270, 30)
+            painter.strokePath(path, bottom_border_color)
+
+        # draw background
+        painter.setPen(Qt.NoPen)
+        if border_width > 1:
+            inset = border_width / 2
+            rect = self.rect().adjusted(inset, inset, -inset, -inset)
+            painter.setBrush(self.backgroundColor)
+            painter.drawRoundedRect(rect, r, r)
+        else:
+            rect = self.rect().adjusted(1, 1, -1, -1)
+            painter.setBrush(self.backgroundColor)
+            painter.drawRoundedRect(rect, r, r)
 
 
 class SearchableComboBox(EditableComboBox):

@@ -35,21 +35,13 @@ class DarkTask(NTEOneTimeTask, RecordTask):
             raise
 
     def do_run(self):
-        current_time = 0
-        max_time = self.configured_rounds(default=0)
-        while self.should_run_round(current_time + 1, max_time):
-            # 逻辑
+        self.start_rounds()
+        while self.begin_round():
             self.one_time()
-
-            # 完成一次后计数
-            current_time += 1
-
-            round_text = self.rounds_info_text(current_time, max_time)
-            self.info_set("轮次", round_text)
-            self.log_info(f"当前次数: {round_text}")
+            self.add_success()
 
             self.sleep(0.1)
-        self.log_info("达到最大循环次数")
+        self.finish_rounds()
 
     def one_time(self):
         self.send_key("f4", after_sleep=3)

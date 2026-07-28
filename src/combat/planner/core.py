@@ -15,7 +15,7 @@ from .requests import (
     request_current_step,
     request_fulfilled,
     request_is_switch,
-    request_switch_target,
+    request_switch_targets,
     request_wants_action,
 )
 from .state import CombatState, _PlanSnapshot
@@ -820,8 +820,8 @@ class CombatPlanner:
         active_requests = []
         decision = None
         for request in context._state.active_requests:
-            target = request_switch_target(request, context.chars)
-            if target is None:
+            targets = request_switch_targets(request, context.chars)
+            if not targets:
                 if request_is_switch(request):
                     request.finish(RequestStatus.EXPIRED)
                     request.close()
@@ -829,7 +829,8 @@ class CombatPlanner:
                     continue
                 active_requests.append(request)
                 continue
-            if not self._can_switch_to(target):
+            targets = [target for target in targets if self._can_switch_to(target)]
+            if not targets:
                 if request_is_switch(request):
                     request.finish(RequestStatus.EXPIRED)
                     request.close()
@@ -837,11 +838,21 @@ class CombatPlanner:
                     continue
                 active_requests.append(request)
                 continue
-            if target == current_char:
+            if current_char in targets:
                 request.finish(RequestStatus.FULFILLED)
                 request.close()
                 logger.info(f"switch request already current: {request.reason}")
                 continue
+            target = targets[0]
+            if len(targets) > 1:
+                target = max(
+                    targets,
+                    key=lambda char: (
+                        self._score_char(char, context, current_char=False)[0],
+                        -char.last_perform,
+                        -char.index,
+                    ),
+                )
             if decision is None:
                 decision = SwitchDecision(
                     target=target,
@@ -1243,12 +1254,14 @@ class CombatPlanner:
                     reason = f"fulfill request: {request.reason}"
 
         profile = char.describe_role()
-        role_score = self._role_score(profile, context, current_char)
-        score += role_score
-        breakdown.add(f"role:{profile.field_preference.value}", role_score)
+        field_preference_score = self._field_preference_score(profile, context, current_char)
+        score += field_preference_score
+        breakdown.add(f"field_preference:{profile.field_preference.value}", field_preference_score)
         return score, reason, expected, breakdown
 
-    def _role_score(self, profile: RoleProfile, context: CombatContext, current_char: bool) -> int:
+    def _field_preference_score(
+        self, profile: RoleProfile, context: CombatContext, current_char: bool
+    ) -> int:
         if context.has_active_request():
             request_penalty = {
                 FieldPreference.MAIN_DPS: -80,

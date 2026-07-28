@@ -102,6 +102,7 @@ class MidiPlayerTab(CustomTab):
         self.tr_no_song_selected = og.app.tr("未选择歌曲")
         self.is_playing = False
         self.is_favorite = False
+        self.favorite_active_icon = FluentSystemIcon.HEART_FILL.colored("#E81123", "#FF99A4")
         self.current_key_mode = "36_keys"
         self.config = Config("MidiPlayerTab", MIDI_PLAYER_CONFIG_DEFAULTS)
         self.library = MidiLibraryService()
@@ -1493,11 +1494,9 @@ class MidiPlayerTab(CustomTab):
 
     def _update_favorite_button(self):
         if self.is_favorite:
-            self.btn_favorite.setIcon(FluentSystemIcon.HEART_FILL)
-            self.btn_favorite.setStyleSheet("TransparentToolButton { color: red; }")
+            self.btn_favorite.setIcon(self.favorite_active_icon)
         else:
             self.btn_favorite.setIcon(FluentIcon.HEART)
-            self.btn_favorite.setStyleSheet("")
 
     def on_prev_clicked(self):
         ids = self._playlist_song_ids()

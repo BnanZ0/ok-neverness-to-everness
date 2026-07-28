@@ -55,7 +55,7 @@ or consequences are not associated with this software.
 ## ✨ 主要功能
 
 <p align="center">
-  <img width="950" alt="ok-nte-gif-cn" src="https://github.com/user-attachments/assets/5f7eb88c-cc5d-42cc-b27c-9059628c49b3" />
+  <img width="950" alt="ok-nte-gif-cn" src="./assets/gif/ok-nte-gif-cn.gif" />
 </p>
 
 - **后台运行**：支持 PC 游戏在后台运行时进行自动化操作。
@@ -208,7 +208,7 @@ ok-nte.exe -t 2 -e
 ## 🔗 使用[ok-script](https://github.com/ok-oldking/ok-script)开发的项目：
 
 * 鸣潮 [https://github.com/ok-oldking/ok-wuthering-wave](https://github.com/ok-oldking/ok-wuthering-waves)
-* 明日方舟:终末地 [https://github.com/AliceJump/ok-end-field](https://github.com/ok-oldking/ok-end-field)
+* 明日方舟:终末地 [https://github.com/AliceJump/ok-end-field](https://github.com/AliceJump/ok-end-field)
 * 原神(停止维护,
   但是后台过剧情可用) [https://github.com/ok-oldking/ok-genshin-impact](https://github.com/ok-oldking/ok-genshin-impact)
 * 少前2 [https://github.com/ok-oldking/ok-gf2](https://github.com/ok-oldking/ok-gf2)

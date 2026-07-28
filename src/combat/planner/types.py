@@ -25,8 +25,9 @@ class Planner:
     class Role(StrEnum):
         """角色战斗定位。
 
-        `RoleProfile.role` 使用此枚举描述角色的大方向；实际站场偏好由
-        `FieldPreference` 进一步控制。
+        `RoleProfile.role` 使用此枚举描述角色的队伍定位。它可用于
+        `CombatContext.request_role()` 选择队友；实际站场偏好由
+        `FieldPreference` 单独控制。
         """
 
         SUB_DPS = "Sub DPS"
@@ -332,8 +333,9 @@ class RequestWhenPredicates:
 class RoleProfile:
     """角色向 `CombatPlanner` 声明的基础战斗画像。
 
-    由角色的 `describe_role()` 返回。`max_field_time` 会被 planner 用来生成
-    内建的 `planner_field_time` 站场动作。
+    由角色的 `describe_role()` 返回。`role` 描述队伍定位, 可由
+    `CombatContext.request_role()` 匹配; `field_preference` 决定普通切人评分。
+    `max_field_time` 会被 planner 用来生成内建的 `planner_field_time` 站场动作。
 
     `combat_start_priority` 只用于开战首切。大于 0 的角色会成为首切候选；
     数值越高越优先。普通战斗中的切人评分不会使用此字段。

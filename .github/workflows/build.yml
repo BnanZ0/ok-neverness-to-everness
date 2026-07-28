@@ -16,7 +16,7 @@ jobs:
       SIGN_BUILD: 'true'
       SIGN_SETUP: 'false'
       BUILD_EXE: 'true'
-      USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.1.32'
+      USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.2.21'
 
     strategy:
       matrix:
@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set UTF-8 encoding
@@ -61,7 +61,30 @@ jobs:
           python -m ok.update.inline_ok_requirements --tag ${{ github.ref_name }}
 
       - name: Run tests
+        # Keep release and signing credentials out of test process environment.
+        env:
+          GITHUB_TOKEN: ''
+          GH_TOKEN: ''
+          CNB_GH: ''
+          OK_GH: ''
+          SIGNPATH_API_TOKEN: ''
+          MirrorChyanUploadToken: ''
+          ACTIONS_RUNTIME_TOKEN: ''
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ''
         run: |
+          @(
+            'GITHUB_TOKEN',
+            'GH_TOKEN',
+            'CNB_GH',
+            'OK_GH',
+            'SIGNPATH_API_TOKEN',
+            'MirrorChyanUploadToken',
+            'ACTIONS_RUNTIME_TOKEN',
+            'ACTIONS_ID_TOKEN_REQUEST_TOKEN'
+          ) | ForEach-Object {
+            Remove-Item "Env:\$_" -ErrorAction SilentlyContinue
+          }
+
           python -m unittest discover -s tests -p "*test*.py" --top-level-directory . -v
 
       - name: Sync Repositories # 同步部分代码(deploy.txt中), 合并tag中间更新日志, 到更新库, 以减少用户更新使用的git库大小

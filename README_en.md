@@ -42,7 +42,7 @@
 ## ✨ Main Features
 
 <p align="center">
-  <img width="950" alt="ok-nte-gif-en" src="https://github.com/user-attachments/assets/f2d228f6-3162-419e-a94a-29702cfb2f9e" />
+  <img width="950" alt="ok-nte-gif-en" src="./assets/gif/ok-nte-gif-en.gif" />
 </p>
 
 - **Background Operation**: Automate game actions while in the background.
@@ -189,7 +189,7 @@ ok-nte.exe -t 2 -e
 ## 🔗 Projects developed using [ok-script](https://github.com/ok-oldking/ok-script):
 
 * Wuthering Waves [https://github.com/ok-oldking/ok-wuthering-waves](https://github.com/ok-oldking/ok-wuthering-waves)
-* End Field [https://github.com/AliceJump/ok-end-field](https://github.com/ok-oldking/ok-end-field)
+* End Field [https://github.com/AliceJump/ok-end-field](https://github.com/AliceJump/ok-end-field)
 * Genshin Impact (discontinued, but background story progression is still usable) [https://github.com/ok-oldking/ok-genshin-impact](https://github.com/ok-oldking/ok-genshin-impact)
 * Girls' Frontline 2 [https://github.com/ok-oldking/ok-gf2](https://github.com/ok-oldking/ok-gf2)
 * Honkai: Star Rail [https://github.com/Shasnow/ok-starrailassistant](https://github.com/Shasnow/ok-starrailassistant)

@@ -88,15 +88,11 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
             raise
 
     def do_run(self):
-        total = self.configured_rounds(default=0)
-        count = 0
-
-        while self.should_run_round(count + 1, total):
-            count += 1
-            label = f"第 {self.rounds_info_text(count, total)} 次"
+        self.start_rounds()
+        while self.begin_round():
 
             # 点击开始演奏
-            self.log_info(f"{label}：点击开始演奏")
+            self.log_round_info("点击开始演奏")
             self.operate_click(SONG_START_POS[0], SONG_START_POS[1])
 
             # 等待离开选歌界面（最多15秒），确认进入音游后再开始检测
@@ -121,9 +117,10 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
             self._run_single()
 
             self._handle_finish()
+            self.add_success()
 
             # 是否继续
-            if self.should_run_round(count + 1, total):
+            if self.has_remaining_rounds():
                 # 等待回到选歌界面后再点
                 self.log_info("等待回到选歌界面")
                 self.sleep(1.0)
@@ -137,7 +134,7 @@ class RhythmTask(NTEOneTimeTask, BaseNTETask):
                     self.log_error("10 秒内未返回选歌界面，停止任务")
                     raise TaskDisabledException()
 
-        self.log_info(f"自动音游任务结束，共完成 {count} 次", notify=True)
+        self.finish_rounds()
 
     def _run_single(self):
         """单曲打击主循环"""

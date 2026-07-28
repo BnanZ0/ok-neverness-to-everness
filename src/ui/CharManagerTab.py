@@ -14,7 +14,6 @@ from PySide6.QtCore import QEvent, Qt, QTimer, Signal, Slot
 from PySide6.QtWidgets import (
     QFileDialog,
     QGraphicsBlurEffect,
-    QGraphicsDropShadowEffect,
     QHBoxLayout,
     QSizePolicy,
     QSpacerItem,
@@ -22,7 +21,6 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 from qfluentwidgets import (
-    CardWidget,
     FlowLayout,
     FluentIcon,
     Flyout,
@@ -42,13 +40,13 @@ from qfluentwidgets import (
     TextEdit,
     TitleLabel,
     TransparentToolButton,
-    isDarkTheme,
 )
 
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.ui.common import (
     COMBO,
     TEAM_MANAGEMENT,
+    BorderCardWidget,
     SearchableComboBox,
     SearchableListWidget,
     SmoothSearchBar,
@@ -126,12 +124,14 @@ class CharManagerTab(CustomTab):
 
         # main layout
         self.main_h_layout = QHBoxLayout(self)
-        self.main_h_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_h_layout.setContentsMargins(20, 20, 20, 20)
+        self.main_h_layout.setSpacing(16)
 
         # Left side: Character list
-        self.left_widget = QWidget()
+        self.left_widget = SimpleCardWidget(self)
         self.left_v_layout = QVBoxLayout(self.left_widget)
-        self.left_v_layout.setContentsMargins(10, 10, 10, 10)
+        self.left_v_layout.setContentsMargins(14, 14, 14, 14)
+        self.left_v_layout.setSpacing(10)
 
         self.char_list_widget = SearchableListWidget(self)
         self.char_list_widget.setPlaceholderText(og.app.tr("搜索角色"))
@@ -158,12 +158,12 @@ class CharManagerTab(CustomTab):
         self.left_v_layout.addWidget(self.delete_char_btn)
         self.left_v_layout.addWidget(self.import_btn)
         self.left_v_layout.addWidget(self.export_btn)
-        self.left_v_layout.addWidget(self.char_list_widget)
+        self.left_v_layout.addWidget(self.char_list_widget, 1)
 
         # Right side: Detail View
         self.detail_widget = QWidget()
         self.detail_v_layout = QVBoxLayout(self.detail_widget)
-        self.detail_v_layout.setContentsMargins(20, 20, 20, 20)
+        self.detail_v_layout.setContentsMargins(0, 0, 0, 0)
 
         self.title_h_layout = QHBoxLayout()
 
@@ -1063,17 +1063,12 @@ class CharManagerTab(CustomTab):
         self.feature_scroll_card.setMaximumHeight(final_h)
 
 
-class FeatureCard(CardWidget):
+class FeatureCard(BorderCardWidget):
     def __init__(self, fid, img_mat, delete_callback, parent=None):
         super().__init__(parent)
+        self.setBorderWidth(2)
         self.fid = fid
         self.delete_callback = delete_callback
-
-        self.shadow_effect = QGraphicsDropShadowEffect(self)
-        self.shadow_effect.setBlurRadius(15)
-        self.shadow_effect.setOffset(4, 4)
-        self.shadow_effect.setColor(QColor(0, 0, 0, 40))
-        self.setGraphicsEffect(self.shadow_effect)
 
         # 1. 图片组件
         self.lbl = ImageLabel()
@@ -1118,6 +1113,3 @@ class FeatureCard(CardWidget):
         self.lbl.setGraphicsEffect(None)
         self.del_btn.hide()
         super().leaveEvent(e)
-
-    def _normalBackgroundColor(self):
-        return QColor(255, 255, 255, 25 if isDarkTheme() else 170)

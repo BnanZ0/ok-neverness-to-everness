@@ -51,6 +51,7 @@ class FakeChar:
         elapsed=0,
         combat_start_priority=0,
         cycle_full=False,
+        role=None,
     ):
         self.index = index
         self.name = name
@@ -59,6 +60,7 @@ class FakeChar:
         self.last_switch_time = -1
         self.is_current_char = False
         self._field_preference = field_preference
+        self._role = role
         self._tags = set(tags or {ActionTag.DAMAGE})
         self._plan_items = plan_items
         self._policies = policies
@@ -82,11 +84,12 @@ class FakeChar:
         return isinstance(other, FakeChar) and self.index == other.index
 
     def describe_role(self):
-        role = (
-            Role.MAIN_DPS
-            if self._field_preference == FieldPreference.MAIN_DPS
-            else Role.SUB_DPS
-        )
+        role = self._role
+        if role is None:
+            role = {
+                FieldPreference.MAIN_DPS: Role.MAIN_DPS,
+                FieldPreference.SUPPORT: Role.SUPPORT,
+            }.get(self._field_preference, Role.SUB_DPS)
         return RoleProfile(
             role=role,
             field_preference=self._field_preference,
@@ -2026,6 +2029,53 @@ class TestCombatPlanner(unittest.TestCase):
         self.assertEqual(decision.target, zero)
         self.assertIsNone(decision.expected_entry)
         self.assertIn("switch request", decision.reason)
+        self.assertEqual(zero.plan_calls, 0)
+
+    def test_request_role_prefers_matching_role_without_forcing_action(self):
+        source = FakeChar(0, "source")
+        support = self._support(1, "support")
+        dps = self._main_dps(2, "dps")
+        planner = self._planner([source, support, dps])
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_role(Role.SUPPORT, reason="need a support role"),
+        )
+
+        decision = planner.decide_switch(source)
+
+        self.assertEqual(decision.target, support)
+        self.assertIsNone(decision.expected_entry)
+        self.assertIn("switch request", decision.reason)
+
+        planner.record_switch(support)
+
+        self.assertFalse(planner.context_for(source).has_active_request())
+
+    def test_request_role_uses_normal_scoring_between_matching_roles(self):
+        source = FakeChar(0, "source")
+        low_priority_support = FakeChar(
+            1,
+            "low priority support",
+            role=Role.SUPPORT,
+            tags={ActionTag.DEFAULT_ACTION},
+        )
+        high_priority_support = FakeChar(
+            2,
+            "high priority support",
+            role=Role.SUPPORT,
+            tags={ActionTag.ULTIMATE_ACTION},
+        )
+        planner = self._planner([source, low_priority_support, high_priority_support])
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_role(Role.SUPPORT, reason="need any support role"),
+        )
+
+        decision = planner.decide_switch(source)
+
+        self.assertEqual(decision.target, high_priority_support)
 
     def test_request_switch_does_not_stop_current_entry_flow(self):
         calls = []

@@ -12,6 +12,7 @@ from .types import (
     FollowupStep,
     RequestHandle,
     RequestStatus,
+    Role,
     _NeverExpires,
 )
 
@@ -123,6 +124,14 @@ class _SwitchRequest(_RequestLifetime):
 
 
 @dataclass(slots=True)
+class _RoleRequest(_RequestLifetime):
+    role: Role = Role.SUB_DPS
+
+    def matches(self, char: "BaseChar") -> bool:
+        return char.describe_role().role == self.role
+
+
+@dataclass(slots=True)
 class _TagRequest(_RequestLifetime):
     required_tags: set[ActionTag] = field(default_factory=set)
     count: int = 1
@@ -150,7 +159,7 @@ class _TagRequest(_RequestLifetime):
         return True
 
 
-_Request = _RouteRequest | _ReservationRequest | _SwitchRequest | _TagRequest
+_Request = _RouteRequest | _ReservationRequest | _SwitchRequest | _RoleRequest | _TagRequest
 
 
 def request_fulfilled(request: _Request) -> bool:
@@ -219,30 +228,37 @@ def request_reserves_action(
     return False
 
 
-def request_switch_target(request: _Request, chars: list["BaseChar"]) -> "BaseChar | None":
-    """返回 switch request 的目标角色；非 switch request 返回 None。"""
+def request_switch_targets(request: _Request, chars: list["BaseChar"]) -> list["BaseChar"]:
+    """返回纯切人 request 的候选角色；非切人请求返回空列表。"""
 
     if isinstance(request, _SwitchRequest):
-        return request.target_from(chars)
-    return None
+        target = request.target_from(chars)
+        return [target] if target is not None else []
+    if isinstance(request, _RoleRequest):
+        return [char for char in chars if char is not None and request.matches(char)]
+    return []
 
 
 def request_is_switch(request: _Request) -> bool:
     """判断请求是否是纯切人请求。"""
 
-    return isinstance(request, _SwitchRequest)
+    return isinstance(request, (_SwitchRequest, _RoleRequest))
 
 
 def request_complete_switch(request: _Request, target_char: "BaseChar") -> bool:
     """判断一次实际切人是否消费了 switch request。"""
 
-    return isinstance(request, _SwitchRequest) and request.fulfilled_by(target_char)
+    if isinstance(request, _SwitchRequest):
+        return request.fulfilled_by(target_char)
+    if isinstance(request, _RoleRequest):
+        return request.matches(target_char)
+    return False
 
 
 def request_counts_as_active(request: _Request) -> bool:
     """判断请求是否应被角色视为正在进行的协作需求。
 
-    纯 reservation 和 switch request 都不代表“当前动作链要让路”；它们只分别
+    纯 reservation 和切人 request 都不代表“当前动作链要让路”；它们只分别
     提供动作许可限制和下一次普通切人偏好。
     """
 

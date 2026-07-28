@@ -286,7 +286,7 @@ class CombatCheck(BaseNTETask):
             self.openvino_clear_cache()
             logger.debug("retarget enemy succeeded")
             return self._set_in_combat("retarget_enemy")
-        if self.should_check_monthly_card() and self.handle_monthly_card():
+        if self.check_monthly_card() and self.handle_monthly_card():
             return self._set_in_combat("monthly_card")
         logger.error("target_enemy failed, try recheck break out of combat")
         return self.reset_to_false()

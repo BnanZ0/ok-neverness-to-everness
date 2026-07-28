@@ -3,15 +3,25 @@ import re
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Callable, List
 
-from ok import BaseTask, Box, CannotFindException, Logger, WaitFailedException, og, safe_get
+from ok import (
+    BaseTask,
+    Box,
+    CannotFindException,
+    Logger,
+    WaitFailedException,
+    og,
+    safe_get,
+)
 
 from src.Labels import Labels
 from src.scene.NTEScene import NTEScene
 from src.scene.ScreenPosition import ScreenPosition
 from src.tasks.mixin.CharUIMixin import CharUIMixin
+from src.tasks.mixin.FlowTaskMixin import FlowTaskMixin
 from src.tasks.mixin.MovementMixin import MovementMixin
 from src.tasks.mixin.OgMixin import OgMixin
 from src.tasks.mixin.VisionMixin import VisionMixin
@@ -29,10 +39,61 @@ MSG_MAIN_DETECTION_FAILED = (
 MSG_WORLD_DETECTION_FAILED = "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
 
 
-class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin, BaseTask):
+@dataclass
+class RoundState:
+    total: int = 0
+    index: int = 0
+    success_count: int = 0
+    failed_count: int = 0
+
+    def reset(self, total: int):
+        self.total = total
+        self.index = 0
+        self.success_count = 0
+        self.failed_count = 0
+
+    @property
+    def completed_count(self) -> int:
+        return self.success_count + self.failed_count
+
+    @property
+    def has_active_round(self) -> bool:
+        return self.index > self.completed_count
+
+    @property
+    def has_remaining_rounds(self) -> bool:
+        return self.has_active_round or self.total == 0 or self.completed_count < self.total
+
+    @property
+    def total_text(self) -> str:
+        return "∞" if self.total == 0 else str(self.total)
+
+    @property
+    def info_text(self) -> str:
+        return f"{self.index} / {self.total_text}"
+
+    def begin_next_round(self) -> bool:
+        if self.has_active_round or not self.has_remaining_rounds:
+            return False
+        self.index += 1
+        return True
+
+
+class BaseNTETask(
+    FlowTaskMixin,
+    CharUIMixin,
+    MovementMixin,
+    VisionMixin,
+    OgMixin,
+    LogGateMixin,
+    BaseTask,
+):
     CONF_ROUNDS = "循环次数"
     CONF_CLAIM_REWARD_COUNT = "领取奖励次数"
-    INFINITE_ROUNDS_TEXT = "∞"
+    INFO_ROUND = "轮次"
+    INFO_SUCCESS_COUNT = "成功次数"
+    INFO_FAILED_COUNT = "失败次数"
+    INFO_FAILED_REASON = "失败原因"
     DEFAULT_MOVE = False
 
     def __init__(self, *args, **kwargs):
@@ -47,6 +108,8 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
         self._last_interval_action_time = {}
         self._action_interval_lock = threading.Lock()
         self._init_log_gate()
+        self._round_state = RoundState()
+        self.flow.interrupt(self.check_monthly_card, self.handle_monthly_card)
 
     def configured_rounds(self, default=0) -> int:
         """读取统一的循环次数配置: 0 表示无限运行。"""
@@ -58,19 +121,78 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
         except (TypeError, ValueError):
             return max(0, int(default))
 
-    @staticmethod
-    def should_run_round(round_index: int, rounds: int) -> bool:
-        return rounds == 0 or round_index <= rounds
-
-    def rounds_total_text(self, rounds: int) -> str:
-        return self.INFINITE_ROUNDS_TEXT if rounds == 0 else str(rounds)
-
-    def rounds_info_text(self, round_index: int, rounds: int) -> str:
-        return f"{round_index} / {self.rounds_total_text(rounds)}"
-
     def add_rounds_config(self, default=0):
         self.default_config.update({self.CONF_ROUNDS: default})
         self.config_description.update({self.CONF_ROUNDS: "设置为0则一直运行"})
+
+    def start_rounds(self):
+        """初始化统一轮次状态，并输出任务开始信息。"""
+        self._round_state.reset(self.configured_rounds())
+        self.info_set(self.INFO_ROUND, "")
+        self.info_set(self.INFO_SUCCESS_COUNT, 0)
+        self.info_set(self.INFO_FAILED_COUNT, 0)
+        self.info_set(self.INFO_FAILED_REASON, None)
+        self.log_info(f"开始{self.name}，共 {self._round_state.total_text} 轮")
+
+    def begin_round(self) -> bool:
+        """开始下一轮，并在运行中同步最新循环次数配置。"""
+        state = self._round_state
+        previous_total = state.total
+        state.total = self.configured_rounds()
+        if state.has_active_round:
+            if state.total != previous_total:
+                self.info_set(self.INFO_ROUND, state.info_text)
+            return True
+        if not state.begin_next_round():
+            return False
+        self.info_set(self.INFO_ROUND, state.info_text)
+        self.log_round_info("开始")
+        return True
+
+    def has_remaining_rounds(self) -> bool:
+        """判断当前轮次完成后是否仍可继续运行。"""
+        self._round_state.total = self.configured_rounds()
+        return self._round_state.has_remaining_rounds
+
+    @property
+    def current_round(self) -> int:
+        return self._round_state.index
+
+    def add_success(self, count: int = 1) -> int:
+        """记录已完成的成功轮次，并返回累计成功数。"""
+        state = self._round_state
+        state.success_count += count
+        self.info_set(self.INFO_SUCCESS_COUNT, state.success_count)
+        return state.success_count
+
+    def add_failed(self, reason: str | None = None, count: int = 1) -> int:
+        """记录失败轮次，必要时更新失败原因并输出轮次错误日志。"""
+        state = self._round_state
+        state.failed_count += count
+        self.info_set(self.INFO_FAILED_COUNT, state.failed_count)
+        if reason:
+            self.info_set(self.INFO_FAILED_REASON, reason)
+            self.log_round_info(f"失败：{reason}", error=True)
+        else:
+            self.log_round_info("失败", error=True)
+        return state.failed_count
+
+    def log_round_info(self, message: str, *, error: bool = False):
+        """输出带当前轮次前缀的日志，供轮次任务和其子流程统一使用。"""
+        round_index = self._round_state.index
+        prefix = f"第 {round_index} 轮: " if round_index else ""
+        if error:
+            self.log_error(f"{prefix}{message}")
+        else:
+            self.log_info(f"{prefix}{message}")
+
+    def finish_rounds(self, *, notify: bool = True):
+        """输出统一的轮次汇总日志。"""
+        state = self._round_state
+        self.log_info(
+            f"{self.name}结束，成功 {state.success_count}/{state.total_text}",
+            notify=notify,
+        )
 
     def add_claim_reward_count_config(self, default=0):
         self.default_config.update({self.CONF_CLAIM_REWARD_COUNT: default})
@@ -146,7 +268,7 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
         if og.my_app is None:
             return None
         return getattr(og.my_app, "openvino_latest_image", None)
-    
+
     @property
     def openvino_available(self):
         return getattr(og.my_app, "openvino_available", None)
@@ -510,7 +632,7 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
         self.sleep(0.1)
         self.wait_until(
             lambda: not self.find_traval_button(),
-            pre_action=lambda: self.operate_click(travel_btn, interval=1),
+            pre_action=lambda: self.operate_click(travel_btn, interval=2),
             time_out=20,
             settle_time=0.5,
             raise_if_not_found=raise_if_not_found,
@@ -522,11 +644,14 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
     def openF1panel(self):
         if hasattr(self, "reset_to_false"):
             self.reset_to_false()
-        if self.is_in_team():
-            self.send_key("f1", after_sleep=1)
-            self.log_info("send f1 key to open the panel")
 
-        result = self.wait_panel(Labels.f1_panel)
+        def action():
+            if self.is_in_team():
+                self.send_key("f1", after_sleep=1)
+                self.log_info("send f1 key to open the panel")
+            return self.wait_panel(Labels.f1_panel)
+
+        result = self.retry_on_action(action, self.ensure_main)
         if not result:
             self.log_error("can't find panel, make sure f1 is the hotkey for panel", notify=True)
             raise CannotFindException("can't find panel, make sure f1 is the hotkey for panel")
@@ -536,11 +661,14 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
     def openF2panel(self):
         if hasattr(self, "reset_to_false"):
             self.reset_to_false()
-        if self.is_in_team():
-            self.send_key("f2", after_sleep=1)
-            self.log_info("send f2 key to open the panel")
 
-        result = self.wait_panel(Labels.f2_panel)
+        def action():
+            if self.is_in_team():
+                self.send_key("f2", after_sleep=1)
+                self.log_info("send f2 key to open the panel")
+            return self.wait_panel(Labels.f2_panel)
+
+        result = self.retry_on_action(action, self.ensure_main)
         if not result:
             self.log_error("can't find panel, make sure f2 is the hotkey for panel", notify=True)
             raise CannotFindException("can't find panel, make sure f2 is the hotkey for panel")
@@ -550,11 +678,14 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
     def openF5panel(self):
         if hasattr(self, "reset_to_false"):
             self.reset_to_false()
-        if self.is_in_team():
-            self.send_key("f5", after_sleep=1)
-            self.log_info("send f5 key to open the panel")
 
-        result = self.wait_panel(Labels.f5_panel)
+        def action():
+            if self.is_in_team():
+                self.send_key("f5", after_sleep=1)
+                self.log_info("send f5 key to open the panel")
+            return self.wait_panel(Labels.f5_panel)
+
+        result = self.retry_on_action(action, self.ensure_main)
         if not result:
             self.log_error("can't find panel, make sure f5 is the hotkey for panel", notify=True)
             raise CannotFindException("can't find panel, make sure f5 is the hotkey for panel")
@@ -564,18 +695,21 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
     def openESCpanel(self):
         if hasattr(self, "reset_to_false"):
             self.reset_to_false()
-        if self.is_in_team():
-            self.send_key("esc", after_sleep=1)
-            self.log_info("send esc key to open the panel")
 
-        result = self.wait_panel(Labels.esc_option, box=Labels.box_all_esc_options, threshold=0.3)
+        def action():
+            if self.is_in_team():
+                self.send_key("esc", after_sleep=1)
+                self.log_info("send esc key to open the panel")
+            return self.wait_panel(Labels.esc_option, box=Labels.box_all_esc_options, threshold=0.3)
+
+        result = self.retry_on_action(action, self.ensure_main)
         if not result:
             self.log_error("can't find panel, make sure esc is the hotkey for panel", notify=True)
             raise CannotFindException("can't find panel, make sure esc is the hotkey for panel")
         self.sleep(0.5)
         return result
 
-    def wait_panel(self, feature, box=None, threshold=0.8, time_out=4.5):
+    def wait_panel(self, feature, box=None, threshold=0.7, time_out=5):
         result = self.wait_until(
             lambda: self.find_one(feature, box=box, threshold=threshold),
             time_out=time_out,
@@ -621,36 +755,40 @@ class BaseNTETask(CharUIMixin, MovementMixin, VisionMixin, OgMixin, LogGateMixin
     def find_monthly_card(self):
         return self.find_one(Labels.monthly_card)
 
-    def should_check_monthly_card(self):
+    def check_monthly_card(self):
         if self.next_monthly_card_start > 0:
-            if 0 < time.time() - self.next_monthly_card_start < 120:
+            if (
+                0 < time.time() - self.next_monthly_card_start < 120
+                and not self.is_in_team()
+                and self.find_monthly_card()
+            ):
                 return True
         return False
 
     def handle_monthly_card(self):
-        if self.is_in_team():
-            return False
         monthly_card = self.find_monthly_card()
-        # self.screenshot('monthly_card1')
         if monthly_card is not None:
-            # self.screenshot('monthly_card1')
             self.log_info("monthly_card found click")
             deadline = time.time() + 20
             settle = -1
             while time.time() < deadline:
-                if self.is_in_team():
-                    if settle < 0:
-                        settle = time.time()
-                    elif time.time() - settle > 2:
-                        break
-                else:
+                if self.find_monthly_card():
                     self.operate_click(0.50, 0.89, after_sleep=2)
                     settle = -1
+                    continue
+                if self.find_one(Labels.reward_popup):
+                    self.send_key("esc", after_sleep=2)
+                    settle = -1
+                    continue
+                if settle < 0:
+                    settle = time.time()
+                elif time.time() - settle > 2:
+                    break
             else:
                 raise WaitFailedException()
-            # self.screenshot('monthly_card3')
             self.set_check_monthly_card(next_day=True)
-        # logger.debug(f'check_monthly_card {monthly_card}')
+        else:
+            self.log_warning_gated("monthly_card not found")
         return monthly_card is not None
 
     def set_check_monthly_card(self, next_day=False):

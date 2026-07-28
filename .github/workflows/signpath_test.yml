@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -91,7 +91,7 @@ jobs:
 
       - name: pyappify build-exe-only
         id: build-exe-only
-        uses: ok-oldking/pyappify-action@df9cbbd681e1ddccf5e44f59754866e00750bb8a
+        uses: ok-oldking/pyappify-action@91cb0dfeb63d297bc260f2d7efc1a16304fba724
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -127,7 +127,7 @@ jobs:
 
       - name: pyappify build-setup-exe
         id: build-setup-exe
-        uses: ok-oldking/pyappify-action@df9cbbd681e1ddccf5e44f59754866e00750bb8a
+        uses: ok-oldking/pyappify-action@91cb0dfeb63d297bc260f2d7efc1a16304fba724
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

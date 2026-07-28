@@ -8,14 +8,14 @@ dependencies = [
     "comtypes>=1.4.16",
     "librosa>=0.11.0",
     "mido>=1.3.3",
-    "ok-script>=1.0.163",
+    "ok-script>=1.0.177",
     "onnxocr-ppocrv5>=0.0.18",
     "opencc>=1.4.1",
     "opencv-python>=5.0.0.93",
     "openvino>=2026.2.0",
     "psutil>=7.2.2",
     "pynput>=1.8.2",
-    "pyside6==6.9.1",
+    "pyside6==6.11.1",
     "scikit-image>=0.26.0",
     "sounddevice>=0.5.5",
 ]
@@ -36,3 +36,8 @@ quote-style = "double"
 
 [tool.ruff.lint.isort]
 known-third-party = ["ok"]
+
+[tool.uv]
+environments = [
+    "sys_platform == 'win32'"
+]

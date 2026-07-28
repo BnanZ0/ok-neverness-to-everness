@@ -8,6 +8,7 @@ from .requests import (
     RequestLifetime,
     _Request,
     _ReservationRequest,
+    _RoleRequest,
     _RouteRequest,
     _SwitchRequest,
     _TagRequest,
@@ -23,6 +24,7 @@ from .types import (
     ActionTag,
     FollowupStep,
     RequestHandle,
+    Role,
 )
 
 if TYPE_CHECKING:
@@ -245,6 +247,44 @@ class CombatContext:
             until=until,
             on_finish=on_finish,
             target_index=target.index,
+        )
+        self._publish_request(request)
+        return request.handle
+
+    def request_role(
+        self,
+        role: Role,
+        reason: str = "",
+        until: RequestDeadline | None = None,
+        on_finish: Callable[[], None] | None = None,
+    ) -> RequestHandle | None:
+        """请求下一次普通调度切给指定队伍定位的角色。
+
+        这是纯切人请求, 不要求目标执行特定 action, 也不会打断当前角色的动作链。
+        有多个存活角色声明该定位时, planner 会按普通切人评分从中选择目标;
+        strict route、entry reaction 和环合反应仍拥有更高优先级。
+
+        Args:
+            role: 目标角色在 `RoleProfile.role` 中声明的队伍定位。
+            reason: 日志和调试用理由; 为空时会自动生成默认理由。
+            until: 过期条件。为 None 时不会因时间/机制条件过期; 返回 True 时
+                request 以 EXPIRED 结束。
+            on_finish: 请求首次出现 FULFILLED 或 EXPIRED 信号时调用一次。切到
+                任一匹配定位的角色, 或该角色已在场时是 FULFILLED; 没有可切入的
+                匹配角色或 until 触发时是 EXPIRED。
+
+        Returns:
+            `RequestHandle`, 可用于查询 role request 最终状态。
+        """
+
+        if role is None:
+            return None
+        request = _RoleRequest(
+            reason=reason or f"{self.current_char} requests role {role}",
+            _source=self.current_char.index,
+            until=until,
+            on_finish=on_finish,
+            role=role,
         )
         self._publish_request(request)
         return request.handle

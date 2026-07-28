@@ -97,12 +97,9 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
 
     def do_run(self):
         self.do_teleport_on_spot = False
-        self.use_ultimate = self.config.get(self.CONF_USE_ULT, True)
         self.deside_map_zoom()
-        rounds = self.configured_rounds(default=0)
-        round_index = 1
-        while self.should_run_round(round_index, rounds):
-            self.info_set("轮次", self.rounds_info_text(round_index, rounds))
+        self.start_rounds()
+        while self.begin_round():
             self.wait_until(
                 self.find_interac,
                 time_out=10,
@@ -124,11 +121,12 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
                 self.ensure_main()
             self.deside_action()
             self.next_frame()
-            round_index += 1
+            self.add_success()
+        self.finish_rounds()
 
     def sleep_check(self):
         super().sleep_check()
-        if self.should_check_monthly_card():
+        if self.check_monthly_card():
             self.handle_monthly_card()
 
     def deside_map_zoom(self):
@@ -222,44 +220,30 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
                 fun = origin_fun
 
     def deside_combat_action(self):
-        def action(*args, **kwargs):
-            self.click()
-            self.sleep(0.1)
-
         with self.skip_sleep_checks() as skip:
             skip.all = False
-            try:
-                dont_switch = self.config.get(self.CONF_DONT_SWITCH, False)
-                max_combat_time = self.config.get(self.CONF_MAX_COMBAT_TIME, 1200)
+            max_combat_time = self.config.get(self.CONF_MAX_COMBAT_TIME, 1200)
 
-                if dont_switch:
-                    old_switch = self.switch_next_char
-                    old_switch_start = self.switch_to_combat_start_char
-                    old_switch_other = self.switch_other_char
-                    self.switch_next_char = action
-                    self.switch_to_combat_start_char = action
-                    self.switch_other_char = lambda *args, **kwargs: True
-
-                start_combat = time.time()
-                self.combat_once(max_combat_time=max_combat_time)
-                self.team_dead = False
-                while not self.is_in_team():
-                    self.team_dead = True
-                    self.operate_click(0.501, 0.777, after_sleep=0.5)
-                    self.send_key("esc", after_sleep=2)
-                    self.next_frame()
-                if self.team_dead:
-                    return
-                if self.config.get(self.CONF_WAIT_FULL_DURATION):
-                    remaining_time = max_combat_time - (time.time() - start_combat)
-                    if remaining_time > 0:
-                        self.log_info(f"战斗提前结束，原地等待 {remaining_time:.1f} 秒以补齐时长上限。")
-                        self.sleep(remaining_time)
-            finally:
-                if dont_switch:
-                    self.switch_next_char = old_switch
-                    self.switch_to_combat_start_char = old_switch_start
-                    self.switch_other_char = old_switch_other
+            session = self.combat_session
+            session.switch_enabled = not self.config.get(
+                self.CONF_DONT_SWITCH, False
+            )
+            session.use_ultimate = self.config.get(self.CONF_USE_ULT, True)
+            start_combat = time.time()
+            self.combat_once(max_combat_time=max_combat_time)
+            self.team_dead = False
+            while not self.is_in_team():
+                self.team_dead = True
+                self.operate_click(0.501, 0.777, after_sleep=0.5)
+                self.send_key("esc", after_sleep=2)
+                self.next_frame()
+            if self.team_dead:
+                return
+            if self.config.get(self.CONF_WAIT_FULL_DURATION):
+                remaining_time = max_combat_time - (time.time() - start_combat)
+                if remaining_time > 0:
+                    self.log_info(f"战斗提前结束，原地等待 {remaining_time:.1f} 秒以补齐时长上限。")
+                    self.sleep(remaining_time)
 
     def map_zoom(self, zoom="max"):
         self.ensure_main()
