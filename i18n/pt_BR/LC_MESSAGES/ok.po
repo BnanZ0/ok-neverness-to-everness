@@ -933,3 +933,6 @@ msgstr "Diagnósticos de detecção de combate automático"
 
 msgid "持续检测诊断 Lv, 锁定目标标记(白色菱形)和红色血条; 请手动停止以查看完整报告"
 msgstr "Diagnostica continuamente a detecção de Lv, marcador de alvo fixado (losango branco) e barra de vida vermelha; por favor, pare manualmente para visualizar o relatório completo."
+
+msgid "喷泉签到"
+msgstr "Check-in da Fonte"

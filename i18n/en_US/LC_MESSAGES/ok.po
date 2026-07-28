@@ -1193,3 +1193,6 @@ msgstr "Auto-Combat Detection Diagnostics"
 
 msgid "持续检测诊断 Lv, 锁定目标标记(白色菱形)和红色血条; 请手动停止以查看完整报告"
 msgstr "Continuously diagnose detection for Lv, lock-on target marker (white diamond), and red health bar; please stop manually to view the full report."
+
+msgid "喷泉签到"
+msgstr "Fountain Check-in"
