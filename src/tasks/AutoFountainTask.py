@@ -29,8 +29,8 @@ class AutoFountainTask(BaseNTETask):
         super().__init__(*args, **kwargs)
         self.name = "自动喷泉签到"
         self.icon = FluentIcon.SYNC
-        self.group_name = "都市闲趣"
-        self.group_icon = FluentIcon.ACCEPT
+        self.group_name = "日常/周常"
+        self.group_icon = FluentIcon.CALENDAR
 
     def run(self):
         super().run()
