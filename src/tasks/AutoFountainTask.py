@@ -39,7 +39,8 @@ class AutoFountainTask(BaseNTETask):
         except TaskDisabledException:
             raise
         except Exception as e:
-            self.log_error("AutoFountainTask Error", e)
+            self.log_error("AutoFountainTask Error", e, notify=True)
+            raise
 
     def do_run(self):
         last_error = None
@@ -65,7 +66,7 @@ class AutoFountainTask(BaseNTETask):
 
         if last_error is not None:
             raise last_error
-        return False
+        raise RuntimeError("AutoFountainTask failed after retries")
 
     def run_fountain_flow(self):
         self.transport_to_fountain_teleport()
