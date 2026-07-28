@@ -9,9 +9,9 @@ from qfluentwidgets import FluentIcon
 from src import text_white_color
 from src.Labels import Labels
 from src.tasks.AnomalyTask import AnomalyTask
-from src.tasks.AutoFountainTask import AutoFountainTask
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.CoffeeTask import CoffeeTask
+from src.tasks.FountainTask import FountainTask
 from src.tasks.GiftTask import GiftTask
 from src.tasks.mixin.CinemaDateMixin import CinemaDateMixin
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
@@ -503,7 +503,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         return True
 
     def run_fountain_sign_task(self):
-        with self.set_working_task(AutoFountainTask) as task:
+        with self.set_working_task(FountainTask) as task:
             return task.do_run()
 
     def claim_anomaly_furniture(self):

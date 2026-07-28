@@ -9,7 +9,7 @@ from src.tasks.BaseNTETask import BaseNTETask, interac_pink_color
 from src.utils import image_utils as iu
 
 
-class AutoFountainTask(BaseNTETask):
+class FountainTask(BaseNTETask):
     DOMAIN_ENTRY_POS = (0.668, 0.150)
     DOMAIN_CONFIRM_POS = (0.917, 0.335)
     PHONE_BOOTH_BOX = (0.300, 0.420, 0.375, 0.545)
@@ -27,7 +27,7 @@ class AutoFountainTask(BaseNTETask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "自动喷泉签到"
+        self.name = "喷泉签到"
         self.icon = FluentIcon.SYNC
         self.group_name = "日常/周常"
         self.group_icon = FluentIcon.CALENDAR
@@ -39,16 +39,14 @@ class AutoFountainTask(BaseNTETask):
         except TaskDisabledException:
             raise
         except Exception as e:
-            self.log_error("AutoFountainTask Error", e, notify=True)
+            self.log_error("FountainTask Error", e, notify=True)
             raise
 
     def do_run(self):
         last_error = None
         for attempt in range(1, self.TASK_RETRY_COUNT + 2):
             self._fountain_task_start = time.time()
-            self.log_info(
-                f"AutoFountainTask attempt {attempt}/{self.TASK_RETRY_COUNT + 1}"
-            )
+            self.log_info(f"attempt {attempt}/{self.TASK_RETRY_COUNT + 1}")
             try:
                 if self.run_fountain_flow():
                     return True
@@ -56,17 +54,17 @@ class AutoFountainTask(BaseNTETask):
                 raise
             except Exception as e:
                 last_error = e
-                self.log_warning(f"AutoFountainTask attempt {attempt} failed: {e}")
+                self.log_warning(f"attempt {attempt} failed: {e}")
             finally:
                 self._fountain_task_start = None
                 self.release_fountain_move_keys()
 
             if attempt <= self.TASK_RETRY_COUNT:
-                self.log_info("AutoFountainTask retry once")
+                self.log_info("retry once")
 
         if last_error is not None:
             raise last_error
-        raise RuntimeError("AutoFountainTask failed after retries")
+        raise RuntimeError("failed after retries")
 
     def run_fountain_flow(self):
         self.transport_to_fountain_teleport()
@@ -80,7 +78,7 @@ class AutoFountainTask(BaseNTETask):
     def check_fountain_task_timeout(self):
         start = getattr(self, "_fountain_task_start", None)
         if start is not None and time.time() - start >= self.TASK_TIMEOUT:
-            raise TimeoutError(f"AutoFountainTask timed out after {self.TASK_TIMEOUT}s")
+            raise TimeoutError(f"timed out after {self.TASK_TIMEOUT}s")
 
     def release_fountain_move_keys(self):
         self.send_key_up("w")
@@ -158,9 +156,7 @@ class AutoFountainTask(BaseNTETask):
         return self.find_one(Labels.bookshop_logo, box=box)
 
     def find_second_bookshop_logo(self):
-        box = self.box_of_screen(
-            *self.BOOKSHOP_LOGO_SECOND_BOX, name="bookshop_logo_second_area"
-        )
+        box = self.box_of_screen(*self.BOOKSHOP_LOGO_SECOND_BOX, name="bookshop_logo_second_area")
         return self.find_one(Labels.bookshop_logo, box=box)
 
     def find_icecar_light(self):
@@ -197,9 +193,7 @@ class AutoFountainTask(BaseNTETask):
         return False
 
     def find_sign_in_btn(self):
-        box = self.box_of_screen(
-            *self.FOUNTAIN_SIGN_BTN_BOX, name="fountain_sign_btn_area"
-        )
+        box = self.box_of_screen(*self.FOUNTAIN_SIGN_BTN_BOX, name="fountain_sign_btn_area")
         regions = iu.find_color_enriched_regions(
             interac_pink_color,
             box,
@@ -251,9 +245,7 @@ class AutoFountainTask(BaseNTETask):
             raise_if_not_found=True,
         )
         self.log_info(f"找到喷泉最近的电话亭 {teleport}")
-        self.operate_click(
-            teleport, action_name="click_fountain_map_teleport", interval=1
-        )
+        self.operate_click(teleport, action_name="click_fountain_map_teleport", interval=1)
         self.sleep(0.5)
         self.click_traval_button()
         return teleport
