@@ -198,7 +198,7 @@ config = {
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
-        ["src.tasks.AutoFountainTask", "AutoFountainTask"],
+        ["src.tasks.FountainTask", "FountainTask"],
     ],
     "trigger_tasks": [  # 不断执行的触发式任务
         ["src.tasks.trigger.AutoCombatTask", "AutoCombatTask"],

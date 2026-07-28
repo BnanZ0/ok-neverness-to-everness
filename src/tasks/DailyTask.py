@@ -72,7 +72,6 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         self.config_description.update(
             {
                 self.CONF_COFFEE_TASK: "选择日常任务中的一咖舍处理方式",
-                self.CONF_FOUNTAIN_SIGN: "执行喷泉签到",
             }
         )
         coffee_options = [self.COFFEE_MODE_NONE, self.COFFEE_MODE_CLAIM_AND_RESTOCK]
