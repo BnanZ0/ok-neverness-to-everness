@@ -199,7 +199,6 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
             self.deside_combat_action()
         self.sleep(0.5)
         box = self.box_of_screen(0.410, 0.234, 0.560, 0.556)
-        self.do_teleport_on_spot = True
         self.ensure_teleport(lambda: self.teleport_to_top_bonfire(box))
 
     def ensure_teleport(self, fun):
