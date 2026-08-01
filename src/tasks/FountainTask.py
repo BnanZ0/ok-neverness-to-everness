@@ -10,6 +10,9 @@ from src.utils import image_utils as iu
 
 
 class FountainTask(BaseNTETask):
+    CONF_SIGN_MODE = "签到方式"
+    SIGN_MODE_SIGN = "1:签到"
+    SIGN_MODE_COIN = "2:捞币"
     DOMAIN_ENTRY_POS = (0.668, 0.150)
     DOMAIN_CONFIRM_POS = (0.917, 0.335)
     PHONE_BOOTH_BOX = (0.300, 0.420, 0.375, 0.545)
@@ -31,6 +34,16 @@ class FountainTask(BaseNTETask):
         self.icon = FluentIcon.SYNC
         self.group_name = "日常/周常"
         self.group_icon = FluentIcon.CALENDAR
+        self.default_config.update({self.CONF_SIGN_MODE: self.SIGN_MODE_SIGN})
+        self.config_description.update({self.CONF_SIGN_MODE: "选择喷泉签到或捞币"})
+        self.config_type.update(
+            {
+                self.CONF_SIGN_MODE: {
+                    "type": "drop_down",
+                    "options": [self.SIGN_MODE_SIGN, self.SIGN_MODE_COIN],
+                }
+            }
+        )
 
     def run(self):
         super().run()
@@ -156,7 +169,9 @@ class FountainTask(BaseNTETask):
         return self.find_one(Labels.bookshop_logo, box=box)
 
     def find_second_bookshop_logo(self):
-        box = self.box_of_screen(*self.BOOKSHOP_LOGO_SECOND_BOX, name="bookshop_logo_second_area")
+        box = self.box_of_screen(
+            *self.BOOKSHOP_LOGO_SECOND_BOX, name="bookshop_logo_second_area"
+        )
         return self.find_one(Labels.bookshop_logo, box=box)
 
     def find_icecar_light(self):
@@ -176,13 +191,13 @@ class FountainTask(BaseNTETask):
             return False
 
         self.send_key("f", after_sleep=0.4)
-        self.wait_until(
+        sign_btn = self.wait_until(
             self.find_sign_in_btn,
             time_out=self.INTERAC_TIMEOUT,
             raise_if_not_found=True,
         )
-        self.send_key("f", after_sleep=1)
-        self.operate_click(0.609, 0.659, after_sleep=2)
+        self.click_sign_action(sign_btn)
+        self.clear_dialog_click()
         self.wait_in_team_and_world()
         signed_count = self.read_fountain_sign_count()
         if signed_count == 0:
@@ -193,7 +208,9 @@ class FountainTask(BaseNTETask):
         return False
 
     def find_sign_in_btn(self):
-        box = self.box_of_screen(*self.FOUNTAIN_SIGN_BTN_BOX, name="fountain_sign_btn_area")
+        box = self.box_of_screen(
+            *self.FOUNTAIN_SIGN_BTN_BOX, name="fountain_sign_btn_area"
+        )
         regions = iu.find_color_enriched_regions(
             interac_pink_color,
             box,
@@ -204,10 +221,29 @@ class FountainTask(BaseNTETask):
             return None
         return max(regions, key=lambda region: region.width * region.height)
 
+    def click_sign_action(self, sign_btn):
+        self.log_info("图色识别，并确定点击选项")
+        target = sign_btn
+        if (
+            self.config.get(self.CONF_SIGN_MODE, self.SIGN_MODE_SIGN)
+            == self.SIGN_MODE_COIN
+        ):
+            target = sign_btn.copy(
+                y_offset=self.height_of_screen(0.07),
+                name="fountain_sign_coin_target",
+            )
+        self.operate_click(target, after_sleep=1)
+
+    def clear_dialog_click(self):
+        self.log_info("清理对话点击框")
+        while self.find_one(Labels.dialog_click, threshold=0.8, vertical_variance=0.02):
+            self.send_key("space", after_sleep=0.3)
+
     def read_fountain_sign_count(self):
         results = self.wait_ocr(
             *self.FOUNTAIN_SIGN_COUNT_BOX,
             match=self.FOUNTAIN_SIGN_COUNT_RE,
+            time_out=3,
             raise_if_not_found=False,
         )
         if not results:
@@ -245,7 +281,9 @@ class FountainTask(BaseNTETask):
             raise_if_not_found=True,
         )
         self.log_info(f"找到喷泉最近的电话亭 {teleport}")
-        self.operate_click(teleport, action_name="click_fountain_map_teleport", interval=1)
+        self.operate_click(
+            teleport, action_name="click_fountain_map_teleport", interval=1
+        )
         self.sleep(0.5)
         self.click_traval_button()
         return teleport
