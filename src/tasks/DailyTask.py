@@ -65,6 +65,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_CINEMA_DATE: False,
                 self.CINEMA_DATE_TARGET: "",
                 self.CONF_FOUNTAIN_SIGN: False,
+                FountainTask.CONF_SIGN_MODE: FountainTask.SIGN_MODE_SIGN,
                 self.CONF_FURNITURE: False,
                 self.CONF_GIFT: False,
             }
@@ -101,6 +102,20 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                             self.CINEMA_DATE_TARGET,
                         ]
                     },
+                },
+                self.CONF_FOUNTAIN_SIGN: {
+                    "sub_configs": {
+                        True: [
+                            FountainTask.CONF_SIGN_MODE,
+                        ]
+                    },
+                },
+                FountainTask.CONF_SIGN_MODE: {
+                    "type": "drop_down",
+                    "options": [
+                        FountainTask.SIGN_MODE_SIGN,
+                        FountainTask.SIGN_MODE_COIN,
+                    ],
                 },
             }
         )
@@ -154,7 +169,9 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             (
                 self.CONF_CINEMA_DATE,
                 self._task_enabled(self.CONF_CINEMA_DATE, False),
-                lambda: self.run_cinema_date(self.config.get(self.CINEMA_DATE_TARGET, "")),
+                lambda: self.run_cinema_date(
+                    self.config.get(self.CINEMA_DATE_TARGET, "")
+                ),
             ),
             (
                 self.CONF_FOUNTAIN_SIGN,
@@ -364,8 +381,12 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         used_stamina = 0
         daily_activity = 0
 
-        mission_box = self.box_of_screen(0.184, 0.652, 0.781, 0.710, name="mission", hcenter=True)
-        activity_box = self.box_of_screen(0.184, 0.188, 0.256, 0.255, name="activity", hcenter=True)
+        mission_box = self.box_of_screen(
+            0.184, 0.652, 0.781, 0.710, name="mission", hcenter=True
+        )
+        activity_box = self.box_of_screen(
+            0.184, 0.188, 0.256, 0.255, name="activity", hcenter=True
+        )
 
         activity = self.ocr(box=activity_box, match=activity_re)
 
@@ -422,7 +443,12 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         mask = iu.binarize_bgr_by_brightness(self.frame, threshold=245, to_bgr=False)
         mask = iu.morphology_mask(mask, kernel_size=7, to_bgr=True)
         reward_boxes = find_color_rectangles(
-            mask, color_range=text_white_color, min_width=10, min_height=10, box=box, threshold=0.6
+            mask,
+            color_range=text_white_color,
+            min_width=10,
+            min_height=10,
+            box=box,
+            threshold=0.6,
         )
         if reward_boxes:
             target = max(reward_boxes, key=lambda x: x.x)
@@ -503,6 +529,13 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
 
     def run_fountain_sign_task(self):
         with self.set_working_task(FountainTask) as task:
+            task.config.update(
+                {
+                    FountainTask.CONF_SIGN_MODE: self.config.get(
+                        FountainTask.CONF_SIGN_MODE, FountainTask.SIGN_MODE_SIGN
+                    )
+                }
+            )
             return task.do_run()
 
     def claim_anomaly_furniture(self):
@@ -527,7 +560,9 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             return True
 
         def check_house_lock(ratio_y):
-            box = self.box_of_screen(0.050, ratio_y - 0.1, width=0.054, height=0.079, hcenter=True)
+            box = self.box_of_screen(
+                0.050, ratio_y - 0.1, width=0.054, height=0.079, hcenter=True
+            )
             return self.find_one(Labels.f5_house_lock, box=box)
 
         house_box = self.box_of_screen(0.507, 0.476, 0.956, 0.795, hcenter=True)
@@ -625,7 +660,8 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             self.retry_on_action(action_1, attempt=10, raise_if_failed=True)
             box_left = self.box_of_screen(0.024, 0.181, 0.278, 0.775, hcenter=True)
             self.wait_until(
-                lambda: self.find_sift_feature(furniture, box=box_left), raise_if_not_found=True
+                lambda: self.find_sift_feature(furniture, box=box_left),
+                raise_if_not_found=True,
             )
             self.sleep(0.5)
             box_right = self.box_of_screen(0.738, 0.236, 0.805, 0.959, hcenter=True)
@@ -645,7 +681,8 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
 
             # 二次确认异象家具
             self.wait_until(
-                lambda: self.find_sift_feature(furniture, box=box_right), raise_if_not_found=True
+                lambda: self.find_sift_feature(furniture, box=box_right),
+                raise_if_not_found=True,
             )
 
             # 领取目标家具

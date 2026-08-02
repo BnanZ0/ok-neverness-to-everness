@@ -12,8 +12,8 @@ from src.utils import image_utils as iu
 
 class FountainTask(BaseNTETask):
     CONF_SIGN_MODE = "签到方式"
-    SIGN_MODE_SIGN = "1:签到"
-    SIGN_MODE_COIN = "2:捞币"
+    SIGN_MODE_SIGN = "签到"
+    SIGN_MODE_COIN = "捞币"
     DOMAIN_ENTRY_POS = (0.668, 0.150)
     DOMAIN_CONFIRM_POS = (0.917, 0.335)
     PHONE_BOOTH_BOX = (0.300, 0.420, 0.375, 0.545)
