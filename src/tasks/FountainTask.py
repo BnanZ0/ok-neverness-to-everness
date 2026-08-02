@@ -25,6 +25,7 @@ class FountainTask(BaseNTETask):
     BOOKSHOP_LOGO_TIMEOUT = 15
     ICECAR_LIGHT_TIMEOUT = 40
     INTERAC_TIMEOUT = 30
+    SIGN_SKIP_TIMEOUT = 15
     TASK_TIMEOUT = 180
     TASK_RETRY_COUNT = 1
     FOUNTAIN_SIGN_COUNT_RE = re.compile(r"\d")
@@ -199,8 +200,9 @@ class FountainTask(BaseNTETask):
             raise_if_not_found=True,
         )
         self.click_sign_action(sign_btn)
-        self.check_skip()
-        self.wait_in_team_and_world()
+        if not self.wait_skip_dialog_until_world(self.SIGN_SKIP_TIMEOUT):
+            self.log_warning("喷泉签到后未等到大世界状态, 可能仍在对话中")
+            return False
         signed_count = self.read_fountain_sign_count()
         if signed_count == 0:
             self.log_info("喷泉签到完成")
@@ -247,6 +249,17 @@ class FountainTask(BaseNTETask):
 
     def check_skip(self):
         return SkipDialogTask.check_skip(self)
+
+    def wait_skip_dialog_until_world(self, time_out=10):
+        def check_skip_and_world():
+            self.check_skip()
+            return self.in_team_and_world()
+
+        return self.wait_until(
+            check_skip_and_world,
+            time_out=time_out,
+            raise_if_not_found=False,
+        )
 
     def read_fountain_sign_count(self):
         results = self.wait_ocr(
