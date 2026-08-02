@@ -443,9 +443,6 @@ msgstr "Console Index"
 msgid "经验与甲硬币"
 msgstr "EXP & Beetle Coins"
 
-msgid "自动循环项目"
-msgstr "Auto Cycle Items"
-
 msgid "自动进行异象界域任务"
 msgstr "Automatically perform Anomaly Zone tasks"
 
@@ -972,7 +969,6 @@ msgstr "Anomaly Furniture"
 msgid "每2小时重新登入"
 msgstr "Re-login every 2 hours"
 
-
 msgid "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
 msgstr "In addition to selecting a built-in <b style=\"color: #0078d7;\">{combo}</b>, you can also enter a name to create your own <b style=\"color: #0078d7;\">{combo}</b>."
 
@@ -1033,8 +1029,14 @@ msgstr "Select svcl.exe"
 msgid "Open Download Page"
 msgstr "Open Download Page"
 
-msgid "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
-msgstr "⚠️ Running {rob_mode}\nThis mode will occupy/fight for the mouse at high frequency. To stop, use the hotkey to pause ok-nte, then manually stop the task.\nCurrent hotkey: {hotkey} (if you cannot confirm the current hotkey, click cancel and run after confirming manually)"
+msgid ""
+"⚠️ 正在运行{rob_mode}\n"
+"该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n"
+"当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
+msgstr ""
+"⚠️ Running {rob_mode}\n"
+"This mode will occupy/fight for the mouse at high frequency. To stop, use the hotkey to pause ok-nte, then manually stop the task.\n"
+"Current hotkey: {hotkey} (if you cannot confirm the current hotkey, click cancel and run after confirming manually)"
 
 msgid "赤龙古堡-残丝长巷篝火"
 msgstr "Red Dragon Castle - Silken Alley Checkpoint"
@@ -1045,8 +1047,14 @@ msgstr "Max Combat Duration"
 msgid "战斗时不切人"
 msgstr "Do not switch characters during combat"
 
-msgid "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
-msgstr "Main interface detection failed. Suggested actions: \n1. Disable GPU filters and sharpening features;\n2. Try enabling the Windows \"Automatically manage color for apps\" setting."
+msgid ""
+"主界面检测失败。建议操作: \n"
+"1. 关闭显卡滤镜与锐化功能；\n"
+"2. 尝试开启 Windows “自动管理应用的颜色”设置。"
+msgstr ""
+"Main interface detection failed. Suggested actions: \n"
+"1. Disable GPU filters and sharpening features;\n"
+"2. Try enabling the Windows \"Automatically manage color for apps\" setting."
 
 msgid "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
 msgstr "Overworld detection failed: Please check if the in-game UI opacity has been set to 1.0."
@@ -1192,9 +1200,28 @@ msgstr "When running in the background, automatically restore the cursor positio
 msgid ""
 "关联角色特征后，即可自动识别角色并使用绑定的出招表；游戏内换人/换队无需手动调整。\n"
 "未关联时，将使用通用脚本。"
-msgstr "After linking character features, characters are automatically recognized and use their bound combos; in-game character/team switches require no manual adjustment.\nWhen not linked, generic scripts will be used."
+msgstr ""
+"After linking character features, characters are automatically recognized and use their bound combos; in-game character/team switches require no manual adjustment.\n"
+"When not linked, generic scripts will be used."
 
 msgid ""
 "{fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
 "如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
-msgstr "{fixed_team} will prioritize filled slots; unfilled slots will still use automatic recognition.\nIf switching teams in-game, filled slots must be updated manually in the software."
+msgstr ""
+"{fixed_team} will prioritize filled slots; unfilled slots will still use automatic recognition.\n"
+"If switching teams in-game, filled slots must be updated manually in the software."
+
+msgid "循环模式"
+msgstr "Cycle Mode"
+
+msgid "循环序列"
+msgstr "Cycle Sequence"
+
+msgid "自动循环序号/目标"
+msgstr "Auto Cycle Index/Target"
+
+msgid "自定义循环"
+msgstr "Custom Cycle"
+
+msgid "副本类型"
+msgstr "Domain Type"

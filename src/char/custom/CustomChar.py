@@ -35,6 +35,8 @@ class CustomChar(BaseChar):
         self.combo_id = combo_id
         self.combo_str = ""
         self.parsed_combo = []
+        self._held_keys = set()
+        self._held_mouse_buttons = set()
         self._load_combo()
 
     def _load_combo(self):
@@ -387,19 +389,43 @@ class CustomChar(BaseChar):
 
     def _execute_parsed_combo(self):
         """战斗时极速遍历并执行已缓存的指令队列"""
-        for command in self.parsed_combo:
-            try:
-                result = self._execute_compiled_command(command)
-                if result is _RETURN_SIGNAL:
-                    return
-            except TaskDisabledException:
-                raise
-            except Exception as e:
-                cmd = command[4] if len(command) >= 5 else "unknown"
-                self.logger.error(f"Error executing command '{cmd}'", e)
+        try:
+            for command in self.parsed_combo:
+                try:
+                    result = self._execute_compiled_command(command)
+                    if result is _RETURN_SIGNAL:
+                        return
+                except TaskDisabledException:
+                    raise
+                except Exception as e:
+                    cmd = command[4] if len(command) >= 5 else "unknown"
+                    self.logger.error(f"Error executing command '{cmd}'", e)
 
-            # 中途打断逻辑
-            self.check_combat()
+                # 中途打断逻辑
+                self.check_combat()
+        finally:
+            self._release_held_mouse_buttons()
+            self._release_held_keys()
+
+    def _release_held_keys(self):
+        """释放本次自定义连招通过 keydown 按住, 但未显式 keyup 的按键。"""
+        for key in tuple(self._held_keys):
+            try:
+                self.task.send_key_up(key)
+            except Exception as e:
+                self.logger.error(f"Failed to release custom combo key '{key}'", e)
+            else:
+                self._held_keys.discard(key)
+
+    def _release_held_mouse_buttons(self):
+        """释放本次自定义连招通过 mousedown 按住, 但未显式 mouseup 的鼠标键。"""
+        for key in tuple(self._held_mouse_buttons):
+            try:
+                self.task.mouse_up(key=key)
+            except Exception as e:
+                self.logger.error(f"Failed to release custom combo mouse button '{key}'", e)
+            else:
+                self._held_mouse_buttons.discard(key)
 
     def _execute_compiled_command(self, command):
         func_name, target, args, kwargs, _ = command
@@ -487,18 +513,22 @@ class CustomChar(BaseChar):
 
     def mousedown(self, key="left"):
         self.task.mouse_down(key=key)
+        self._held_mouse_buttons.add(key)
 
     def mouseup(self, key="left"):
         self.task.mouse_up(key=key)
+        self._held_mouse_buttons.discard(key)
 
     def command_click(self, key="left"):
         self.task.click(key=key)
 
     def keydown(self, key):
         self.task.send_key_down(key)
+        self._held_keys.add(key)
 
     def keyup(self, key):
         self.task.send_key_up(key)
+        self._held_keys.discard(key)
 
     def keypress(self, key):
         self.task.send_key(key=key)

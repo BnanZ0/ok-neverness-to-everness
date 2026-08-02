@@ -16,7 +16,7 @@ jobs:
       SIGN_BUILD: 'true'
       SIGN_SETUP: 'false'
       BUILD_EXE: 'true'
-      USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.2.21'
+      USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.2.25'
 
     strategy:
       matrix:

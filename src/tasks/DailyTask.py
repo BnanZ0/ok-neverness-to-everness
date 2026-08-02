@@ -87,7 +87,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                     "sub_configs": {
                         self.TASK[1]: [
                             AnomalyTask.CONF_TASK_TYPE,
-                            AnomalyTask.CONF_AUTO_CYCLE_SUB_TASK,
+                            AnomalyTask.CONF_CYCLEB_TASK_MODE,
                             self.DAILY_STAMINA_TARGET,
                         ],
                     },
@@ -334,7 +334,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         if task_name == AnomalyTask.NAME:
             with self.set_working_task(AnomalyTask) as task:
                 if ret := task.do_run(self.config, stamina_target=must_use):
-                    task.shift_idx(self)
+                    task.shift_id(self)
 
         return ret
 

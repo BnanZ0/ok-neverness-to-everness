@@ -1,25 +1,29 @@
-from ok import TaskDisabledException, og
+from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
 
 from src.combat.BaseCombatTask import BaseCombatTask
 from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
+from src.utils.i18n_format import register_i18n_format
 
 
 class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
     NAME = "异象界域"
+
     # --- 配置项键名 ---
     CONF_TASK_TYPE = "任务类型"
     CONF_EXP_TARGET = "具体奖励目标"
     CONF_ABILITY_ID = "异能材料序号"
     CONF_ARC_ID = "弧盘材料序号"
     CONF_CONSOLE_ID = "空幕序号"
-    CONF_AUTO_CYCLE_SUB_TASK = "自动循环项目"
+    CONF_CYCLEB_TASK_MODE = "循环模式"
+    CONF_CUSTOM_CYCLE = "循环序列"
 
-    ABILITY_IDX_RANGE = (1, 5)
-    ARC_IDX_RANGE = (1, 5)
-    CONSOLE_IDX_RANGE = (1, 6)
+    # --- 循环模式 ---
+    CYCLE_NONE = "停用"
+    CYCLE_SUB_TASK = "自动循环序号/目标"
+    CYCLE_CUSTOM = "自定义循环"
 
     # --- 任务类型选项 ---
     TASK_EXP_COIN = "经验与甲硬币"
@@ -31,8 +35,55 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
     EXP_CHAR = "角色经验"
     EXP_ARC = "弧盘经验"
     EXP_COIN = "甲硬币"
-    EXP_ALL = [EXP_CHAR, EXP_ARC, EXP_COIN]
 
+    # --- 任务配置结构 ---
+    TASK_SUB_CONFIGS = {
+        TASK_EXP_COIN: CONF_EXP_TARGET,
+        TASK_ABILITY: CONF_ABILITY_ID,
+        TASK_ARC: CONF_ARC_ID,
+        TASK_CONSOLE: CONF_CONSOLE_ID,
+    }
+    TASK_TYPES = list(TASK_SUB_CONFIGS)
+
+    # --- 任务 ID (1-based) ---
+    EXP_COIN_ID_RANGE = (1, 3)
+    ABILITY_ID_RANGE = (1, 5)
+    ARC_ID_RANGE = (1, 5)
+    CONSOLE_ID_RANGE = (1, 6)
+    TASKS_ID_RANGE = {
+        TASK_EXP_COIN: EXP_COIN_ID_RANGE,
+        TASK_ABILITY: ABILITY_ID_RANGE,
+        TASK_ARC: ARC_ID_RANGE,
+        TASK_CONSOLE: CONSOLE_ID_RANGE,
+    }
+
+    TASK_ID_TO_CONFIG_VALUE = {
+        TASK_EXP_COIN: {
+            1: EXP_CHAR,
+            2: EXP_ARC,
+            3: EXP_COIN,
+        },
+    }
+    EXP_TARGET_OPTIONS = list(TASK_ID_TO_CONFIG_VALUE[TASK_EXP_COIN].values())
+
+    # --- 字串格式 ---
+    CYCLE_CUSTOM_OPTION_FMT = "{task}: {id}"
+    DESC_ID_RANGE_FMT = "选择列表中的第几个项目 ({}-{})"
+
+    # --- 自定义循环选项 ---
+    NUMERIC_ID_TASK_TYPES = [TASK_ABILITY, TASK_ARC, TASK_CONSOLE]
+    CYCLE_OPTION_TO_TASK_ID = {}
+    for _id, _option in TASK_ID_TO_CONFIG_VALUE[TASK_EXP_COIN].items():
+        CYCLE_OPTION_TO_TASK_ID[_option] = (TASK_EXP_COIN, _id)
+    for _task_type in NUMERIC_ID_TASK_TYPES:
+        _min_id, _max_id = TASKS_ID_RANGE[_task_type]
+        for _id in range(_min_id, _max_id + 1):
+            _option = CYCLE_CUSTOM_OPTION_FMT.format(task=_task_type, id=_id)
+            CYCLE_OPTION_TO_TASK_ID[_option] = (_task_type, _id)
+    CYCLE_CUSTOM_OPTIONS = list(CYCLE_OPTION_TO_TASK_ID)
+    del _id, _max_id, _min_id, _option, _task_type
+
+    # --- 任务消耗体力 ---
     TASK_COST = 40
 
     def __init__(self, *args, **kwargs):
@@ -46,7 +97,7 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
     @classmethod
     def setup_config(cls, instance: "BaseNTETask", daily=False):
         """
-        初始化配置。支持传入外部实例（如 DailyTask）来同步配置项。
+        初始化配置。支持传入外部实例(如 DailyTask)来同步配置项。
         """
         config_updates = {
             cls.CONF_TASK_TYPE: cls.TASK_EXP_COIN,
@@ -54,44 +105,49 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
             cls.CONF_ABILITY_ID: 1,
             cls.CONF_ARC_ID: 1,
             cls.CONF_CONSOLE_ID: 1,
+            cls.CONF_CUSTOM_CYCLE: [],
         }
         if daily:
-            config_updates[cls.CONF_AUTO_CYCLE_SUB_TASK] = False
+            config_updates[cls.CONF_CYCLEB_TASK_MODE] = cls.CYCLE_NONE
         instance.default_config.update(config_updates)
 
         instance.config_type.update(
             {
                 cls.CONF_TASK_TYPE: {
                     "type": "drop_down",
-                    "options": [
-                        cls.TASK_EXP_COIN,
-                        cls.TASK_ABILITY,
-                        cls.TASK_ARC,
-                        cls.TASK_CONSOLE,
-                    ],
-                    "sub_configs": {
-                        cls.TASK_EXP_COIN: cls.CONF_EXP_TARGET,
-                        cls.TASK_ABILITY: cls.CONF_ABILITY_ID,
-                        cls.TASK_ARC: cls.CONF_ARC_ID,
-                        cls.TASK_CONSOLE: cls.CONF_CONSOLE_ID,
-                    },
+                    "options": cls.TASK_TYPES,
+                    "sub_configs": cls.TASK_SUB_CONFIGS,
                 },
                 cls.CONF_EXP_TARGET: {
                     "type": "drop_down",
-                    "options": cls.EXP_ALL,
+                    "options": cls.EXP_TARGET_OPTIONS,
+                },
+                cls.CONF_CUSTOM_CYCLE: {
+                    "options_available": cls.CYCLE_CUSTOM_OPTIONS,
+                    "allow_duplication": False,
+                },
+                cls.CONF_CYCLEB_TASK_MODE: {
+                    "type": "drop_down",
+                    "options": [
+                        cls.CYCLE_NONE,
+                        cls.CYCLE_SUB_TASK,
+                        cls.CYCLE_CUSTOM,
+                    ],
+                    "sub_configs": {
+                        cls.CYCLE_CUSTOM: cls.CONF_CUSTOM_CYCLE,
+                    },
                 },
             }
         )
-        fmt = og.app.tr("选择列表中的第几个项目 ({}-{})")
         description_update = {
             cls.CONF_TASK_TYPE: "选择要进行的任务类型",
             cls.CONF_EXP_TARGET: "选择经验与甲硬币任务的具体奖励目标",
-            cls.CONF_ABILITY_ID: fmt.format(*cls.ABILITY_IDX_RANGE),
-            cls.CONF_ARC_ID: fmt.format(*cls.ARC_IDX_RANGE),
-            cls.CONF_CONSOLE_ID: fmt.format(*cls.CONSOLE_IDX_RANGE),
+            cls.CONF_ABILITY_ID: cls.DESC_ID_RANGE_FMT.format(*cls.ABILITY_ID_RANGE),
+            cls.CONF_ARC_ID: cls.DESC_ID_RANGE_FMT.format(*cls.ARC_ID_RANGE),
+            cls.CONF_CONSOLE_ID: cls.DESC_ID_RANGE_FMT.format(*cls.CONSOLE_ID_RANGE),
         }
         if daily:
-            description_update[cls.CONF_AUTO_CYCLE_SUB_TASK] = "任务完成后自动切换至下一个项目"
+            description_update[cls.CONF_CYCLEB_TASK_MODE] = "任务完成后自动切换至下一个项目"
         instance.config_description.update(description_update)
         if not daily:
             instance.add_claim_reward_count_config()
@@ -259,60 +315,128 @@ class AnomalyTask(NTEOneTimeTask, BaseCombatTask):
         self.operate_click(0.0852, y)
 
     def get_sub_idx(self, config: dict):
-        """根据任务类型从对应的配置项中获取项目索引"""
-        task_type = config.get(self.CONF_TASK_TYPE)
-        if task_type == self.TASK_EXP_COIN:
-            target = config.get(self.CONF_EXP_TARGET)
-            return self.EXP_ALL.index(target) if target in self.EXP_ALL else 0
-        elif task_type == self.TASK_ABILITY:
-            return self._config_validate(config, self.ABILITY_IDX_RANGE, self.CONF_ABILITY_ID) - 1
-        elif task_type == self.TASK_ARC:
-            return self._config_validate(config, self.ARC_IDX_RANGE, self.CONF_ARC_ID) - 1
-        elif task_type == self.TASK_CONSOLE:
-            return self._config_validate(config, self.CONSOLE_IDX_RANGE, self.CONF_CONSOLE_ID) - 1
-        return 0
+        """Return the selected sub-scene index, where index equals ID minus one."""
+        return self.resolve_sub_id(config) - 1
 
-    def _config_validate(self, config: dict, range: tuple[int, int], key: str):
-        """验证配置项的值"""
-        min_idx, max_idx = range
-        val = config.get(key, 1)
-        valid_val = max(min_idx, min(val, max_idx))
-        if val != valid_val:
-            config[key] = valid_val
+    def resolve_sub_id(self, config: dict):
+        """Return the selected task ID, normalizing and saving invalid config values."""
+        task_type = config.get(self.CONF_TASK_TYPE)
+        config_key = self.TASK_SUB_CONFIGS.get(task_type)
+        task_id_range = self.TASKS_ID_RANGE.get(task_type)
+        if config_key is None or task_id_range is None:
+            self.log_warning("任务ID配置获取失败, 使用默认ID 1")
+            return 1
+
+        config_value = config.get(config_key)
+        id_to_value = self.TASK_ID_TO_CONFIG_VALUE.get(task_type)
+        task_id = (
+            next((id for id, value in id_to_value.items() if value == config_value), config_value)
+            if id_to_value
+            else config_value
+        )
+        min_id, max_id = task_id_range
+        if not isinstance(task_id, int):
+            task_id = min_id
+        valid_task_id = max(min_id, min(task_id, max_id))
+        valid_value = (
+            id_to_value.get(valid_task_id, valid_task_id) if id_to_value else valid_task_id
+        )
+        if config.get(config_key) != valid_value:
+            config[config_key] = valid_value
             self.sync_config(config)
-        return valid_val
+        return valid_task_id
+
+    def set_task_type_and_id(self, config: dict, task_type: str, task_id: int):
+        """Set a task type and its ID using the task's configured value mapping."""
+        config_key = self.TASK_SUB_CONFIGS.get(task_type)
+        task_id_range = self.TASKS_ID_RANGE.get(task_type)
+        if config_key is None or task_id_range is None:
+            self.log_warning("无法设置任务ID")
+            return False
+        min_id, max_id = task_id_range
+        if not min_id <= task_id <= max_id:
+            self.log_warning("无法设置任务ID")
+            return False
+        id_to_value = self.TASK_ID_TO_CONFIG_VALUE.get(task_type)
+        config[self.CONF_TASK_TYPE] = task_type
+        config[config_key] = id_to_value.get(task_id, task_id) if id_to_value else task_id
+        return True
 
     def get_next_sub_idx(self, config: dict):
         """获取下一个子场景索引 (0-based)"""
-        idx = self.get_sub_idx(config)
+        return self.get_next_sub_id(config) - 1
+
+    def get_next_sub_id(self, config: dict):
+        """获取下一个任务 ID (1-based)"""
+        task_id = self.resolve_sub_id(config)
         task_type = config.get(self.CONF_TASK_TYPE)
-        if task_type == self.TASK_EXP_COIN:
-            return (idx + 1) % 3
+        task_id_range = self.TASKS_ID_RANGE.get(task_type)
+        if task_id_range is None:
+            return 1
+        min_id, max_id = task_id_range
+        return min_id + (task_id - min_id + 1) % (max_id - min_id + 1)
 
-        ranges = {
-            self.TASK_ABILITY: self.ABILITY_IDX_RANGE,
-            self.TASK_ARC: self.ARC_IDX_RANGE,
-            self.TASK_CONSOLE: self.CONSOLE_IDX_RANGE,
-        }
-        if task_type in ranges:
-            r = ranges[task_type]
-            return (idx + 1) % (r[1] - r[0] + 1)
-        return 0
+    def shift_id(self, task: BaseNTETask):
+        """Advance the daily task according to its configured cycle mode."""
+        config = task.config
+        if not config:
+            return
+        shift_handler = {
+            self.CYCLE_SUB_TASK: self.shift_sub_task_id,
+            self.CYCLE_CUSTOM: self.shift_custom_cycle,
+        }.get(config.get(self.CONF_CYCLEB_TASK_MODE))
+        if shift_handler:
+            shift_handler(task)
 
-    def shift_idx(self, task: BaseNTETask):
-        """切换任务索引"""
-        if not task.config.get(self.CONF_AUTO_CYCLE_SUB_TASK):
+    def shift_sub_task_id(self, task: BaseNTETask):
+        """Advance to the next ID of the current task type."""
+        task_type = task.config.get(self.CONF_TASK_TYPE)
+        next_task_id = self.get_next_sub_id(task.config)
+        if self.set_task_type_and_id(task.config, task_type, next_task_id):
+            task.sync_config()
+
+    def shift_custom_cycle(self, task: BaseNTETask):
+        """Advance to the next user-selected custom-cycle option."""
+        cycle: list = task.config.get(self.CONF_CUSTOM_CYCLE, [])
+        if not cycle:
+            task.log_warning("自定义任务循环为空, 不切换任务")
             return
         task_type = task.config.get(self.CONF_TASK_TYPE)
-        next_idx = self.get_next_sub_idx(task.config)
-        if task_type == self.TASK_EXP_COIN:
-            task.config[self.CONF_EXP_TARGET] = self.EXP_ALL[next_idx]  # type: ignore
+        task_id = self.get_sub_idx(task.config) + 1
+        option = self.get_cycle_option(task_type, task_id)
+        if option in cycle:
+            current_index = cycle.index(option)
+            next_option = cycle[(current_index + 1) % len(cycle)]
         else:
-            conf_key = {
-                self.TASK_ABILITY: self.CONF_ABILITY_ID,
-                self.TASK_ARC: self.CONF_ARC_ID,
-                self.TASK_CONSOLE: self.CONF_CONSOLE_ID,
-            }.get(task_type)
-            if conf_key:
-                task.config[conf_key] = int(next_idx + 1)  # type: ignore
-        task.sync_config()
+            next_option = cycle[0]
+        next_task = self.CYCLE_OPTION_TO_TASK_ID.get(next_option)
+        if next_task is None:
+            task.log_warning("无法解析下一个自定义循环任务")
+            return
+
+        next_task_type, next_task_id = next_task
+        if self.set_task_type_and_id(task.config, next_task_type, next_task_id):
+            task.sync_config()
+            task.log_info(f"下一个任务设为 {next_task_type} {next_task_id}")
+
+    def get_cycle_option(self, task_type: str, task_id: int):
+        """Return the custom-cycle label for a task ID, if it is available."""
+        return next(
+            (
+                option
+                for option, cycle_task in self.CYCLE_OPTION_TO_TASK_ID.items()
+                if cycle_task == (task_type, task_id)
+            ),
+            None,
+        )
+
+
+register_i18n_format(
+    AnomalyTask.DESC_ID_RANGE_FMT,
+)
+register_i18n_format(
+    AnomalyTask.CYCLE_CUSTOM_OPTION_FMT,
+    translated_fields=frozenset({"task"}),
+    allowed_values={"task": AnomalyTask.NUMERIC_ID_TASK_TYPES},
+    translate_template=False,
+)

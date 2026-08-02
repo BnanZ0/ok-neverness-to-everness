@@ -468,9 +468,6 @@ msgstr "Índice do Console"
 msgid "经验与甲硬币"
 msgstr "EXP e Moedas Besouro"
 
-msgid "自动循环项目"
-msgstr "Itens de Ciclo Automático"
-
 msgid "自动进行异象界域任务"
 msgstr "Realizar automaticamente tarefas da Zona de Anomalias"
 
@@ -938,3 +935,18 @@ msgid ""
 "{fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
 "如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
 msgstr "{fixed_team} priorizará os slots preenchidos; os slots não preenchidos ainda serão reconhecidos automaticamente.\nSe você alternar de equipe no jogo, os slots preenchidos precisarão ser alterados manualmente no software."
+
+msgid "循环模式"
+msgstr "Modo de Ciclo"
+
+msgid "循环序列"
+msgstr "Sequência de Ciclo"
+
+msgid "自动循环序号/目标"
+msgstr "Ciclo automático índice/alvo"
+
+msgid "自定义循环"
+msgstr "Ciclo Personalizado"
+
+msgid "副本类型"
+msgstr "Tipo de Masmorra"

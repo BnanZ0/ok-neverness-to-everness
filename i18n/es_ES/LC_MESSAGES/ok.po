@@ -443,9 +443,6 @@ msgstr "Índice de consola"
 msgid "经验与甲硬币"
 msgstr "EXP y Monedas Escarabajo"
 
-msgid "自动循环项目"
-msgstr "Ciclo automático de elementos"
-
 msgid "自动进行异象界域任务"
 msgstr "Realizar automáticamente tareas de la Zona de Anomalías"
 
@@ -972,7 +969,6 @@ msgstr "Muebles de anomalía"
 msgid "每2小时重新登入"
 msgstr "Reiniciar sesión cada 2 horas"
 
-
 msgid "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
 msgstr "Además de seleccionar un <b style=\"color: #0078d7;\">{combo}</b> integrado, también puede ingresar un nombre para crear su propio <b style=\"color: #0078d7;\">{combo}</b>."
 
@@ -1033,8 +1029,14 @@ msgstr "Seleccionar svcl.exe"
 msgid "Open Download Page"
 msgstr "Abrir página de descarga"
 
-msgid "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
-msgstr "⚠️ Ejecutando {rob_mode}\nEste modo ocupará/disputará el ratón con alta frecuencia. Para detenerlo, use la tecla rápida para pausar ok-nte y luego detenga la tarea manualmente.\nTecla rápida actual: {hotkey} (si no puede confirmar la tecla rápida actual, haga clic en cancelar y ejecute después de confirmar manualmente)"
+msgid ""
+"⚠️ 正在运行{rob_mode}\n"
+"该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n"
+"当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
+msgstr ""
+"⚠️ Ejecutando {rob_mode}\n"
+"Este modo ocupará/disputará el ratón con alta frecuencia. Para detenerlo, use la tecla rápida para pausar ok-nte y luego detenga la tarea manualmente.\n"
+"Tecla rápida actual: {hotkey} (si no puede confirmar la tecla rápida actual, haga clic en cancelar y ejecute después de confirmar manualmente)"
 
 msgid "赤龙古堡-残丝长巷篝火"
 msgstr "Castillo del Dragón Rojo - Hoguera del Callejón de la Seda"
@@ -1045,8 +1047,14 @@ msgstr "Duración máxima de combate"
 msgid "战斗时不切人"
 msgstr "No cambiar de personaje durante el combate"
 
-msgid "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
-msgstr "Error al detectar la interfaz principal. Acciones sugeridas: \n1. Desactive los filtros y el enfoque de la tarjeta gráfica;\n2. Intente activar la configuración de Windows \"Administrar automáticamente el color de las aplicaciones\"."
+msgid ""
+"主界面检测失败。建议操作: \n"
+"1. 关闭显卡滤镜与锐化功能；\n"
+"2. 尝试开启 Windows “自动管理应用的颜色”设置。"
+msgstr ""
+"Error al detectar la interfaz principal. Acciones sugeridas: \n"
+"1. Desactive los filtros y el enfoque de la tarjeta gráfica;\n"
+"2. Intente activar la configuración de Windows \"Administrar automáticamente el color de las aplicaciones\"."
 
 msgid "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
 msgstr "Error al detectar el mundo abierto: compruebe si la opacidad de la interfaz de usuario en el juego se ha establecido en 1.0."
@@ -1192,9 +1200,28 @@ msgstr "Cuando se ejecuta en segundo plano, restablece automáticamente la posic
 msgid ""
 "关联角色特征后，即可自动识别角色并使用绑定的出招表；游戏内换人/换队无需手动调整。\n"
 "未关联时，将使用通用脚本。"
-msgstr "Tras vincular los rasgos del personaje, se identificará automáticamente y usará la lista de combos vinculada; los cambios de personaje/equipo en el juego no requieren ajustes manuales.\nSi no hay vínculo, se usará el script genérico."
+msgstr ""
+"Tras vincular los rasgos del personaje, se identificará automáticamente y usará la lista de combos vinculada; los cambios de personaje/equipo en el juego no requieren ajustes manuales.\n"
+"Si no hay vínculo, se usará el script genérico."
 
 msgid ""
 "{fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
 "如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
-msgstr "{fixed_team} priorizará los espacios completados; los espacios sin completar se seguirán reconociendo automáticamente.\nSi cambia de equipo en el juego, los espacios completados deberán modificarse manualmente en el software."
+msgstr ""
+"{fixed_team} priorizará los espacios completados; los espacios sin completar se seguirán reconociendo automáticamente.\n"
+"Si cambia de equipo en el juego, los espacios completados deberán modificarse manualmente en el software."
+
+msgid "循环模式"
+msgstr "Modo de ciclo"
+
+msgid "循环序列"
+msgstr "Secuencia de ciclo"
+
+msgid "自动循环序号/目标"
+msgstr "Ciclo automático índice/objetivo"
+
+msgid "自定义循环"
+msgstr "Ciclo personalizado"
+
+msgid "副本类型"
+msgstr "Tipo de mazmorra"

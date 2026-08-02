@@ -274,6 +274,8 @@ class TestCustomCharCore(unittest.TestCase):
         char = object.__new__(CustomChar)
         char.logger = Mock()
         char.check_combat = Mock()
+        char._held_keys = set()
+        char._held_mouse_buttons = set()
         state = {"after_return": 0}
         condition = ("ultimate", lambda self: True, [], {}, "ultimate")
         return_command = ("return", CustomChar._return_combo, [], {}, "return")
@@ -299,6 +301,40 @@ class TestCustomCharCore(unittest.TestCase):
 
         self.assertEqual(state["after_return"], 0)
         char.check_combat.assert_not_called()
+
+    def test_combo_releases_keydown_without_explicit_keyup(self):
+        char = object.__new__(CustomChar)
+        char.logger = Mock()
+        char.task = Mock()
+        char.check_combat = Mock()
+        char._held_keys = set()
+        char._held_mouse_buttons = set()
+        char.parsed_combo = [
+            ("keydown", CustomChar.keydown, ["a"], {}, "keydown(a)"),
+        ]
+
+        char._execute_parsed_combo()
+
+        char.task.send_key_down.assert_called_once_with("a")
+        char.task.send_key_up.assert_called_once_with("a")
+        self.assertEqual(char._held_keys, set())
+
+    def test_combo_releases_mousedown_without_explicit_mouseup(self):
+        char = object.__new__(CustomChar)
+        char.logger = Mock()
+        char.task = Mock()
+        char.check_combat = Mock()
+        char._held_keys = set()
+        char._held_mouse_buttons = set()
+        char.parsed_combo = [
+            ("mousedown", CustomChar.mousedown, ["right"], {}, "mousedown(right)"),
+        ]
+
+        char._execute_parsed_combo()
+
+        char.task.mouse_down.assert_called_once_with(key="right")
+        char.task.mouse_up.assert_called_once_with(key="right")
+        self.assertEqual(char._held_mouse_buttons, set())
 
     def test_db_schema_migrates_v5_combo_syntax_and_creates_backup(self):
         legacy = {

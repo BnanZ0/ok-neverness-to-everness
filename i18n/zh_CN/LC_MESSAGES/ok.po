@@ -433,9 +433,6 @@ msgstr ""
 msgid "经验与甲硬币"
 msgstr ""
 
-msgid "自动循环项目"
-msgstr ""
-
 msgid "自动进行异象界域任务"
 msgstr ""
 
@@ -965,7 +962,6 @@ msgstr ""
 msgid "每2小时重新登入"
 msgstr ""
 
-
 msgid "除了选择内建存在的<b style=\"color: #0078d7;\">{combo}</b>外，您也可以自己输入名称来建立自己的<b style=\"color: #0078d7;\">{combo}</b>。"
 msgstr ""
 
@@ -1026,7 +1022,10 @@ msgstr "选择 svcl.exe"
 msgid "Open Download Page"
 msgstr "打开下载页面"
 
-msgid "⚠️ 正在运行{rob_mode}\n该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
+msgid ""
+"⚠️ 正在运行{rob_mode}\n"
+"该模式会高频占用/争夺鼠标。如需停止，请使用热键暂停 ok-nte, 再手动停止任务。\n"
+"当前热键: {hotkey} (如无法确认当前热键则点击取消, 主动确认后再运行)"
 msgstr ""
 
 msgid "赤龙古堡-残丝长巷篝火"
@@ -1038,7 +1037,10 @@ msgstr ""
 msgid "战斗时不切人"
 msgstr ""
 
-msgid "主界面检测失败。建议操作: \n1. 关闭显卡滤镜与锐化功能；\n2. 尝试开启 Windows “自动管理应用的颜色”设置。"
+msgid ""
+"主界面检测失败。建议操作: \n"
+"1. 关闭显卡滤镜与锐化功能；\n"
+"2. 尝试开启 Windows “自动管理应用的颜色”设置。"
 msgstr ""
 
 msgid "大世界检测失败: 请检查游戏内 UI 透明度是否已设置为 1.0。"
@@ -1190,4 +1192,19 @@ msgstr ""
 msgid ""
 "{fixed_team}会优先使用已填写槽位；未填写的槽位仍会自动识别。\n"
 "如果游戏内切换队伍，已填写槽位需要在软件里手动修改。"
+msgstr ""
+
+msgid "循环模式"
+msgstr ""
+
+msgid "循环序列"
+msgstr ""
+
+msgid "自动循环序号/目标"
+msgstr ""
+
+msgid "自定义循环"
+msgstr ""
+
+msgid "副本类型"
 msgstr ""

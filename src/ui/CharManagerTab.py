@@ -893,7 +893,7 @@ class CharManagerTab(CustomTab):
                 cmd_example = str(cmd.example or cmd_name)
                 cmd_doc = str(cmd.doc or empty_text)
                 if getattr(cmd, "if_capable", False):
-                    cmd_doc += "（可用于 if_ 条件）"
+                    cmd_doc += "（可用于 if 条件）"
                 name_token = f"__CMD_NAME_{index}__"
                 example_token = f"__CMD_EXAMPLE_{index}__"
                 protected_literals[name_token] = cmd_name

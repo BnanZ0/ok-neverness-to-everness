@@ -14,6 +14,7 @@ class NTEScene(BaseScene):
         self._ocr_warm_up = False
         self._is_in_team_record = {"state": None, "timestamp": 0}
         self._logged_in = False
+        self._game_capture_ready = False
         self._health_snapshot = None
 
     def reset(self):
@@ -26,6 +27,12 @@ class NTEScene(BaseScene):
 
     def set_logged_in(self, value=True):
         self._logged_in = value
+
+    def game_capture_ready(self):
+        return self._game_capture_ready
+
+    def set_game_capture_ready(self, value: bool):
+        self._game_capture_ready = value
 
     def in_combat(self):
         return self._in_combat

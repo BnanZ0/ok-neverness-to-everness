@@ -76,6 +76,7 @@ class LauncherTask(BaseNTETask):
         self.capture_config = DynamicConfig()
 
     def run(self):
+        self.scene.set_game_capture_ready(False)
         self.log_info("Launcher task started")
         dismiss_screensaver()
 
@@ -355,12 +356,14 @@ class LauncherTask(BaseNTETask):
             self.log_warning(
                 f"try refresh timeout {time_out}s, executor connect {self.executor.connected()}"
             )
-            return
+            raise TaskDisabledException("Timed out waiting for game capture connection")
 
         resolution_error = og.app.start_controller.check_resolution()
         if resolution_error:
             self.log_error(f"resolution_error: {resolution_error}")
             raise TaskDisabledException(f"Resolution Error: {resolution_error}")
+
+        self.scene.set_game_capture_ready(True)
 
     def _wait_for_process(self, exe_name, time_out=120, settle_window=False):
         exe_label = _format_exe_names(exe_name)
@@ -382,6 +385,12 @@ class LauncherTask(BaseNTETask):
                             f"Window for {exe_label} exists but is too small; "
                             f"hwnd={hwnd}, size={size[0]}x{size[1]}, elapsed={elapsed}s",
                         )
+                        if exe_name == LAUNCHER_EXE and elapsed > 0 and elapsed % 10 == 0:
+                            self.log_warning(
+                                f"Launcher window remains too small after {elapsed}s; "
+                                "attempting force restore"
+                            )
+                            self._restore_window_if_minimized(hwnd, exe_name, force=True)
                         self.sleep(1)
                         continue
 
@@ -505,15 +514,18 @@ class LauncherTask(BaseNTETask):
         self.log_warning(f"Timed out while waiting for {exe_name} window size to settle")
         return False
 
-    def _restore_window_if_minimized(self, hwnd, exe_name):
+    def _restore_window_if_minimized(self, hwnd, exe_name, force=False):
         is_minimized = bool(win32gui.IsIconic(hwnd))
         is_visible = bool(win32gui.IsWindowVisible(hwnd))
-        if not is_minimized and is_visible:
+        if not force and not is_minimized and is_visible:
             return True
 
-        state = "minimized" if is_minimized else "hidden"
+        state = "minimized" if is_minimized else "hidden" if not is_visible else "too small"
         self.log_info(f"Window for {_format_exe_names(exe_name)} is {state}; restoring hwnd={hwnd}")
-        if is_minimized:
+        if force:
+            win32gui.ShowWindow(hwnd, win32con.SW_MINIMIZE)
+            self.sleep(0.2)
+        if is_minimized or force:
             win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
         else:
             win32gui.ShowWindow(hwnd, win32con.SW_SHOW)
