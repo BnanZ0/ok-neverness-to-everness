@@ -6,6 +6,7 @@ from qfluentwidgets import FluentIcon
 
 from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask, interac_pink_color
+from src.tasks.trigger.SkipDialogTask import SkipDialogTask
 from src.utils import image_utils as iu
 
 
@@ -197,7 +198,7 @@ class FountainTask(BaseNTETask):
             raise_if_not_found=True,
         )
         self.click_sign_action(sign_btn)
-        self.clear_dialog_click()
+        self.check_skip()
         self.wait_in_team_and_world()
         signed_count = self.read_fountain_sign_count()
         if signed_count == 0:
@@ -234,10 +235,17 @@ class FountainTask(BaseNTETask):
             )
         self.operate_click(target, after_sleep=1)
 
-    def clear_dialog_click(self):
-        self.log_info("清理对话点击框")
-        while self.find_one(Labels.dialog_click, threshold=0.8, vertical_variance=0.02):
-            self.send_key("space", after_sleep=0.3)
+    def find_skip(self):
+        return SkipDialogTask.find_skip(self)
+
+    def try_click_skip(self):
+        return SkipDialogTask.try_click_skip(self)
+
+    def skip_confirm(self):
+        return SkipDialogTask.skip_confirm(self)
+
+    def check_skip(self):
+        return SkipDialogTask.check_skip(self)
 
     def read_fountain_sign_count(self):
         results = self.wait_ocr(
