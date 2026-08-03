@@ -51,20 +51,20 @@ class FountainTask(BaseNTETask):
     def run(self):
         super().run()
         try:
-            self.do_run()
+            self.do_run(self.config.get(self.CONF_SIGN_MODE, self.SIGN_MODE_SIGN))
         except TaskDisabledException:
             raise
         except Exception as e:
             self.log_error("FountainTask Error", e, notify=True)
             raise
 
-    def do_run(self):
+    def do_run(self, sign_mode=SIGN_MODE_SIGN):
         last_error = None
         for attempt in range(1, self.TASK_RETRY_COUNT + 2):
             self._fountain_task_start = time.time()
             self.log_info(f"attempt {attempt}/{self.TASK_RETRY_COUNT + 1}")
             try:
-                if self.run_fountain_flow():
+                if self.run_fountain_flow(sign_mode):
                     return True
             except TaskDisabledException:
                 raise
@@ -82,12 +82,12 @@ class FountainTask(BaseNTETask):
             raise last_error
         raise RuntimeError("failed after retries")
 
-    def run_fountain_flow(self):
+    def run_fountain_flow(self, sign_mode):
         self.transport_to_fountain_teleport()
         self.check_fountain_task_timeout()
         self.run_to_fountain()
         self.check_fountain_task_timeout()
-        result = self.fountain_sign_in()
+        result = self.fountain_sign_in(sign_mode)
         self.check_fountain_task_timeout()
         return result
 
@@ -181,7 +181,7 @@ class FountainTask(BaseNTETask):
         box = self.box_of_screen(*self.ICECAR_LIGHT_BOX, name="icecar_light_area")
         return self.find_one(Labels.icecar_lights, box=box, threshold=0.75)
 
-    def fountain_sign_in(self):
+    def fountain_sign_in(self, sign_mode):
         sign_count = self.read_fountain_sign_count()
         if sign_count == -1:
             self.log_warning("喷泉签到OCR识别次数失败")
@@ -199,7 +199,7 @@ class FountainTask(BaseNTETask):
             time_out=self.INTERAC_TIMEOUT,
             raise_if_not_found=True,
         )
-        self.click_sign_action(sign_btn)
+        self.click_sign_action(sign_btn, sign_mode)
         if not self.wait_skip_dialog_until_world(self.SIGN_SKIP_TIMEOUT):
             self.log_warning("对话异常，无法返回大世界")
             return False
@@ -225,13 +225,10 @@ class FountainTask(BaseNTETask):
             return None
         return max(regions, key=lambda region: region.width * region.height)
 
-    def click_sign_action(self, sign_btn):
+    def click_sign_action(self, sign_btn, sign_mode):
         self.log_info("图色识别，并确定点击选项")
         target = sign_btn
-        if (
-            self.config.get(self.CONF_SIGN_MODE, self.SIGN_MODE_SIGN)
-            == self.SIGN_MODE_COIN
-        ):
+        if sign_mode == self.SIGN_MODE_COIN:
             target = sign_btn.copy(
                 y_offset=self.height_of_screen(0.07),
                 name="fountain_sign_coin_target",

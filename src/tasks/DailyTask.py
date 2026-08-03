@@ -39,12 +39,15 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
     CONF_GIFT = "羁遇赠礼"
 
     CINEMA_DATE_TARGET = "约会目标"
+    CONF_FOUNTAIN_SIGN_MODE = "签到方式"
     DAILY_STAMINA_TARGET = "目标消耗体力"
 
     # --- 一咖舍任务选项 ---
     COFFEE_MODE_NONE = "不执行"
     COFFEE_MODE_CLAIM_AND_RESTOCK = "领取/补货一咖舍"
     COFFEE_MODE_AUTO = "运行一咖舍自动化"
+    FOUNTAIN_SIGN_MODE_SIGN = "签到"
+    FOUNTAIN_SIGN_MODE_COIN = "捞币"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -65,7 +68,7 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_CINEMA_DATE: False,
                 self.CINEMA_DATE_TARGET: "",
                 self.CONF_FOUNTAIN_SIGN: False,
-                FountainTask.CONF_SIGN_MODE: FountainTask.SIGN_MODE_SIGN,
+                self.CONF_FOUNTAIN_SIGN_MODE: self.FOUNTAIN_SIGN_MODE_SIGN,
                 self.CONF_FURNITURE: False,
                 self.CONF_GIFT: False,
             }
@@ -106,15 +109,15 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
                 self.CONF_FOUNTAIN_SIGN: {
                     "sub_configs": {
                         True: [
-                            FountainTask.CONF_SIGN_MODE,
+                            self.CONF_FOUNTAIN_SIGN_MODE,
                         ]
                     },
                 },
-                FountainTask.CONF_SIGN_MODE: {
+                self.CONF_FOUNTAIN_SIGN_MODE: {
                     "type": "drop_down",
                     "options": [
-                        FountainTask.SIGN_MODE_SIGN,
-                        FountainTask.SIGN_MODE_COIN,
+                        self.FOUNTAIN_SIGN_MODE_SIGN,
+                        self.FOUNTAIN_SIGN_MODE_COIN,
                     ],
                 },
             }
@@ -176,7 +179,11 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
             (
                 self.CONF_FOUNTAIN_SIGN,
                 self._task_enabled(self.CONF_FOUNTAIN_SIGN, False),
-                self.run_fountain_sign_task,
+                lambda: self.run_fountain_sign_task(
+                    self.config.get(
+                        self.CONF_FOUNTAIN_SIGN_MODE, self.FOUNTAIN_SIGN_MODE_SIGN
+                    )
+                ),
             ),
             (
                 self.CONF_FURNITURE,
@@ -527,16 +534,9 @@ class DailyTask(NTEOneTimeTask, CinemaDateMixin, BaseNTETask):
         self.operate_click(0.600, 0.656)  # 确认
         return True
 
-    def run_fountain_sign_task(self):
+    def run_fountain_sign_task(self, sign_mode=FOUNTAIN_SIGN_MODE_SIGN):
         with self.set_working_task(FountainTask) as task:
-            task.config.update(
-                {
-                    FountainTask.CONF_SIGN_MODE: self.config.get(
-                        FountainTask.CONF_SIGN_MODE, FountainTask.SIGN_MODE_SIGN
-                    )
-                }
-            )
-            return task.do_run()
+            return task.do_run(sign_mode)
 
     def claim_anomaly_furniture(self):
         """领取异象家具奖励"""
