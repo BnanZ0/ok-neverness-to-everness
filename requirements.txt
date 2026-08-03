@@ -46,8 +46,6 @@ mouse==0.7.1 ; sys_platform == 'win32'
     # via ok-script
 msgpack==1.2.1 ; sys_platform == 'win32'
     # via librosa
-msvc-runtime==14.44.35112 ; sys_platform == 'win32'
-    # via ok-nte
 narwhals==2.24.0 ; sys_platform == 'win32'
     # via scikit-learn
 networkx==3.6.1 ; sys_platform == 'win32'
@@ -129,8 +127,9 @@ pysidesix-frameless-window==0.8.1 ; sys_platform == 'win32'
     # via pyside6-fluent-widgets
 python-xlib==0.33 ; sys_platform == 'win32' and 'linux' in sys_platform
     # via pynput
-pywin32==312 ; sys_platform == 'win32'
+pywin32==311 ; sys_platform == 'win32'
     # via
+    #   ok-nte
     #   ok-script
     #   pysidesix-frameless-window
 requests==2.34.2 ; sys_platform == 'win32'
