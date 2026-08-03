@@ -289,6 +289,9 @@ class FountainTask(BaseNTETask):
         )
 
         def find_near_fountain_teleport():
+            self.log_info("click init mid map zoom")
+            self.sleep(0.5)
+            self.operate_click(0.050, 0.527)
             box = self.box_of_screen(*self.PHONE_BOOTH_BOX, name="fountain_phone_booth")
             return self.find_best_match_in_box(
                 box, [Labels.map_small_teleport], threshold=threshold
