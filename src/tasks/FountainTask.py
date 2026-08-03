@@ -38,7 +38,6 @@ class FountainTask(BaseNTETask):
         self.group_name = "日常/周常"
         self.group_icon = FluentIcon.CALENDAR
         self.default_config.update({self.CONF_SIGN_MODE: self.SIGN_MODE_SIGN})
-        self.config_description.update({self.CONF_SIGN_MODE: "选择喷泉签到或捞币"})
         self.config_type.update(
             {
                 self.CONF_SIGN_MODE: {
