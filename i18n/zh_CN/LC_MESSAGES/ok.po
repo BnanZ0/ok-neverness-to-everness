@@ -1208,3 +1208,12 @@ msgstr ""
 
 msgid "副本类型"
 msgstr ""
+
+msgid "签到方式"
+msgstr ""
+
+msgid "签到"
+msgstr ""
+
+msgid "捞币"
+msgstr ""

@@ -950,3 +950,12 @@ msgstr "Ciclo Personalizado"
 
 msgid "副本类型"
 msgstr "Tipo de Masmorra"
+
+msgid "签到方式"
+msgstr "Modo de check-in"
+
+msgid "签到"
+msgstr "Check-in"
+
+msgid "捞币"
+msgstr "Pegar moedas"

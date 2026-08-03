@@ -1225,3 +1225,12 @@ msgstr "사용자 지정 순환"
 
 msgid "副本类型"
 msgstr "던전 유형"
+
+msgid "签到方式"
+msgstr "체크인 방식"
+
+msgid "签到"
+msgstr "체크인"
+
+msgid "捞币"
+msgstr "코인 건지기"

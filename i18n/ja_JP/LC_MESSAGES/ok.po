@@ -1225,3 +1225,12 @@ msgstr "カスタム周回"
 
 msgid "副本类型"
 msgstr "ダンジョンタイプ"
+
+msgid "签到方式"
+msgstr "サインイン方法"
+
+msgid "签到"
+msgstr "サインイン"
+
+msgid "捞币"
+msgstr "コインすくい"

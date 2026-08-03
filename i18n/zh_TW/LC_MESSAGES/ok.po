@@ -1225,3 +1225,12 @@ msgstr "自訂循環"
 
 msgid "副本类型"
 msgstr "副本類型"
+
+msgid "签到方式"
+msgstr "簽到方式"
+
+msgid "签到"
+msgstr "簽到"
+
+msgid "捞币"
+msgstr "撈取硬幣"
