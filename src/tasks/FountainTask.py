@@ -225,7 +225,7 @@ class FountainTask(BaseNTETask):
         return max(regions, key=lambda region: region.width * region.height)
 
     def click_sign_action(self, sign_btn, sign_mode):
-        self.log_info("图色识别，并确定点击选项")
+        self.log_info("识别确定点击选项")
         target = sign_btn
         if sign_mode == self.SIGN_MODE_COIN:
             target = sign_btn.copy(
