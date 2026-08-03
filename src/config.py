@@ -62,9 +62,7 @@ sound_trigger_config_option = ConfigOption(
 cursor_sync_config_option = ConfigOption(
     "防止 NTE 移动鼠标",
     {"启用": True},
-    description=(
-        "后台运行时，在 NTE 将鼠标移动到屏幕中心后，自动恢复鼠标位置。"
-    ),
+    description=("后台运行时，在 NTE 将鼠标移动到屏幕中心后，自动恢复鼠标位置。"),
 )
 background_audio_routing_config_option = create_background_audio_routing_config_option()
 
@@ -206,7 +204,7 @@ config = {
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
-        ["src.tasks.FountainTask", "FountainTask"],
+        # ["src.tasks.FountainTask", "FountainTask"],
     ],
     "trigger_tasks": [  # 不断执行的触发式任务
         ["src.tasks.trigger.AutoCombatTask", "AutoCombatTask"],
