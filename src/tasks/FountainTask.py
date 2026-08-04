@@ -37,6 +37,7 @@ class FountainTask(BaseNTETask):
         self.icon = FluentIcon.SYNC
         self.group_name = "日常/周常"
         self.group_icon = FluentIcon.CALENDAR
+        self.visible = False
         self.default_config.update({self.CONF_SIGN_MODE: self.SIGN_MODE_SIGN})
         self.config_type.update(
             {
@@ -106,13 +107,14 @@ class FountainTask(BaseNTETask):
         self.operate_click(*self.DOMAIN_ENTRY_POS, after_sleep=1)
         self.operate_click(*self.DOMAIN_CONFIRM_POS, after_sleep=2)
         self.click_traval_button()
-        self.wait_in_team(time_out=30)
+        self.wait_in_team(time_out=30, settle_time=0.25)
         self.sleep(0.5)
         self.click_fountain_map_teleport(time_out=5)
-        self.wait_in_team_and_world(time_out=30)
+        self.wait_in_team(time_out=30, settle_time=0.25)
+        self.sleep(0.5)
 
     def run_to_fountain(self):
-        self.middle_click(after_sleep=0.4)
+        self.middle_click(after_sleep=1)
         self.send_key_down("a", after_sleep=0.4)
         self.send_key("lshift", after_sleep=0.4)
         try:

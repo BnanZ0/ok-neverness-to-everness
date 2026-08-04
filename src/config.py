@@ -200,11 +200,11 @@ config = {
         ["src.tasks.WhirlwindTask", "WhirlwindTask"],
         ["src.tasks.DSDFarmTask", "DSDFarmTask"],
         ["src.tasks.GiftTask", "GiftTask"],
+        ["src.tasks.FountainTask", "FountainTask"],
         ["src.tasks.CombatDetectionTestTask", "CombatDetectionTestTask"],
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
-        # ["src.tasks.FountainTask", "FountainTask"],
     ],
     "trigger_tasks": [  # 不断执行的触发式任务
         ["src.tasks.trigger.AutoCombatTask", "AutoCombatTask"],
