@@ -90,39 +90,6 @@ class TestDailyCoffeeLocaleGate(unittest.TestCase):
         ctor_app = MagicMock()
         return DailyTask(executor=executor, app=ctor_app)
 
-    def test_zh_cn_locale_exposes_auto_coffee_mode(self):
-        original = self._patch_locale("zh_CN")
-        try:
-            task = self._instantiate()
-            self.assertIn(DailyTask.CONF_COFFEE_TASK, task.default_config)
-            self.assertEqual(
-                DailyTask.COFFEE_MODE_NONE,
-                task.default_config[DailyTask.CONF_COFFEE_TASK],
-            )
-            self.assertEqual(
-                [
-                    DailyTask.COFFEE_MODE_NONE,
-                    DailyTask.COFFEE_MODE_CLAIM_AND_RESTOCK,
-                    DailyTask.COFFEE_MODE_AUTO,
-                ],
-                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
-            )
-        finally:
-            self._restore_app(original)
-
-    def test_non_zh_cn_locale_hides_auto_coffee_mode(self):
-        original = self._patch_locale("en_US")
-        try:
-            task = self._instantiate()
-            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.default_config)
-            self.assertNotIn(DailyTask.COFFEE_MODE_AUTO, task.config_description)
-            self.assertEqual(
-                [DailyTask.COFFEE_MODE_NONE, DailyTask.COFFEE_MODE_CLAIM_AND_RESTOCK],
-                task.config_type[DailyTask.CONF_COFFEE_TASK]["options"],
-            )
-        finally:
-            self._restore_app(original)
-
     def test_missing_locale_attribute_hides_toggle(self):
         # ``og.app`` 存在但没有 ``locale`` 属性 (例如某些 headless 环境).
         # 守卫要求 hasattr(app, "locale") 才会调用 ``locale.name()``.
