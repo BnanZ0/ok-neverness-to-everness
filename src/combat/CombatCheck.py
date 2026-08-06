@@ -168,16 +168,15 @@ class CombatCheck(BaseNTETask):
             time_out += 5.0
         logger.info(f"targeting enemy for {time_out}s")
         deadline = time.time() + time_out
-        # Multi-direction search: turn left, turn right, walk forward, back up.
-        # A single direction (old: only "a") misses enemies that moved behind
-        # or to the side of the character during combat.
+        # Sweep rotation left then right to re-acquire a target that moved out
+        # of view during combat. Rotating covers enemies behind or to the side
+        # of the character; alternating the direction avoids spinning endlessly
+        # one way and handles walls on either side.
         search_actions = [
             ("a", 0.15),
             ("a", 0.15),
             ("d", 0.15),
             ("d", 0.15),
-            ("w", 0.5),
-            ("s", 0.3),
         ]
         search_idx = 0
         while time.time() < deadline:
