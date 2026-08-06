@@ -128,7 +128,9 @@ class Baicang(BaseChar):
 
             self._heavy_combo()
             self.check_combat()
-            if self._now() >= deadline:
+            # _heavy_combo may return early on char switch/death; re-check state
+            # so we don't send R or a second E once the burst is no longer valid.
+            if not self.is_current_char or self.is_dead or self._now() >= deadline:
                 break
 
             if self._now() - self._baicang_last_arc_time >= self.ARC_CHECK_INTERVAL:

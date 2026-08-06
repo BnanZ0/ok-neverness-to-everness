@@ -199,6 +199,8 @@ class BurstHarnessBaicang(Baicang):
         self.is_dead = False
         self.arc_key_calls = 0
         self.skill_click_calls = 0
+        self.switch_during_combo = False
+        self.death_during_combo = False
 
     def _now(self):
         return self._fake_time
@@ -216,7 +218,14 @@ class BurstHarnessBaicang(Baicang):
             raise NotInCombatException("test: not in combat")
 
     def _heavy_combo(self):
-        # One combo that runs past the whole burst window.
+        # Run one combo that jumps the fake clock past the whole burst window,
+        # optionally switching char / dying mid-way. In all cases the state or
+        # deadline check after the combo must stop the loop before R or a
+        # second E can fire.
+        if self.switch_during_combo:
+            self.is_current_char = False
+        if self.death_during_combo:
+            self.is_dead = True
         self._fake_time += self.ULT_FIELD_DURATION + 1.0
 
     def send_arc_key(self, after_sleep=0, interval=-1, down_time=0.01):
@@ -230,6 +239,20 @@ class BurstHarnessBaicang(Baicang):
 class TestBaicangDeadlineCheck(unittest.TestCase):
     def test_no_arc_or_second_skill_after_deadline(self):
         char = BurstHarnessBaicang()
+        char._perform_burst(context=None)
+        self.assertEqual(char.arc_key_calls, 0)
+        self.assertEqual(char.skill_click_calls, 0)
+
+    def test_no_arc_or_second_skill_after_char_switch(self):
+        char = BurstHarnessBaicang()
+        char.switch_during_combo = True
+        char._perform_burst(context=None)
+        self.assertEqual(char.arc_key_calls, 0)
+        self.assertEqual(char.skill_click_calls, 0)
+
+    def test_no_arc_or_second_skill_after_death(self):
+        char = BurstHarnessBaicang()
+        char.death_during_combo = True
         char._perform_burst(context=None)
         self.assertEqual(char.arc_key_calls, 0)
         self.assertEqual(char.skill_click_calls, 0)
