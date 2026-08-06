@@ -139,6 +139,8 @@ class Baicang(BaseChar):
 
             self._heavy_combo()
             self.check_combat()
+            if self._now() >= deadline:
+                break
 
             if self._now() - self._baicang_last_arc_time >= self.ARC_CHECK_INTERVAL:
                 self._baicang_last_arc_time = self._now()
@@ -275,7 +277,7 @@ class Baicang(BaseChar):
                 self.sleep(min(self.NORMAL_ATTACK_INTERVAL, remaining))
 
     def _right_click_burst(self, duration):
-        """持续右键点击 ``duration`` 秒，不管理方向键。"""
+        """持续右键点击 ``duration`` 秒, 不管理方向键。"""
         if duration <= 0:
             return
         interval = self.DODGE_CLICK_INTERVAL
@@ -286,7 +288,7 @@ class Baicang(BaseChar):
             self.click(interval=interval, key="right")
 
     def _now(self):
-        """可 patch 的时钟，供测试覆盖。"""
+        """可 patch 的时钟, 供测试覆盖。"""
         return time.monotonic()
 
     def on_combat_end(self, chars):

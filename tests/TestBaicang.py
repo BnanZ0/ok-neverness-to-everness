@@ -6,7 +6,6 @@ template / model runtime is loaded. Mirrors the FakeTask pattern in
 TestCombatPlanner.py.
 """
 
-import time
 import unittest
 from unittest.mock import MagicMock
 
@@ -180,6 +179,60 @@ class TestBaicangCombatPlan(unittest.TestCase):
         fallback = [a for a in plan.actions if a.name == "baicang_dodge_fallback"]
         self.assertEqual(len(fallback), 1)
         self.assertFalse(fallback[0].priority_ready(None))
+
+
+class BurstHarnessBaicang(Baicang):
+    """Burst-loop harness: fake clock plus a heavy_combo that jumps past the deadline.
+
+    Drives the real ``_perform_burst`` loop so regression tests can assert that no
+    arc key or second-skill is sent once the burst deadline has passed.
+    """
+
+    __test__ = False
+
+    def __init__(self, index=0):
+        super().__init__(FakeTask(), index, char_id="baicang")
+        self._fake_time = 0.0
+        self._skill_available = True
+        self._combat_active = True
+        self.is_current_char = True
+        self.is_dead = False
+        self.arc_key_calls = 0
+        self.skill_click_calls = 0
+
+    def _now(self):
+        return self._fake_time
+
+    def sleep(self, sec, sleep_check=True):
+        self._fake_time += sec
+
+    def skill_available(self, check_color=True):
+        return self._skill_available
+
+    def check_combat(self):
+        if not self._combat_active:
+            from src.combat.BaseCombatTask import NotInCombatException
+
+            raise NotInCombatException("test: not in combat")
+
+    def _heavy_combo(self):
+        # One combo that runs past the whole burst window.
+        self._fake_time += self.ULT_FIELD_DURATION + 1.0
+
+    def send_arc_key(self, after_sleep=0, interval=-1, down_time=0.01):
+        self.arc_key_calls += 1
+
+    def click_skill(self, **kwargs):
+        self.skill_click_calls += 1
+        return True
+
+
+class TestBaicangDeadlineCheck(unittest.TestCase):
+    def test_no_arc_or_second_skill_after_deadline(self):
+        char = BurstHarnessBaicang()
+        char._perform_burst(context=None)
+        self.assertEqual(char.arc_key_calls, 0)
+        self.assertEqual(char.skill_click_calls, 0)
 
 
 if __name__ == "__main__":
