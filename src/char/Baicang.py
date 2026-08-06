@@ -77,19 +77,8 @@ class Baicang(BaseChar):
         )
 
     def combat_plan(self, context: CombatContext):
-        skill = self.planner_action(
-            tags={ActionTag.SKILL_ACTION},
-            slot=ActionSlot.SKILL,
-            execute=lambda ctx: self.click_skill(time_out=self.SKILL_SHORT_TIMEOUT),
-            name="baicang_skill",
-            reason="baicang skill",
-            can_execute=lambda _: self.skill_available(),
-            priority_ready=lambda _: self.skill_available(),
-        )
-        ultimate = self.click_ultimate_action(
-            reason="baicang ultimate",
-            can_execute=lambda _: self.ultimate_available(),
-        )
+        skill = self.click_skill_action(name="baicang_skill", reason="baicang skill")
+        ultimate = self.click_ultimate_action(name="baicang_ultimate", reason="baicang ultimate")
         fallback_dodge = self.planner_action(
             tags={ActionTag.DEFAULT_ACTION, ActionTag.DAMAGE},
             execute=lambda ctx: self._execute_fallback_dodge(),
