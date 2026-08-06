@@ -10,8 +10,6 @@ from src.combat.planner import (
     RoleProfile,
 )
 
-_LOG_PREFIX = "[Baicang]"
-
 
 class Baicang(BaseChar):
     """Baicang main DPS. Q burst uses the Method-2 heavy combo (点按两次再长按).
@@ -25,7 +23,6 @@ class Baicang(BaseChar):
     and marked UNVERIFIED; calibrate live.
     """
 
-    en_name = "Baicang"
     cn_name = "白藏"
     element = BaseChar.Element.RED
 
@@ -77,13 +74,11 @@ class Baicang(BaseChar):
         )
 
     def combat_plan(self, context: CombatContext):
-        skill = self.click_skill_action(name="baicang_skill", reason="baicang skill")
-        ultimate = self.click_ultimate_action(name="baicang_ultimate", reason="baicang ultimate")
+        skill = self.click_skill_action()
+        ultimate = self.click_ultimate_action()
         fallback_dodge = self.planner_action(
             tags={ActionTag.DEFAULT_ACTION, ActionTag.DAMAGE},
             execute=lambda ctx: self._execute_fallback_dodge(),
-            name="baicang_dodge_fallback",
-            reason="baicang fallback dodge",
             priority_ready=lambda ctx: False,
         )
 
@@ -110,7 +105,7 @@ class Baicang(BaseChar):
         - 每轮后检查: deadline、is_current_char、is_dead、check_combat
         - R 每 ARC_CHECK_INTERVAL 释放; E 冷却好后按 streak 释放
         """
-        self.logger.info(f"{_LOG_PREFIX} burst start")
+        self.logger.info("burst start")
         start = self._now()
         deadline = start + self.ULT_FIELD_DURATION
 
@@ -120,10 +115,10 @@ class Baicang(BaseChar):
 
         while self._now() < deadline:
             if not self.is_current_char:
-                self.logger.info(f"{_LOG_PREFIX} burst end (not current char)")
+                self.logger.info("burst end (not current char)")
                 return
             if self.is_dead:
-                self.logger.info(f"{_LOG_PREFIX} burst end (dead)")
+                self.logger.info("burst end (dead)")
                 return
 
             self._heavy_combo()
@@ -147,12 +142,12 @@ class Baicang(BaseChar):
                 ready_streak += 1
                 if ready_streak == 1:
                     self.logger.info(
-                        f"{_LOG_PREFIX} skill ready streak="
+                        f"skill ready streak="
                         f"{ready_streak}/{self.SKILL_READY_STREAK_THRESHOLD}"
                     )
             else:
                 if ready_streak > 0:
-                    self.logger.debug(f"{_LOG_PREFIX} skill streak reset (was {ready_streak})")
+                    self.logger.debug(f"skill streak reset (was {ready_streak})")
                 ready_streak = 0
                 continue
 
@@ -163,10 +158,10 @@ class Baicang(BaseChar):
                 if self._try_second_skill(context):
                     ready_streak = 0  # allow E to fire again after next cooldown
             else:
-                self.logger.info(f"{_LOG_PREFIX} skill armed (observe mode)")
+                self.logger.info("skill armed (observe mode)")
                 ready_streak = 0
 
-        self.logger.info(f"{_LOG_PREFIX} burst end")
+        self.logger.info("burst end")
 
     def _heavy_combo(self):
         """第二套手法一轮: 点按普攻 HEAVY_TAP_COUNT 下 → 长按重击(后跳丢符) → 往前走一段重置。
@@ -200,33 +195,33 @@ class Baicang(BaseChar):
     def _try_second_skill(self, context: CombatContext = None):
         """检查 reservation 后发送第二 E。"""
         if context is not None and not context.can_execute_action(self, slot=ActionSlot.SKILL):
-            self.logger.info(f"{_LOG_PREFIX} second skill blocked by reservation")
+            self.logger.info("second skill blocked by reservation")
             return False
 
-        self.logger.info(f"{_LOG_PREFIX} second skill armed")
+        self.logger.info("second skill armed")
         clicked = self.click_skill(time_out=self.SKILL_SHORT_TIMEOUT)
         if clicked:
-            self.logger.info(f"{_LOG_PREFIX} second skill executed")
+            self.logger.info("second skill executed")
         else:
-            self.logger.info(f"{_LOG_PREFIX} second skill click failed")
+            self.logger.info("second skill click failed")
         return clicked
 
     def _post_skill_dodge(self):
         """Legacy method name: execute normal attacks after an E-only entry."""
-        self.logger.info(f"{_LOG_PREFIX} post-skill normal attacks")
+        self.logger.info("post-skill normal attacks")
         self._checkpointed_dodge(self.POST_SKILL_DODGE_DURATION)
 
     def _execute_fallback_dodge(self):
         """Legacy method name: bounded normal attacks when Q/E are unavailable."""
         if self.is_dead or not self.is_current_char:
-            self.logger.info(f"{_LOG_PREFIX} fallback attacks skipped (dead or not current)")
+            self.logger.info("fallback attacks skipped (dead or not current)")
             return False
 
-        self.logger.info(f"{_LOG_PREFIX} fallback normal attacks")
+        self.logger.info("fallback normal attacks")
         self._checkpointed_dodge(self.FALLBACK_DODGE_DURATION)
 
         if not self.is_current_char or self.is_dead:
-            self.logger.info(f"{_LOG_PREFIX} fallback dodge ended (char changed or dead)")
+            self.logger.info("fallback dodge ended (char changed or dead)")
             return False
 
         return True
