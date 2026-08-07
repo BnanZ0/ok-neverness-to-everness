@@ -67,6 +67,25 @@ class CombatContext:
         self._state.prune()
         return self._state.locked_route is not None
 
+    def expire_strict_route(self) -> bool:
+        """过期当前 strict route，让 planner 返回主 C。
+
+        角色不应直接访问 planner 内部 state.locked_route；
+        通过此公共方法安全关闭 route。
+        Returns:
+            True 如果有 route 被关闭，False 如果没有活动 route。
+        """
+
+        route = self._state.locked_route
+        if route is None:
+            return False
+        try:
+            route.close()
+        except Exception:
+            pass
+        self._state.locked_route = None
+        return True
+
     def strict_route_wants_action(
         self,
         char: "BaseChar",

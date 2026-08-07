@@ -46,7 +46,10 @@ sound_trigger_config_option = ConfigOption(
     "Sound Trigger Config",
     {
         "Enable Sound Trigger": True,
-        "Dodge All Attacks": True,
+        # False = punish the enemy's charging/vulnerable state with a counter attack instead of
+        # rerouting that sound into a dodge. Dodge keeps priority: the dodge sound is evaluated
+        # first, so a real incoming attack still dodges.
+        "Dodge All Attacks": False,
         "Dodge Threshold": 0.13,
         "Counter Attack Threshold": 0.12,
     },

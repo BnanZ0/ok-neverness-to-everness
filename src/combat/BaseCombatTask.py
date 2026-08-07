@@ -11,7 +11,11 @@ from ok import Box, Logger, safe_get
 
 from src import text_white_color
 from src.char.BaseChar import BaseChar, Element
-from src.char.core.CharFactory import get_char_by_id, get_char_by_pos
+from src.char.core.CharFactory import (
+    get_char_by_id,
+    get_char_by_pos,
+    get_char_feature_by_pos,
+)
 from src.char.custom.CustomCharManager import CustomCharManager
 from src.combat.CombatCheck import CombatCheck
 from src.combat.planner import CombatPlanner
@@ -52,6 +56,16 @@ class TeamSurvivalStatus(Enum):
     WIPED = 3  # 团灭
 
 
+@dataclass(frozen=True)
+class VisibleTeamMatch:
+    """A complete, unique mapping from the visible HUD slots to one preset."""
+
+    preset_id: str
+    preset_name: str
+    char_ids: tuple[str, ...]
+    slots: tuple[dict, ...]
+
+
 @dataclass
 class CombatSession:
     """一次实际战斗的生命周期状态。"""
@@ -62,6 +76,8 @@ class CombatSession:
     start_char: "BaseChar | None" = None
     first_engage_char: "BaseChar | None" = None
     first_engage_consumed: bool = False
+    last_active_at: float = 0.0
+    pause_logged: bool = False
 
 
 class BaseCombatTask(CharElementUIMixin, CombatCheck):
@@ -69,6 +85,20 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
 
     hot_key_verified = False  # 热键是否已验证
     FREEZE_DURATION_RETENTION_SECONDS = 20 * 60
+    STRICT_TEAM_MATCH_THRESHOLD = 0.65
+    TEAM_BINDING_CHECK_INTERVAL = 0.25
+    PARTIAL_RECOGNITION_RETRIES = 4
+    PARTIAL_RECOGNITION_RETRY_INTERVAL = 0.18
+    LIVE_BINDING_RETRIES = 3
+    LIVE_BINDING_RETRY_INTERVAL = 0.12
+    ABYSS_SESSION_GAP_TIMEOUT = 6.0
+    ABYSS_PRESET_IDS = frozenset(
+        {
+            "team_baicang_speed",
+            "team_chiz",
+            "team_999night",
+        }
+    )
 
     element_reactions = (
         "创生",
@@ -107,6 +137,12 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         self.vibrate_chars_index: list[int] = []
         self.chars_slot_mat = [None, None, None, None]
         self.element_reaction_counts = {}
+        self._strict_team_last_error = ""
+        self.active_team_preset_id = ""
+        self._team_binding: VisibleTeamMatch | None = None
+        self._pending_team_binding: VisibleTeamMatch | None = None
+        self._team_binding_last_check = 0.0
+        self._team_binding_blocked = False
         self.combat_planner = CombatPlanner(self)
         self.clear_element_reactions()
         self.preheat_element_template_cache_async()
@@ -131,6 +167,8 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         """
 
         session = self.combat_session
+        session.last_active_at = time.monotonic()
+        session.pause_logged = False
         if session.start_char is None:
             session.combat_start = time.time()
             self.click()
@@ -138,6 +176,42 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             session.start_char = self.get_current_char(raise_exception=False)
             logger.info(f"combat session started, start char: {session.start_char}")
         return session
+
+    def touch_combat_session(self) -> None:
+        """Refresh the activity clock without rebuilding the session."""
+
+        session = getattr(self, "_combat_session", None)
+        if session is None:
+            return
+        session.last_active_at = time.monotonic()
+        session.pause_logged = False
+
+    def can_preserve_combat_session(self) -> bool:
+        """Return whether a short target/HUD gap may reuse the live Abyss plan."""
+
+        session = getattr(self, "_combat_session", None)
+        if session is None or session.start_char is None:
+            return False
+        if not self.should_hold_position_on_target_loss():
+            return False
+        if getattr(self, "_team_binding_blocked", False):
+            return False
+        if getattr(self, "_pending_team_binding", None) is not None:
+            return False
+        last_active_at = session.last_active_at or time.monotonic()
+        return time.monotonic() - last_active_at <= self.ABYSS_SESSION_GAP_TIMEOUT
+
+    def note_combat_session_pause(self) -> None:
+        """Record a transient Abyss gap once, keeping planner state untouched."""
+
+        session = getattr(self, "_combat_session", None)
+        if session is None or session.pause_logged:
+            return
+        session.pause_logged = True
+        logger.info(
+            "combat session paused for short Abyss gap; preserving bound team, "
+            "character objects and planner state"
+        )
 
     def record_first_engage(self, char: "BaseChar") -> None:
         """记录本场首次实际执行战斗逻辑的角色。"""
@@ -343,9 +417,19 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         if cds is None:
             cds = {}
             self.cds[index] = cds
-        cds["time"] = time.time()
-        cds["skill"] = 0
-        cds["ultimate"] = 0
+        # Preserve previous CD values when OCR fails to read them.
+        # Instead of resetting to 0 (which falsely reports "available"),
+        # decay the last known CD by elapsed time so remaining CD stays accurate.
+        old_time = cds.get("time")
+        new_time = time.time()
+        if old_time is not None:
+            elapsed = self.time_elapsed_accounting_for_freeze(old_time)
+            cds["skill"] = max(0, cds.get("skill", 0) - elapsed)
+            cds["ultimate"] = max(0, cds.get("ultimate", 0) - elapsed)
+        else:
+            cds["skill"] = 0
+            cds["ultimate"] = 0
+        cds["time"] = new_time
         texts = self.ocr(
             0.8594, 0.8847, 0.9578, 0.9139, frame_processor=gf.isolate_cd_to_black, match=cd_regex
         )
@@ -446,7 +530,10 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
                 if any(char is not None and char.is_dead for char in self.chars)
                 else TeamSurvivalStatus.NO_DEATHS
             )
-            self.combat_end()
+            if self.can_preserve_combat_session():
+                self.note_combat_session_pause()
+            else:
+                self.combat_end()
 
         if not self.wait_in_team(time_out=5, raise_if_not_found=False):
             team_status = TeamSurvivalStatus.WIPED
@@ -500,8 +587,10 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             current_char.switch_out()
             if has_intro:
                 current_char.last_outro_time = time.time()
-        switch_to.is_current_char = True
-        switch_to.has_intro = has_intro
+        # switch_in updates actual_switch_in_time (only on real switch-in),
+        # is_current_char, has_intro. actual_switch_in_time is the basis for
+        # MIN_FIELD_TIME / MAX_FIELD_TIME windows and must not be reset by perform.
+        switch_to.switch_in(has_intro=has_intro)
 
     def _switch_to_char(
         self,
@@ -514,6 +603,9 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         log_prefix="switch char",
         time_out=10,
     ):
+        if not self.ensure_team_binding():
+            logger.info(f"{log_prefix} cancelled while team binding changes")
+            return False
         current_char_name = current_char.ufn_name if current_char else "None"
         switch_to.has_intro = has_intro
         intro_replanned = False
@@ -587,6 +679,9 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
                             f"has_intro {switch_to.has_intro}"
                         )
 
+                if not self.ensure_team_binding():
+                    logger.info(f"{log_prefix} cancelled while team binding changes")
+                    return False
                 self.send_key(
                     switch_to.index + 1,
                     action_name="switch_char_send",
@@ -618,6 +713,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             post_action(switch_to, has_intro)
 
         logger.info(f"{log_prefix} end {(time.time() - start_time):.3f}s")
+        return True
 
     def _mark_dead_char_if_detected(self, switch_to: "BaseChar"):
         if self.find_confirm(self.box_of_screen(0.655, 0.694, 0.709, 0.787, hcenter=True)):
@@ -676,15 +772,33 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         switch_to = decision.target
         has_intro = decision.has_intro
         if switch_to is None or switch_to == current_char:
-            current_char.click_with_interval()
-            self.run_with_interval(
-                lambda: logger.debug(
-                    f"planner keeps current char {current_char}: {decision.reason}"
-                ),
-                0.5,
-                action_name=("planner_keep_current", current_char.index, decision.reason),
+            fallback_target = None
+            if not self.combat_planner.has_strict_route(current_char):
+                from src.combat.team_strategies import abyss_setup_exit_target
+
+                fallback_target = abyss_setup_exit_target(current_char, self.chars)
+            if fallback_target is None:
+                from src.combat.team_strategies import is_abyss_setup_only_char
+
+                if is_abyss_setup_only_char(current_char, self.chars):
+                    current_char.check_combat()
+                    current_char.sleep(0.05)
+                    return
+                current_char.click_with_interval()
+                self.run_with_interval(
+                    lambda: logger.debug(
+                        f"planner keeps current char {current_char}: {decision.reason}"
+                    ),
+                    0.5,
+                    action_name=("planner_keep_current", current_char.index, decision.reason),
+                )
+                return
+            switch_to = fallback_target
+            has_intro = False
+            logger.info(
+                f"planner exits setup-only {current_char} -> {switch_to}: "
+                "no normal-attack fallback in abyss team"
             )
-            return
 
         if not self.combat_planner.has_strict_route(current_char):
             self._wait_switch_in_guard(current_char, switch_to, has_intro)
@@ -902,11 +1016,15 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         if not self.sleep_check_skip.check_combat:
             self.check_combat()
 
+    def can_sound_trigger(self) -> bool:
+        """Reject audio reactions while the game cannot accept a dodge input."""
+        return bool(self._in_combat and not self.in_animation)
+
     def _apply_sound_config(self, dodge_action=ACTION_UNSET, counter_action=ACTION_UNSET):
         sound_context = SoundCombatContext()
         if self.sound_config:
             enable = self.sound_config.get("Enable Sound Trigger", True)
-            dodge_all_attacks = self.sound_config.get("Dodge All Attacks", True)
+            dodge_all_attacks = self.sound_config.get("Dodge All Attacks", False)
             dodge_thresh = self.sound_config.get("Dodge Threshold", 0.13)
             counter_thresh = self.sound_config.get("Counter Attack Threshold", 0.12)
             dodge_thresh = np.clip(dodge_thresh, 0.0, 1.0)
@@ -945,16 +1063,370 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             if isinstance(char, char_cls):
                 return char
 
+    def _report_strict_team_error(self, message: str):
+        if message != self._strict_team_last_error:
+            self._strict_team_last_error = message
+            self.log_error(f"队伍预设校验失败：{message}", notify=True)
+        else:
+            logger.debug(f"strict team preset still blocked: {message}")
+
+    def _verify_armed_team(self, armed_preset: dict, count: int, manager) -> bool:
+        preset_name = armed_preset.get("name") or armed_preset.get("preset_id") or "未命名"
+        slots = armed_preset.get("slots", [])
+        if count != 4:
+            self._report_strict_team_error(f"{preset_name}要求四人队伍，当前识别到{count}人")
+            return False
+        if not isinstance(slots, list):
+            slots = []
+        expected_ids = [
+            slot.get("char_id", "") if isinstance(slot, dict) else "" for slot in slots[:4]
+        ]
+        if len(expected_ids) != 4 or not all(expected_ids) or len(set(expected_ids)) != 4:
+            self._report_strict_team_error(f"{preset_name}必须保存四名不同角色")
+            return False
+
+        frame = self.frame
+        for index, expected_char_id in enumerate(expected_ids):
+            feature_mat, _, _ = get_char_feature_by_pos(self, index, frame=frame)
+            expected_info = manager.get_character_info_by_id(expected_char_id)
+            expected_name = expected_info["char_name"] if expected_info else expected_char_id
+            if feature_mat is None or feature_mat.size <= 0:
+                self._report_strict_team_error(
+                    f"{preset_name}的{index + 1}号位未截取到头像，期望{expected_name}"
+                )
+                return False
+
+            matched, actual_char_id, confidence = manager.match_feature(
+                self,
+                feature_mat,
+                threshold=self.STRICT_TEAM_MATCH_THRESHOLD,
+            )
+            if not matched or actual_char_id != expected_char_id:
+                actual_info = manager.get_character_info_by_id(actual_char_id or "")
+                actual_name = actual_info["char_name"] if actual_info else "未识别"
+                self._report_strict_team_error(
+                    f"{preset_name}的{index + 1}号位期望{expected_name}，"
+                    f"实际{actual_name}（{confidence:.2f}）"
+                )
+                return False
+
+        self._strict_team_last_error = ""
+        self.log_info(f"队伍预设校验通过：{preset_name}")
+        return True
+
+    @staticmethod
+    def _slots_in_visible_order(preset: dict, char_ids: tuple[str, ...]) -> tuple[dict, ...] | None:
+        preset_slots = preset.get("slots", []) if isinstance(preset, dict) else []
+        by_char_id = {
+            slot.get("char_id", ""): slot
+            for slot in preset_slots
+            if isinstance(slot, dict) and slot.get("char_id", "")
+        }
+        if len(by_char_id) != 4 or any(char_id not in by_char_id for char_id in char_ids):
+            return None
+        return tuple(
+            {
+                "char_id": char_id,
+                "impl_id": by_char_id[char_id].get("impl_id", ""),
+            }
+            for char_id in char_ids
+        )
+
+    def _match_visible_team_preset(self, count: int, manager) -> VisibleTeamMatch | None:
+        """Identify every HUD slot and resolve exactly one saved four-member preset."""
+        if count != 4:
+            self._report_strict_team_error(f"自动双队要求四人队伍, 当前识别到{count}人")
+            return None
+
+        frame = self.frame
+        char_ids: list[str] = []
+        for index in range(4):
+            feature_mat, _, _ = get_char_feature_by_pos(self, index, frame=frame)
+            if feature_mat is None or feature_mat.size <= 0:
+                self._report_strict_team_error(f"自动双队的{index + 1}号位未截取到头像")
+                return None
+            matched, char_id, confidence = manager.match_feature(
+                self,
+                feature_mat,
+                threshold=self.STRICT_TEAM_MATCH_THRESHOLD,
+            )
+            if not matched or not char_id:
+                self._report_strict_team_error(
+                    f"自动双队的{index + 1}号位无法高置信识别（{confidence:.2f}）"
+                )
+                return None
+            char_ids.append(char_id)
+
+        visible_ids = tuple(char_ids)
+        preset_id = manager.match_team_preset(visible_ids)
+        if not preset_id:
+            self._report_strict_team_error("当前四人头像未唯一匹配任何已保存深渊预设")
+            return None
+        preset = manager.get_team_preset(preset_id)
+        slots = self._slots_in_visible_order(preset, visible_ids)
+        if not preset or slots is None:
+            self._report_strict_team_error(f"深渊预设{preset_id}缺少完整槽位映射")
+            return None
+
+        self._strict_team_last_error = ""
+        return VisibleTeamMatch(
+            preset_id=preset_id,
+            preset_name=preset.get("name") or preset_id,
+            char_ids=visible_ids,
+            slots=slots,
+        )
+
+    def _probe_visible_team(self, count: int, manager) -> tuple[VisibleTeamMatch | None, int]:
+        """Probe HUD slots and return (full_match, partial_preset_count).
+
+        full_match is the same result as _match_visible_team_preset when all four
+        slots are confidently identified and uniquely match a saved preset.
+
+        partial_preset_count > 0 means the confidently identified subset belongs
+        to at least one saved abyss profile, so the caller should hold input and
+        retry rather than falling back to generic detection.
+        """
+        if count != 4:
+            return None, 0
+
+        frame = self.frame
+        confident_ids: list[str] = []
+        all_confident = True
+        for index in range(4):
+            feature_mat, _, _ = get_char_feature_by_pos(self, index, frame=frame)
+            if feature_mat is None or feature_mat.size <= 0:
+                all_confident = False
+                continue
+            matched, char_id, confidence = manager.match_feature(
+                self,
+                feature_mat,
+                threshold=self.STRICT_TEAM_MATCH_THRESHOLD,
+            )
+            if matched and char_id:
+                confident_ids.append(char_id)
+            else:
+                all_confident = False
+
+        if all_confident and len(confident_ids) == 4:
+            full_match = self._match_visible_team_preset(count, manager)
+            if full_match is not None:
+                return full_match, 0
+            # All four matched individually but no unique preset — treat as unknown.
+            return None, 0
+
+        # Partial recognition: check if the confident subset belongs to a saved preset.
+        if confident_ids:
+            partial_count = manager.partial_preset_match_count(confident_ids)
+            return None, partial_count
+
+        return None, 0
+
+    def _stabilize_partial_recognition(self, count: int, manager) -> VisibleTeamMatch | None:
+        """Retry full recognition for a short window after a partial known match.
+
+        Returns a complete VisibleTeamMatch if the HUD stabilizes within the retry
+        budget, or None if recognition never completes (caller should fail closed).
+        """
+        for attempt in range(self.PARTIAL_RECOGNITION_RETRIES):
+            self.sleep(self.PARTIAL_RECOGNITION_RETRY_INTERVAL)
+            match = self._match_visible_team_preset(count, manager)
+            if match is not None:
+                self.log_info(
+                    f"自动双队：稳定帧第{attempt + 1}次重试成功绑定 {match.preset_name}"
+                )
+                return match
+        self.log_info("自动双队：稳定窗口内未完成识别, 拒绝通用回退")
+        return None
+
+    def _stabilize_live_team_binding(self, manager) -> VisibleTeamMatch | None:
+        """Wait briefly for combat HUD occlusion to clear without sending old inputs."""
+        for attempt in range(self.LIVE_BINDING_RETRIES):
+            self.sleep(self.LIVE_BINDING_RETRY_INTERVAL)
+            in_team, current_index, count = self.in_team()
+            if not in_team:
+                continue
+            match = self._match_visible_team_preset(count, manager)
+            if match is not None:
+                self.log_info(
+                    f"自动双队：战斗遮挡第{attempt + 1}次重试恢复 {match.preset_name}"
+                )
+                return match
+        self.log_info("自动双队：战斗遮挡窗口内未恢复, 继续暂停旧队伍输入")
+        return None
+
+    def _record_team_binding(self, match: VisibleTeamMatch | None) -> None:
+        self._team_binding = match
+        self._pending_team_binding = None
+        self._team_binding_last_check = time.monotonic()
+        self._team_binding_blocked = False
+        if match is not None:
+            self.active_team_preset_id = match.preset_id
+            self.log_info(
+                f"队伍绑定：{match.preset_name} / 槽位 {' -> '.join(match.char_ids)}"
+            )
+
+    def _block_stale_team_inputs(self, message: str) -> bool:
+        """Stop stale combat input once; a new explicit team load clears this state."""
+        if not getattr(self, "_team_binding_blocked", False):
+            self._team_binding_blocked = True
+            self._pending_team_binding = None
+            self.combat_planner.reset([])
+            self._report_strict_team_error(message)
+        return False
+
+    def team_binding_is_blocked(self) -> bool:
+        return bool(getattr(self, "_team_binding_blocked", False))
+
+    def _is_auto_team_selection_enabled(self) -> bool:
+        return CustomCharManager().get_fixed_team().get("selection_mode") == "auto"
+
+    def should_hold_position_on_target_loss(self) -> bool:
+        """Keep Abyss teams still between waves instead of searching for enemies."""
+        if not self._is_auto_team_selection_enabled():
+            return False
+
+        from src.combat.team_strategies import is_baicang_abyss_team, is_chiz_abyss_team
+
+        return is_baicang_abyss_team(self.chars) or is_chiz_abyss_team(self.chars)
+
+    def ensure_team_binding(self, *, force: bool = False) -> bool:
+        """Prevent stale actions and rebind after a stable abyss roster transition.
+
+        A false result tells the caller to abandon its current character object.
+        This is necessary because a successful rebind replaces the team objects
+        and clears planner routes owned by the previous abyss half.
+        """
+        binding = getattr(self, "_team_binding", None)
+        if self.team_binding_is_blocked():
+            return False
+        if binding is None or self.in_animation:
+            return True
+
+        now = time.monotonic()
+        last_check = getattr(self, "_team_binding_last_check", 0.0)
+        if not force and now - last_check < self.TEAM_BINDING_CHECK_INTERVAL:
+            return True
+        self._team_binding_last_check = now
+
+        in_team, current_index, count = self.in_team()
+        if not in_team:
+            self._report_strict_team_error("队伍界面暂不可用, 已暂停旧队伍输入")
+            return False
+
+        manager = CustomCharManager()
+        visible = self._match_visible_team_preset(count, manager)
+        if visible is None:
+            # 阵亡后三人 HUD：已绑定深渊队且有角色死亡时，保留原队伍继续战斗，
+            # 不得因死亡头像无法高置信匹配而永久停机。真实换队仍走稳定帧确认。
+            if (
+                count < 4
+                and binding is not None
+                and any(c is not None and c.is_dead for c in self.chars)
+            ):
+                self.log_info(
+                    f"已绑定深渊队且有阵亡角色，HUD {count}人，保留原队伍继续战斗"
+                )
+                return True
+            visible = self._stabilize_live_team_binding(manager)
+            if visible is None:
+                return False
+        if visible == binding:
+            self._pending_team_binding = None
+            # 检测主 C 阵亡后的游戏自动换人：HUD current_index 与脚本记录不符时，
+            # 标记原角色死亡并同步 is_current_char。仅在同队情况下触发，避免误判换队。
+            if current_index >= 0:
+                self._sync_current_after_auto_switch(current_index)
+            return True
+
+        if not self._is_auto_team_selection_enabled():
+            return self._block_stale_team_inputs(
+                f"当前队伍已从{binding.preset_name}变为{visible.preset_name}, "
+                "未启用自动双队, 已停止旧策略输入"
+            )
+
+        # One transition frame is not enough to rebuild a live combat plan.
+        # Keep every old input blocked until the next complete frame agrees.
+        if getattr(self, "_pending_team_binding", None) != visible:
+            self._pending_team_binding = visible
+            self.log_info(f"检测到队伍交接候选：{visible.preset_name}, 等待稳定确认")
+            return False
+
+        self.log_info(f"队伍交接确认：{binding.preset_name} -> {visible.preset_name}")
+        if not self.load_chars(visible_match=visible):
+            self._report_strict_team_error("队伍交接重绑失败, 已停止旧策略输入")
+        return False
+
+    def _sync_current_after_auto_switch(self, current_index: int) -> None:
+        """检测主动角色阵亡后的游戏自动换人，同步 current_index 并标记原角色死亡。
+
+        游戏在主动角色阵亡后会自动切到下一个存活角色，但脚本的 is_current_char
+        仍指死亡角色，导致后续 perform 持续操作死亡角色。这里通过 HUD
+        current_index 与脚本记录对比检测自动换人，仅在同队（visible == binding）
+        情况下触发，避免误判真实上下半场换队。
+
+        剩余三名角色继续战斗；由死亡主 C 持有的 strict route 被丢弃，planner
+        重新为存活角色规划。真实换队仍由 ensure_team_binding 的稳定帧确认保护。
+        """
+        chars = [c for c in self.chars if c is not None]
+        if not chars:
+            return
+        current = next((c for c in chars if c.is_current_char), None)
+        if current is None or current.index == current_index:
+            return
+        new_current = next((c for c in chars if c.index == current_index), None)
+        if new_current is None or new_current.is_dead:
+            return
+        if not current.is_dead:
+            current.mark_dead(
+                f"auto switch detected after death (HUD index {current_index})"
+            )
+            self.log_info(
+                f"detected auto switch after death: {current.char_name} dead, "
+                f"now active {new_current.char_name}"
+            )
+        for c in chars:
+            c.is_current_char = c.index == current_index
+        # 丢弃由死亡角色持有的 strict route，避免 planner 永久等待死亡目标。
+        planner = getattr(self, "combat_planner", None)
+        state = getattr(planner, "state", None) if planner is not None else None
+        locked_route = getattr(state, "locked_route", None) if state is not None else None
+        if locked_route is not None:
+            try:
+                locked_route.close()
+            except Exception:
+                pass
+            if state is not None:
+                state.locked_route = None
+            self.log_info(
+                f"discarded strict route held by dead char: {current.char_name}"
+            )
+
     def _do_load_char(self, index: int, fixed_slots) -> "BaseChar":
         fixed_slot = safe_get(fixed_slots, index)
         fixed_char_id = ""
         fixed_impl_id = ""
+        strict_binding = getattr(self, "_strict_char_binding", False)
+        if strict_binding and not isinstance(fixed_slot, dict):
+            self._report_strict_team_error(
+                f"深渊预设第{index + 1}号位缺少固定角色绑定"
+            )
+            return None
         if isinstance(fixed_slot, dict):
             fixed_char_id = fixed_slot.get("char_id", "")
             fixed_impl_id = fixed_slot.get("impl_id", "")
+            if strict_binding and not fixed_char_id:
+                self._report_strict_team_error(
+                    f"深渊预设第{index + 1}号位缺少角色ID"
+                )
+                return None
             if fixed_char_id:
                 char_info = CustomCharManager().get_character_info_by_id(fixed_char_id)
                 if not char_info:
+                    if strict_binding:
+                        self._report_strict_team_error(
+                            f"深渊预设第{index + 1}号位角色资料不存在：{fixed_char_id}"
+                        )
+                        return None
                     self.logger.warning(f"Fixed char {index} not found: {fixed_char_id}")
                     fixed_char_id = ""
                     fixed_impl_id = ""
@@ -964,14 +1436,18 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
                         f"Using fixed char {index}: {fixed_char_name} {fixed_impl_id}"
                     )
                     return get_char_by_id(
-                        self, index, fixed_char_id, confidence=1, impl_id=fixed_impl_id
+                        self,
+                        index,
+                        fixed_char_id,
+                        confidence=1,
+                        impl_id=fixed_impl_id,
                     )
 
         box_scaled = self.get_char_box(index).scale(1.1, 1.1)
 
         return get_char_by_pos(self, box_scaled, index, safe_get(self.chars, index))
 
-    def load_chars(self) -> bool:
+    def load_chars(self, visible_match: VisibleTeamMatch | None = None) -> bool:
         """加载队伍中的角色信息。"""
         ret = False
         now = time.perf_counter()
@@ -985,16 +1461,117 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             count = 4
         self.log_info(f"load_chars count {count} current_index {current_index}")
 
+        manager = CustomCharManager()
+        fixed_team = manager.get_fixed_team()
+        armed_preset = manager.get_armed_team_preset()
+        auto_selection = fixed_team.get("selection_mode") == "auto"
+        existing_binding = getattr(self, "_team_binding", None)
+        if auto_selection and existing_binding is not None:
+            # Once a known Abyss roster is bound, a transiently hidden HUD slot
+            # must never rebuild the planner as a three-member generic party.
+            if count != 4:
+                self.log_info(
+                    "自动双队：已绑定深渊队但当前 HUD 未完整显示四人，保留原队伍并等待恢复"
+                )
+                return False
+            if visible_match is None:
+                visible_match = self._match_visible_team_preset(count, manager)
+                if visible_match is None:
+                    visible_match = self._stabilize_live_team_binding(manager)
+                if visible_match is None:
+                    self.log_info("自动双队：已绑定深渊队的 HUD 未稳定，保留原队伍并暂停输入")
+                    return False
+        if auto_selection:
+            visible_match = visible_match or self._match_visible_team_preset(count, manager)
+            if visible_match is None:
+                # Probe whether the partially recognized slots belong to a saved abyss profile.
+                _, partial_count = self._probe_visible_team(count, manager)
+                if partial_count > 0:
+                    # A known abyss roster is partially visible; hold input and retry
+                    # for a short stabilization window before failing closed.
+                    self.log_info(
+                        f"自动双队：部分识别已知深渊阵容({partial_count}个预设匹配), 等待稳定帧"
+                    )
+                    visible_match = self._stabilize_partial_recognition(count, manager)
+                    if visible_match is None:
+                        return False
+                    fixed_slots = visible_match.slots
+                else:
+                    # A new non-abyss battle still uses OKNTE's ordinary character detection.
+                    # Strict failure applies after a saved abyss team has been bound.
+                    auto_selection = False
+                    fixed_slots = []
+            else:
+                fixed_slots = visible_match.slots
+        elif armed_preset:
+            if not self._verify_armed_team(armed_preset, count, manager):
+                return False
+            fixed_slots = armed_preset["slots"]
+        else:
+            fixed_slots = fixed_team.get("slots", []) if fixed_team.get("enabled", False) else []
+
+        if (
+            auto_selection
+            and existing_binding is not None
+            and visible_match is not None
+            and visible_match != existing_binding
+        ):
+            if getattr(self, "_pending_team_binding", None) != visible_match:
+                self._pending_team_binding = visible_match
+                self.log_info(
+                    f"detected Abyss team transition candidate: {visible_match.preset_name}; "
+                    "waiting for a stable frame"
+                )
+                return False
+            self._pending_team_binding = None
+
+        # A short combat-state/HUD gap must not create a fresh set of character
+        # objects. Reusing them preserves locked-route progress and prevents
+        # the same Abyss half from publishing its opener again.
+        if (
+            auto_selection
+            and visible_match is not None
+            and visible_match == getattr(self, "_team_binding", None)
+            and self.can_preserve_combat_session()
+        ):
+            for char in self.chars:
+                if char is not None:
+                    if char.index == current_index:
+                        char.switch_in()
+                    else:
+                        char.is_current_char = False
+            self._team_binding_last_check = time.monotonic()
+            self._pending_team_binding = None
+            self.log_info(
+                f"combat session resumed, preserving team {visible_match.preset_name} "
+                "and planner state"
+            )
+            return True
+
+        if getattr(self, "_combat_session", None) is not None:
+            logger.info(
+                "rebuilding combat session after Abyss team change or session timeout"
+            )
+            self._combat_session = None
+
         self.clear_element_reactions()
-        fixed_team = CustomCharManager().get_fixed_team()
-        fixed_slots = fixed_team.get("slots", []) if fixed_team.get("enabled", False) else []
         new_chars = []
         indices_to_detect = []
-        for i in range(count):
-            char = self._do_load_char(i, fixed_slots)
-            new_chars.append(char)
-            if char.element is Element.DEFAULT:
-                indices_to_detect.append(i)
+        self._strict_char_binding = bool(
+            auto_selection
+            and visible_match is not None
+            and visible_match.preset_id in self.ABYSS_PRESET_IDS
+        )
+        try:
+            for i in range(count):
+                char = self._do_load_char(i, fixed_slots)
+                if char is None:
+                    return False
+                new_chars.append(char)
+                if char.element is Element.DEFAULT:
+                    indices_to_detect.append(i)
+        finally:
+            self._strict_char_binding = False
 
         if indices_to_detect:
             detected_elements = self.load_chars_element(indices_to_detect)
@@ -1002,6 +1579,22 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
                 new_chars[i].element = detected_elements.get(i, Element.DEFAULT)
 
         elements = [char.element for char in new_chars]
+
+        if auto_selection:
+            self.active_team_preset_id = visible_match.preset_id
+            self.log_info(f"自动双队选择：{visible_match.preset_name}")
+        elif armed_preset:
+            consumed = manager.consume_armed_team_preset(armed_preset["preset_id"])
+            if not consumed:
+                self._report_strict_team_error("无法安全消费下一场武装状态，请重新保存预设")
+                return False
+            self.active_team_preset_id = consumed["preset_id"]
+            self.log_info(f"队伍预设已用于本场：{consumed['name']}")
+        else:
+            self.active_team_preset_id = (
+                fixed_team.get("active_preset_id", "") if fixed_team.get("enabled", False) else ""
+            )
+
         self.chars = new_chars
         self.combat_planner.reset(self.chars)
         self.info_set("char elements", elements)
@@ -1011,7 +1604,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             if char is not None:
                 char.reset_state()
                 if char.index == current_index:
-                    char.is_current_char = True
+                    char.switch_in()
                 else:
                     char.is_current_char = False
                 name = char.ufn_name
@@ -1022,7 +1615,19 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
 
         if self.team_size > 0:
             ret = True
+            self._team_binding_blocked = False
             self._apply_sound_config()
+            if auto_selection:
+                self._record_team_binding(visible_match)
+            elif armed_preset:
+                self._record_team_binding(
+                    VisibleTeamMatch(
+                        preset_id=armed_preset["preset_id"],
+                        preset_name=armed_preset.get("name") or armed_preset["preset_id"],
+                        char_ids=tuple(slot["char_id"] for slot in armed_preset["slots"]),
+                        slots=tuple(armed_preset["slots"]),
+                    )
+                )
         logger.debug(f"load_chars cost {time.perf_counter() - now:.3f}s")
         return ret
 

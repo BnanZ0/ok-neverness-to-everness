@@ -20,7 +20,12 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
         self.description = "受《异环》UI的特殊性影响, 部分场景下存在识别稳定性波动"
         self.icon = FluentIcon.CALORIES
         self.last_is_click = False
-        self.default_config.update({self.CONF_AUTO_TARGET: True, self.CONF_USE_ULT: True})
+        self.default_config.update(
+            {
+                self.CONF_AUTO_TARGET: True,
+                self.CONF_USE_ULT: True,
+            }
+        )
         self.config_description = {
             self.CONF_AUTO_TARGET: "关闭时仅在中键选中敌人且画面识别到 'Lv' 文字时开启战斗",
         }
@@ -29,17 +34,33 @@ class AutoCombatTask(BaseCombatTask, TriggerTask):
 
     def run(self):
         if not self.scene.is_in_team(self.is_in_team):
+            if self.can_preserve_combat_session():
+                self.note_combat_session_pause()
+            elif getattr(self, "_combat_session", None) is not None:
+                self.combat_end()
             return
 
         if not self.in_combat():
+            if self.can_preserve_combat_session():
+                self.note_combat_session_pause()
+            elif getattr(self, "_combat_session", None) is not None:
+                self.combat_end()
             return
 
         try:
             self.combat_session.use_ultimate = self.config.get(self.CONF_USE_ULT, True)
             self.begin_combat_session()
+            if not self.ensure_team_binding():
+                return
             while self.in_combat():
+                if not self.ensure_team_binding():
+                    return
+                self.touch_combat_session()
                 self.get_current_char(raise_exception=True).perform()
         except NotInCombatException as e:
             logger.info(f"Out ofcombat {int(time.time() - self.combat_session.combat_start)} {e}")
         finally:
-            self.combat_end()
+            if self.can_preserve_combat_session():
+                self.note_combat_session_pause()
+            else:
+                self.combat_end()

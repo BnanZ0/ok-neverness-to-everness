@@ -52,6 +52,7 @@ class Planner:
         FIELD_TIME = "field_time"
         LEGACY_COMBO = "legacy_combo"
         COORDINATION_FINISHER = "coordination_finisher"
+        ROUTE_WAIT_ACTION = "route_wait_action"
 
     class ActionSlot(StrEnum):
         """游戏动作槽位。
@@ -124,6 +125,7 @@ ACTION_TAG_SCORES = {
     ActionTag.FIELD_TIME: 40,
     ActionTag.LEGACY_COMBO: 45,
     ActionTag.COORDINATION_FINISHER: 160,
+    ActionTag.ROUTE_WAIT_ACTION: 0,
 }
 
 

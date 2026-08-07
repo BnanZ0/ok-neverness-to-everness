@@ -1,5 +1,6 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from src.char.BaseChar import BaseChar
 from src.combat.planner import (
@@ -1043,6 +1044,33 @@ class TestCombatPlanner(unittest.TestCase):
         self.assertEqual(calls, ["first", "second"])
         self.assertEqual(result.name, "second")
 
+    def test_planner_checks_priority_input_immediately_before_action(self):
+        trace = []
+        task = FakeTask()
+        task.sleep_check = lambda: trace.append("checkpoint")
+        char = PublicApiChar(
+            task,
+            0,
+            "api_char",
+            lambda source, _: source.plan(
+                source.planner_action(
+                    tags={ActionTag.SKILL_ACTION},
+                    slot=ActionSlot.SKILL,
+                    execute=lambda context: trace.append("action") or True,
+                    name="checked_action",
+                    reason="checked action",
+                )
+            ),
+        )
+        task.chars = [char]
+        planner = CombatPlanner(task)
+        planner.reset([char])
+
+        result = planner.perform_current_char(char)
+
+        self.assertEqual(trace, ["checkpoint", "action"])
+        self.assertTrue(result)
+
     def test_basechar_helpers_are_public_planner_api(self):
         calls = []
         task = FakeTask()
@@ -1089,6 +1117,28 @@ class TestCombatPlanner(unittest.TestCase):
         self.assertEqual(result.slot, ActionSlot.ARC)
         self.assertEqual(result.tags, {ActionTag.ARC_ACTION})
         self.assertEqual(char.arc_clicked, 1)
+
+    def test_default_arc_runs_on_entry_then_every_twenty_seconds(self):
+        task = FakeTask()
+        task.get_arc_key = lambda: "r"
+        calls = []
+        task.send_key = lambda key, **kwargs: calls.append((key, kwargs)) or True
+        char = BaseChar(task, 0, char_id="arc_user")
+
+        with patch("src.char.BaseChar.time.time", return_value=100.0):
+            char._try_default_arc_click()
+            char._try_default_arc_click()
+        with patch("src.char.BaseChar.time.time", return_value=119.9):
+            char._try_default_arc_click()
+        with patch("src.char.BaseChar.time.time", return_value=120.0):
+            char._try_default_arc_click()
+
+        char.last_switch_time = 121.0
+        with patch("src.char.BaseChar.time.time", return_value=121.0):
+            char._try_default_arc_click()
+
+        self.assertEqual([key for key, _ in calls], ["r", "r", "r"])
+        self.assertTrue(all(kwargs["action_name"] == ("default_arc", 0) for _, kwargs in calls))
 
     def test_entry_flow_runs_result_followups(self):
         calls = []
@@ -1315,9 +1365,62 @@ class TestCombatPlanner(unittest.TestCase):
         self.assertEqual(decision.target, source)
         self.assertIn("return to requester", decision.reason)
 
+        planner.record_switch(source)
+        self.assertEqual(planner.state.active_requests, [])
+
         planner.perform_current_char(source)
 
         self.assertEqual(planner.state.active_requests, [])
+
+    def test_return_to_source_beats_element_reaction_and_closes_on_switch(self):
+        source = FakeChar(0, "source", tags={ActionTag.ULTIMATE_ACTION})
+        recorder = FakeChar(1, "recorder", tags={ActionTag.SKILL_ACTION})
+        reaction = FakeChar(2, "reaction", tags={ActionTag.SUPPORT})
+        planner = self._planner([source, recorder, reaction])
+        planner.task.reaction_target = reaction
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_tags(
+                {ActionTag.SKILL_ACTION},
+                reason="record skill",
+                return_to_source=True,
+            ),
+        )
+
+        planner.perform_current_char(recorder)
+        decision = planner.decide_switch(recorder, free_intro=True)
+
+        self.assertEqual(decision.target, source)
+        self.assertIn("return to requester", decision.reason)
+        planner.record_switch(source)
+        self.assertEqual(planner.state.active_requests, [])
+
+    def test_return_to_source_waits_in_place_during_switch_cooldown(self):
+        source = FakeChar(0, "source", tags={ActionTag.ULTIMATE_ACTION})
+        recorder = FakeChar(1, "recorder", tags={ActionTag.SKILL_ACTION})
+        reaction = FakeChar(2, "reaction", tags={ActionTag.SUPPORT})
+        source.last_switch_time = 123
+        planner = self._planner([source, recorder, reaction])
+        planner.task.reaction_target = reaction
+        planner.task.time_elapsed_accounting_for_freeze = (
+            lambda start, intro_motion_freeze=False: 0 if start == 123 else 999
+        )
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_tags(
+                {ActionTag.SKILL_ACTION},
+                reason="record skill",
+                return_to_source=True,
+            ),
+        )
+
+        planner.perform_current_char(recorder)
+        decision = planner.decide_switch(recorder, free_intro=False)
+
+        self.assertEqual(decision.target, recorder)
+        self.assertIn("waiting return requester cooldown", decision.reason)
 
     def test_request_route_forces_declared_switch_order(self):
         hotori = FakeChar(0, "hotori", field_preference=FieldPreference.SETUP_ONLY)
@@ -2010,6 +2113,80 @@ class TestCombatPlanner(unittest.TestCase):
 
         self.assertIsNone(planner.state.locked_route)
 
+    def test_entry_reaction_wait_uses_interruptible_normal_attacks(self):
+        ordinary_calls = []
+        source = FakeChar(
+            0,
+            "source",
+            tags={ActionTag.ULTIMATE_ACTION},
+            plan_items=[
+                ActionIntent(
+                    name="source_ultimate",
+                    tags={ActionTag.ULTIMATE_ACTION},
+                    slot=ActionSlot.ULTIMATE,
+                    execute=lambda _: ordinary_calls.append("Q") or True,
+                )
+            ],
+            cycle_full=False,
+        )
+        target = FakeChar(1, "target")
+        planner = self._planner([source, target])
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_route(
+                [FollowupStep.for_entry_reaction(target, reason="target reaction")],
+                reason="reaction wait route",
+            ),
+        )
+
+        result = planner.perform_current_char(source)
+        decision = planner.decide_switch(source)
+
+        self.assertEqual(result.name, "wait_for_strict_route_action")
+        self.assertEqual(source.waited, 0.15)
+        self.assertEqual(ordinary_calls, [])
+        self.assertIs(decision.target, source)
+        self.assertIn("waiting entry reaction", decision.reason)
+
+    def test_entry_reaction_wait_allows_explicit_safe_action_without_advancing_route(self):
+        safe_calls = []
+        source = FakeChar(
+            0,
+            "source",
+            plan_items=[
+                ActionIntent(
+                    name="safe_wait_skill",
+                    tags={
+                        ActionTag.SKILL_ACTION,
+                        ActionTag.ROUTE_WAIT_ACTION,
+                    },
+                    slot=ActionSlot.SKILL,
+                    execute=lambda _: safe_calls.append("E") or True,
+                )
+            ],
+            cycle_full=False,
+        )
+        target = FakeChar(1, "target")
+        planner = self._planner([source, target])
+        self._publish(
+            planner,
+            source,
+            lambda context: context.request_route(
+                [FollowupStep.for_entry_reaction(target, reason="target reaction")],
+                reason="reaction wait route",
+            ),
+        )
+
+        result = planner.perform_current_char(source)
+        decision = planner.decide_switch(source)
+
+        self.assertEqual(result.name, "safe_wait_skill")
+        self.assertEqual(safe_calls, ["E"])
+        self.assertIsNotNone(planner.state.locked_route)
+        self.assertTrue(planner.state.locked_route.current_step().requires_entry_reaction)
+        self.assertIs(decision.target, source)
+
     def test_request_switch_prefers_target_without_expected_action(self):
         source = FakeChar(0, "source")
         zero = FakeChar(1, "zero")
@@ -2109,6 +2286,36 @@ class TestCombatPlanner(unittest.TestCase):
         planner.perform_current_char(source)
 
         self.assertEqual(calls, ["request", "second"])
+
+    def test_entry_flow_consumes_request_published_immediately_before_return(self):
+        target = FakeChar(1, "target")
+
+        def plan_factory(char, context):
+            action = char.planner_action(
+                tags={ActionTag.DEFAULT_ACTION},
+                execute=lambda _: True,
+                reason="finish action before request",
+            )
+
+            def entry():
+                result = yield action
+                if result:
+                    context.request_switch(target, reason="published before generator return")
+
+            return char.plan(action, entry=entry)
+
+        source = PublicApiChar(FakeTask(), 0, "source", plan_factory)
+        source.is_cycle_full = lambda: False
+        task = source.task
+        task.chars = [source, target]
+        planner = CombatPlanner(task)
+        planner.reset(task.chars)
+
+        planner.perform_current_char(source)
+        decision = planner.decide_switch(source)
+
+        self.assertEqual(decision.target, target)
+        self.assertIn("switch request", decision.reason)
 
     def test_request_switch_waits_when_strict_route_preempts_it(self):
         source = FakeChar(0, "source")

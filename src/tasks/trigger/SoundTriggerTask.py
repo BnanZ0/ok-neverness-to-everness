@@ -40,7 +40,7 @@ class SoundTriggerTask(BaseNTETask, TriggerTask):
         return current_task in self.executor.onetime_tasks and current_task.running
 
     def _apply_sound_config(self, context: SoundCombatContext):
-        dodge_all_attacks = self.sound_config.get("Dodge All Attacks", True)
+        dodge_all_attacks = self.sound_config.get("Dodge All Attacks", False)
         dodge_thresh = self._clip_threshold(self.sound_config.get("Dodge Threshold"), 0.13)
         counter_thresh = self._clip_threshold(
             self.sound_config.get("Counter Attack Threshold"), 0.12

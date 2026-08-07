@@ -1,8 +1,10 @@
+import time
 import unittest
+from types import SimpleNamespace
 from unittest.mock import Mock
 
 from src.char.BaseChar import BaseChar
-from src.combat.BaseCombatTask import BaseCombatTask
+from src.combat.BaseCombatTask import BaseCombatTask, CombatSession, VisibleTeamMatch
 from src.tasks.DSDFarmTask import DSDFarmTask
 
 
@@ -112,6 +114,76 @@ class TestCombatSession(unittest.TestCase):
         task.combat_session.use_ultimate = False
 
         self.assertFalse(task.begin_combat_session().use_ultimate)
+
+    def test_same_abyss_binding_reuses_chars_and_planner_during_wave_gap(self):
+        task = BaseCombatTask.__new__(BaseCombatTask)
+
+        def _make_test_char(idx):
+            c = SimpleNamespace(index=idx, is_current_char=False, is_dead=False)
+
+            def switch_in(has_intro=False):
+                c.is_current_char = True
+
+            c.switch_in = switch_in
+            return c
+
+        chars = [_make_test_char(index) for index in range(4)]
+        binding = VisibleTeamMatch(
+            preset_id="team_chiz",
+            preset_name="小吱盈蓄队",
+            char_ids=tuple(f"char_{index}" for index in range(4)),
+            slots=tuple(
+                {"char_id": f"char_{index}", "combo_id": ""} for index in range(4)
+            ),
+        )
+        route = object()
+        task.chars = chars
+        task._team_binding = binding
+        task._pending_team_binding = None
+        task._team_binding_blocked = False
+        task._team_binding_last_check = 0.0
+        task._combat_session = CombatSession(
+            combat_start=time.time(),
+            start_char=chars[0],
+            last_active_at=time.monotonic(),
+        )
+        task.should_hold_position_on_target_loss = Mock(return_value=True)
+        task.load_hotkey = Mock()
+        task.in_team = Mock(return_value=(True, 2, 4))
+        task.log_info = Mock()
+        task._match_visible_team_preset = Mock(return_value=binding)
+        task._do_load_char = Mock(side_effect=AssertionError("wave gap rebuilt team"))
+        task.combat_planner = SimpleNamespace(
+            state=SimpleNamespace(locked_route=route),
+            reset=Mock(),
+        )
+        manager = Mock()
+        manager.get_fixed_team.return_value = {"selection_mode": "auto"}
+        manager.get_armed_team_preset.return_value = None
+
+        with unittest.mock.patch(
+            "src.combat.BaseCombatTask.CustomCharManager", return_value=manager
+        ):
+            loaded = BaseCombatTask.load_chars(task)
+
+        self.assertTrue(loaded)
+        self.assertIs(task.chars[0], chars[0])
+        self.assertIs(task.combat_planner.state.locked_route, route)
+        task.combat_planner.reset.assert_not_called()
+        self.assertTrue(chars[2].is_current_char)
+
+    def test_abyss_session_gap_timeout_requires_a_new_session(self):
+        task = BaseCombatTask.__new__(BaseCombatTask)
+        task._combat_session = CombatSession(
+            combat_start=time.time(),
+            start_char=object(),
+            last_active_at=time.monotonic() - BaseCombatTask.ABYSS_SESSION_GAP_TIMEOUT - 0.01,
+        )
+        task._team_binding_blocked = False
+        task._pending_team_binding = None
+        task.should_hold_position_on_target_loss = Mock(return_value=True)
+
+        self.assertFalse(task.can_preserve_combat_session())
 
 
 if __name__ == "__main__":

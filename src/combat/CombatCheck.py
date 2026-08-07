@@ -120,6 +120,10 @@ class CombatCheck(BaseNTETask):
     def on_combat_check(self):
         return True
 
+    def should_hold_position_on_target_loss(self) -> bool:
+        """Whether a missing target should end combat without retarget movement."""
+        return False
+
     def reset_to_false(self):
         self.freeze_durations.clear()
         self.cds = {}
@@ -164,19 +168,32 @@ class CombatCheck(BaseNTETask):
 
         time_out = self.target_enemy_time_out
         if turn:
-            # 引入了转向，需要额外增加耗时，原本的时间不足以完成
-            time_out += 2.5
+            time_out += 5.0
         logger.info(f"targeting enemy for {time_out}s")
         deadline = time.time() + time_out
+        # Multi-direction search: turn left, turn right, walk forward, back up.
+        # A single direction (old: only "a") misses enemies that moved behind
+        # or to the side of the character during combat.
+        search_actions = [
+            ("a", 0.15),
+            ("a", 0.15),
+            ("d", 0.15),
+            ("d", 0.15),
+            ("w", 0.5),
+            ("s", 0.3),
+        ]
+        search_idx = 0
         while time.time() < deadline:
             if self.is_in_team():
                 if self.wait_until(lambda: self.combat_detect(lv=lv), time_out=0.2):
                     return True
                 if turn:
-                    self.send_key("a", down_time=0.1)
-                    self.sleep(0.3)
+                    key, dur = search_actions[search_idx % len(search_actions)]
+                    self.send_key(key, down_time=dur)
+                    self.sleep(0.2)
                     self.middle_click()
-                    self.sleep(0.3)
+                    self.sleep(0.2)
+                    search_idx += 1
                 else:
                     self.middle_click()
                     self.sleep(0.3)
@@ -294,16 +311,30 @@ class CombatCheck(BaseNTETask):
         return self._recover_or_end_combat()
 
     def _recover_or_end_combat(self):
-        if self.target_enemy(wait=True, turn=self._turn_on_retarget):
-            self.combat_detect_state.reset()
-            self.find_lv_future = None
-            self._lv_async = None
-            self.openvino_clear_cache()
-            logger.debug("retarget enemy succeeded")
-            return self._set_in_combat("retarget_enemy")
-        if self.check_monthly_card() and self.handle_monthly_card():
-            return self._set_in_combat("monthly_card")
-        logger.error("target_enemy failed, try recheck break out of combat")
+        if self.should_hold_position_on_target_loss():
+            self.log_info("target lost: holding position for auto-abyss team")
+            return self.reset_to_false()
+
+        for attempt in range(3):
+            # First attempt respects the current turn policy; retries
+            # always enable turning because the enemy is already lost.
+            turn = self._turn_on_retarget or attempt > 0
+            if self.target_enemy(wait=True, turn=turn):
+                self.combat_detect_state.reset()
+                self.find_lv_future = None
+                self._lv_async = None
+                self.openvino_clear_cache()
+                logger.debug(f"retarget enemy succeeded on attempt {attempt + 1}")
+                return self._set_in_combat("retarget_enemy")
+            if self.check_monthly_card() and self.handle_monthly_card():
+                return self._set_in_combat("monthly_card")
+            if attempt < 2:
+                logger.info(f"target_enemy attempt {attempt + 1} failed, repositioning")
+                self.send_key("w", down_time=1.0)
+                self.sleep(0.3)
+                self.middle_click()
+                self.sleep(0.3)
+        logger.error("target_enemy failed after 3 attempts, break out of combat")
         return self.reset_to_false()
 
     def _try_enter_combat(self):

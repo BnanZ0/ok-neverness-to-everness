@@ -514,10 +514,53 @@ class CustomCharManager:
         return self._db.get_fixed_team()
 
     def set_fixed_team(self, enabled: bool, slots):
-        self._db.set_fixed_team(enabled, slots)
+        return self._db.set_fixed_team(enabled, slots)
 
     def clear_fixed_team(self):
-        self._db.clear_fixed_team()
+        return self._db.clear_fixed_team()
+
+    def get_team_presets(self) -> dict:
+        return self._db.get_team_presets()
+
+    def get_team_preset(self, preset_id: str) -> dict | None:
+        return self._db.get_team_preset(preset_id)
+
+    def set_team_preset(
+        self,
+        preset_id: str,
+        name: str,
+        slots,
+        *,
+        activate: bool = True,
+    ) -> bool:
+        return self._db.set_team_preset(
+            preset_id,
+            name,
+            slots,
+            activate=activate,
+        )
+
+    def delete_team_preset(self, preset_id: str) -> bool:
+        return self._db.delete_team_preset(preset_id)
+
+    def arm_team_preset(self, preset_id: str) -> bool:
+        return self._db.arm_team_preset(preset_id)
+
+    def set_team_selection_mode(self, mode: str) -> bool:
+        """Set explicit manual or auto abyss-team selection."""
+        return self._db.set_team_selection_mode(mode)
+
+    def get_armed_team_preset(self) -> dict | None:
+        return self._db.get_armed_team_preset()
+
+    def consume_armed_team_preset(self, expected_preset_id: str = "") -> dict | None:
+        return self._db.consume_armed_team_preset(expected_preset_id)
+
+    def match_team_preset(self, char_ids) -> str | None:
+        return self._db.match_team_preset(char_ids)
+
+    def partial_preset_match_count(self, char_ids) -> int:
+        return self._db.partial_preset_match_count(char_ids)
 
     def export_custom_data(self, zip_path: str | Path) -> bool:
         """Export custom-character data using a stable archive layout."""

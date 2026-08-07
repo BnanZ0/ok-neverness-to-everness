@@ -29,7 +29,12 @@ class DodgeCounterTrigger:
         self._execute_lock = threading.Lock()
         self._last_dodge_time = 0.0
         self._last_counter_time = 0.0
-        self._min_dodge_interval = 0.5
+        # Min gap between dodges. Log analysis: real attacks can come 0.343s apart (a dodge at
+        # that gap was skipped by the old 0.5s floor and the char got hit), while other dodges
+        # were >=0.509s apart. 0.3s catches rapid consecutive attacks; an occasional extra dodge
+        # on a sound echo is acceptable (stamina) versus missing a real dodge. Matches ZZZ's
+        # ~0.3s attack-telegraph window.
+        self._min_dodge_interval = 0.3
         self._min_counter_interval = 1.0
 
     def set_actions(

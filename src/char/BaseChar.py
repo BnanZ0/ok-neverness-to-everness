@@ -42,6 +42,7 @@ class BaseChar:
 
     Element = Element
     INTRO_MOTION_FREEZE_DURATION = 1.5
+    DEFAULT_ARC_INTERVAL = 20.0
     en_name = ""
     cn_name = ""
     element = Element.DEFAULT
@@ -73,12 +74,18 @@ class BaseChar:
         self.last_perform = 0
         self.last_skill_time = -1
         self.last_outro_time = -1
+        self._last_default_arc_time = float("-inf")
+        self._default_arc_switch_marker = None
         self.confidence = confidence
         self.logger = Logger.get_logger(self.name)
         self.cycle_start_time = 0.0
         self.element = type(self).element
         self.planner_handles_arc = False
         self.is_dead = False
+        # actual switch-in timestamp; only updated on switch_in / combat init binding.
+        # Used by MIN_FIELD_TIME / MAX_FIELD_TIME field-window checks.
+        # last_perform is reset every perform() so it must NOT be used here.
+        self.actual_switch_in_time = -1.0
 
     def cycle_start(self):
         self.cycle_start_time = time.time()
@@ -131,6 +138,9 @@ class BaseChar:
 
     def perform(self):
         """执行当前角色的主要战斗行动序列。"""
+        if not self._ensure_team_binding():
+            self.logger.debug(f"skip stale char perform while team binding changes: {self.index}")
+            return
         self.last_perform = time.time()
         self.task.record_first_engage(self)
         if self.has_intro:
@@ -144,8 +154,22 @@ class BaseChar:
         self.switch_next_char()
 
     def _try_default_arc_click(self):
-        if not self.planner_handles_arc:
-            self.click_arc()
+        from src.combat.team_strategies import should_use_default_arc
+
+        if self.planner_handles_arc or not should_use_default_arc(
+            self,
+            getattr(self.task, "chars", ()),
+        ):
+            return
+        if not self._ensure_team_binding():
+            return
+        now = time.time()
+        entered_field = self._default_arc_switch_marker != self.last_switch_time
+        if not entered_field and now - self._last_default_arc_time < self.DEFAULT_ARC_INTERVAL:
+            return
+        self.send_arc_key(action_name=("default_arc", self.index))
+        self._last_default_arc_time = now
+        self._default_arc_switch_marker = self.last_switch_time
 
     def add_intro_motion_freeze(self, start):
         self.add_freeze_duration(start, self.INTRO_MOTION_FREEZE_DURATION, freeze_time=-100)
@@ -174,7 +198,12 @@ class BaseChar:
         Args:
             interval (float, optional): 点击间隔。默认为 0.1。
         """
-        self.click(interval=interval)
+        if self._ensure_team_binding():
+            self.click(interval=interval)
+
+    def _ensure_team_binding(self) -> bool:
+        ensure = getattr(self.task, "ensure_team_binding", None)
+        return True if ensure is None else ensure()
 
     @property
     def click(self):
@@ -204,7 +233,14 @@ class BaseChar:
         `SwitchInGuard.delay_until_ready(...)`。
         """
 
-        return SwitchInGuard.allow()
+        from src.combat.team_strategies import abyss_main_dps_switch_guard
+
+        return abyss_main_dps_switch_guard(
+            context,
+            from_char=from_char,
+            target_char=self,
+            has_intro=has_intro,
+        )
 
     def combat_plan(self, context: CombatContext) -> CombatPlan:
         """声明角色交给 planner 的完整战斗计划。
@@ -339,6 +375,7 @@ class BaseChar:
         tags: set[Planner.ActionTag] | None = None,
         reason: str = "skill action available",
         down_time: float = 0.01,
+        post_sleep: float = 0.0,
         can_execute=None,
     ):
         """创建一个 E 动作声明。
@@ -348,6 +385,7 @@ class BaseChar:
             tags: 动作标签。默认 `{Planner.ActionTag.SKILL_ACTION}`。
             reason: 切人/执行日志理由。
             down_time: 传给 `click_skill(down_time=...)` 的按下时间。
+            post_sleep: 技能按下后保留的动作结算时间。
             can_execute: 额外硬限制；slot reservation 由 planner 统一检查。
 
         Behavior:
@@ -363,7 +401,10 @@ class BaseChar:
         return self.planner_action(
             tags=action_tags,
             slot=Planner.ActionSlot.SKILL,
-            execute=lambda context: self.click_skill(down_time=down_time),
+            execute=lambda context: self.click_skill(
+                down_time=down_time,
+                post_sleep=post_sleep,
+            ),
             name=name,
             reason=reason,
             can_execute=can_execute,
@@ -440,6 +481,18 @@ class BaseChar:
         """
         return percent == 0 or not self.has_cd(box_name)
 
+    def switch_in(self, has_intro: bool = False):
+        """角色被切入上场时的状态更新。
+
+        actual_switch_in_time only updates here and on combat-init binding;
+        perform / normal-attack / skill rounds never reset it. This is the
+        real basis for MIN_FIELD_TIME / MAX_FIELD_TIME windows; using
+        last_perform (reset every perform) starves supports forever.
+        """
+        self.actual_switch_in_time = time.time()
+        self.is_current_char = True
+        self.has_intro = has_intro
+
     def switch_out(self):
         """角色被切换下场时的状态更新。"""
         self.last_switch_time = time.time()
@@ -481,12 +534,30 @@ class BaseChar:
         self.task.switch_other_char(self)
 
     def sleep(self, sec, sleep_check=True):
+        self._touch_combat_session_alive()
         if not sleep_check:
             with self.task.skip_sleep_checks() as skip:
                 skip.all = True
                 self.task.sleep(sec)
         else:
             self.task.sleep(sec)
+
+    def _touch_combat_session_alive(self):
+        """战斗中的任何 sleep 都刷新会话保活时间，避免长大招期间误判超时。
+
+        Only refreshes when task._in_combat is True; non-combat sleeps (running
+        around the map) do not extend the keepalive window. Writes
+        session.last_active_at directly instead of calling task.touch_combat_session
+        to avoid resetting pause_logged (which would mask short-wave pause semantics).
+        """
+        task = getattr(self, "task", None)
+        if task is None:
+            return
+        session = getattr(task, "_combat_session", None)
+        if session is None:
+            return
+        if getattr(task, "_in_combat", False):
+            session.last_active_at = time.monotonic()
 
     def alert_skill_failed(self):
         self.task.log_error(
@@ -526,6 +597,18 @@ class BaseChar:
             if status != "continue":
                 result["status"] = status
                 return result
+
+            # A planner checkpoint can run before combat uncertainty or a
+            # queued sound action resolves. Recheck at the physical-input
+            # boundary so dodge/counter gets the last priority window.
+            if not self._ensure_team_binding():
+                result["status"] = "team_rebinding"
+                return result
+            self.task.sleep_check()
+            if not self._ensure_team_binding():
+                result["status"] = "team_rebinding"
+                return result
+
             else:
                 self.logger.debug(f"{action_type} available click/send")
                 action_time = time.time()
@@ -797,7 +880,7 @@ class BaseChar:
             action_name=action_name,
         )
 
-    def send_arc_key(self, after_sleep=0, interval=-1, down_time=0.01):
+    def send_arc_key(self, after_sleep=0, interval=-1, down_time=0.01, action_name=None):
         """发送弧盘技能的按键。
 
         Args:
@@ -805,8 +888,12 @@ class BaseChar:
             interval (float, optional): 按键按下和释放的间隔。默认为 -1 (使用默认值)。
             down_time (float, optional): 按键按下的持续时间。默认为 0.01。
         """
-        self.send_key(
-            self.get_arc_key(), interval=interval, down_time=down_time, after_sleep=after_sleep
+        return self.send_key(
+            self.get_arc_key(),
+            interval=interval,
+            down_time=down_time,
+            after_sleep=after_sleep,
+            action_name=action_name,
         )
 
     def send_ultimate_key(self, after_sleep=0, interval=-1, down_time=0.01, action_name=None):
@@ -935,6 +1022,8 @@ class BaseChar:
         """
         start = time.time()
         while time.time() - start < duration:
+            if not self._ensure_team_binding():
+                break
             if click_skill_if_ready_and_return and self.skill_available():
                 return self.click_skill()
             # if until_cycle_full and self.is_cycle_full():
@@ -953,6 +1042,8 @@ class BaseChar:
         """
         start = time.time()
         while time.time() - start < duration:
+            if not self._ensure_team_binding():
+                break
             self.send_key(key, interval=interval)
 
     def continues_right_click(self, duration, interval=0.1, direction_key=None):
@@ -970,6 +1061,8 @@ class BaseChar:
                 self.sleep(0.1)
             start = time.time()
             while time.time() - start < duration:
+                if not self._ensure_team_binding():
+                    break
                 self.click(interval=interval, key="right")
         finally:
             if direction_key is not None:
@@ -978,8 +1071,11 @@ class BaseChar:
     def normal_attack(self):
         """执行一次普通攻击。"""
         self.logger.debug("normal attack")
+        if not self._ensure_team_binding():
+            return False
         self.check_combat()
         self.click()
+        return True
 
     def heavy_attack(self, duration=0.6):
         """执行一次重攻击。

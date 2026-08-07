@@ -10,6 +10,8 @@ from src.combat.planner import (
     RoleProfile,
 )
 
+_LOG_PREFIX = "[Baicang]"
+
 
 class Baicang(BaseChar):
     """Baicang main DPS. Q burst uses the Method-2 heavy combo (点按两次再长按).
@@ -20,7 +22,8 @@ class Baicang(BaseChar):
     needs no dodge key and no mouse steering (target-lock keeps Baicang facing the
     enemy). Sound-triggered dodge/counter stays owned by BaseCombatTask. The combo
     mechanic and its timings are transcribed from an external guide (BV1Wy9bBWESK)
-    and marked UNVERIFIED; calibrate live.
+    and are NOT yet recording-verified; see docs/research/baicang.md for the source
+    and the parameters that still need live measurement.
     """
 
     cn_name = "白藏"
@@ -45,23 +48,33 @@ class Baicang(BaseChar):
     # briefly to reset the combo before the weak 4th/5th normal hits. Uses the normal-attack
     # key only, so it needs NO dodge key and NO mouse steering (target-lock keeps Baicang
     # facing the enemy); BURST_DIRECTION_KEY is just the forward walk for the reset.
-    # All timings below UNVERIFIED, calibrate live.
+    # The earlier dodge-roll approach was live-confirmed broken (holding shift = sprint, zero
+    # damage, and needs real-time mouse steering). All timings below UNVERIFIED, calibrate live.
     BURST_DIRECTION_KEY = "w"  # forward walk used for the combo reset
     HEAVY_TAP_COUNT = 2  # normal-attack taps before the heavy long-press
     HEAVY_TAP_INTERVAL = 0.18  # gap between the two taps
-    # Long-press duration -> charged back-jump talisman throw. UNVERIFIED, tune live.
+    # Long-press duration -> charged back-jump talisman throw. 0.6 charged only intermittently in
+    # live play (2026-07-22); 0.9 adds margin above the charge threshold so it fires every combo.
+    # Still UNVERIFIED -- if it over-holds or still mis-fires, tune live (try 0.8 / 1.0 / 1.2).
     HEAVY_HOLD_DURATION = 0.9
     WALK_RESET_DURATION = 0.4  # forward walk to reset the normal-attack combo
     ARC_CHECK_INTERVAL = 20.0  # keep R aligned with the weapon skill cooldown
     POST_SKILL_DODGE_DURATION = 1.0
     ABYSS_OPENER_TIMEOUT = 24.0
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Arc cooldown is handled inside this character instead of the shared
-        # BaseChar default, so keep a private timestamp for the ~20s cadence.
-        self.planner_handles_arc = True
-        self._baicang_last_arc_time = float("-inf")
+    @staticmethod
+    def is_abyss_team(chars):
+        from src.combat.team_strategies import is_baicang_abyss_team
+
+        return is_baicang_abyss_team(chars)
+
+    @classmethod
+    def request_abyss_return(cls, context: CombatContext, chars, reason: str) -> None:
+        """目标队辅助完成动作后显式请求白藏回场，即使白藏 E/Q 正在冷却。"""
+        if context is None or not cls.is_abyss_team(chars):
+            return
+        baicang = next(char for char in chars if isinstance(char, cls))
+        context.request_switch(baicang, reason=reason)
 
     def combat_policies(self, context: CombatContext) -> None:
         return None
@@ -74,11 +87,24 @@ class Baicang(BaseChar):
         )
 
     def combat_plan(self, context: CombatContext):
-        skill = self.click_skill_action()
-        ultimate = self.click_ultimate_action()
+        skill = self.planner_action(
+            tags={ActionTag.SKILL_ACTION},
+            slot=ActionSlot.SKILL,
+            execute=lambda ctx: self.click_skill(time_out=self.SKILL_SHORT_TIMEOUT),
+            name="baicang_skill",
+            reason="baicang skill",
+            can_execute=lambda _: self.skill_available(),
+            priority_ready=lambda _: self.skill_available(),
+        )
+        ultimate = self.click_ultimate_action(
+            reason="baicang ultimate",
+            can_execute=lambda _: self.ultimate_available(),
+        )
         fallback_dodge = self.planner_action(
             tags={ActionTag.DEFAULT_ACTION, ActionTag.DAMAGE},
             execute=lambda ctx: self._execute_fallback_dodge(),
+            name="baicang_dodge_fallback",
+            reason="baicang fallback dodge",
             priority_ready=lambda ctx: False,
         )
 
@@ -99,13 +125,15 @@ class Baicang(BaseChar):
     def _perform_burst(self, context: CombatContext = None):
         """Q 成功后的爆发输出循环: 第二套手法重击连招。
 
+        攻略 BV1Wy9bBWESK, 见 docs/research/baicang.md。
+
         - 每轮: 点按普攻两下 → 长按重击(后跳丢符) → 往前走一段重置连招, 避开低伤的第四五段普攻
         - 全程只用普攻键, 不依赖闪避键, 也不需要鼠标实时转向 (锁定目标保证白藏朝向敌人)
         - 循环受 ``ULT_FIELD_DURATION`` 限时
         - 每轮后检查: deadline、is_current_char、is_dead、check_combat
         - R 每 ARC_CHECK_INTERVAL 释放; E 冷却好后按 streak 释放
         """
-        self.logger.info("burst start")
+        self.logger.info(f"{_LOG_PREFIX} burst start")
         start = self._now()
         deadline = start + self.ULT_FIELD_DURATION
 
@@ -115,22 +143,24 @@ class Baicang(BaseChar):
 
         while self._now() < deadline:
             if not self.is_current_char:
-                self.logger.info("burst end (not current char)")
+                self.logger.info(f"{_LOG_PREFIX} burst end (not current char)")
                 return
             if self.is_dead:
-                self.logger.info("burst end (dead)")
+                self.logger.info(f"{_LOG_PREFIX} burst end (dead)")
                 return
 
             self._heavy_combo()
             self.check_combat()
-            # _heavy_combo may return early on char switch/death; re-check state
-            # so we don't send R or a second E once the burst is no longer valid.
-            if not self.is_current_char or self.is_dead or self._now() >= deadline:
-                break
 
-            if self._now() - self._baicang_last_arc_time >= self.ARC_CHECK_INTERVAL:
-                self._baicang_last_arc_time = self._now()
-                self.send_arc_key()
+            # Use the shared global R cooldown (_last_default_arc_time) so burst
+            # and normal state share one R timer. Previously last_arc started from
+            # burst start, so with ULT_FIELD_DURATION=12s < ARC_CHECK_INTERVAL=20s
+            # the burst-branch R never fired. Now a R cast in normal state before
+            # the burst counts toward the cooldown, and a R cast in burst counts
+            # for the next normal-state window.
+            if self._now() - self._last_default_arc_time >= self.ARC_CHECK_INTERVAL:
+                self._last_default_arc_time = self._now()
+                self.send_arc_key(action_name=("baicang_burst_arc", self.index))
 
             if not track_second_skill:
                 continue
@@ -142,12 +172,12 @@ class Baicang(BaseChar):
                 ready_streak += 1
                 if ready_streak == 1:
                     self.logger.info(
-                        f"skill ready streak="
+                        f"{_LOG_PREFIX} skill ready streak="
                         f"{ready_streak}/{self.SKILL_READY_STREAK_THRESHOLD}"
                     )
             else:
                 if ready_streak > 0:
-                    self.logger.debug(f"skill streak reset (was {ready_streak})")
+                    self.logger.debug(f"{_LOG_PREFIX} skill streak reset (was {ready_streak})")
                 ready_streak = 0
                 continue
 
@@ -158,10 +188,10 @@ class Baicang(BaseChar):
                 if self._try_second_skill(context):
                     ready_streak = 0  # allow E to fire again after next cooldown
             else:
-                self.logger.info("skill armed (observe mode)")
+                self.logger.info(f"{_LOG_PREFIX} skill armed (observe mode)")
                 ready_streak = 0
 
-        self.logger.info("burst end")
+        self.logger.info(f"{_LOG_PREFIX} burst end")
 
     def _heavy_combo(self):
         """第二套手法一轮: 点按普攻 HEAVY_TAP_COUNT 下 → 长按重击(后跳丢符) → 往前走一段重置。
@@ -193,35 +223,35 @@ class Baicang(BaseChar):
             self.task.send_key_up(key)
 
     def _try_second_skill(self, context: CombatContext = None):
-        """检查 reservation 后发送第二 E。"""
+        """参考 Nanally._try_skill_during_ultimate: 检查 reservation 后发送第二 E。"""
         if context is not None and not context.can_execute_action(self, slot=ActionSlot.SKILL):
-            self.logger.info("second skill blocked by reservation")
+            self.logger.info(f"{_LOG_PREFIX} second skill blocked by reservation")
             return False
 
-        self.logger.info("second skill armed")
+        self.logger.info(f"{_LOG_PREFIX} second skill armed")
         clicked = self.click_skill(time_out=self.SKILL_SHORT_TIMEOUT)
         if clicked:
-            self.logger.info("second skill executed")
+            self.logger.info(f"{_LOG_PREFIX} second skill executed")
         else:
-            self.logger.info("second skill click failed")
+            self.logger.info(f"{_LOG_PREFIX} second skill click failed")
         return clicked
 
     def _post_skill_dodge(self):
         """Legacy method name: execute normal attacks after an E-only entry."""
-        self.logger.info("post-skill normal attacks")
+        self.logger.info(f"{_LOG_PREFIX} post-skill normal attacks")
         self._checkpointed_dodge(self.POST_SKILL_DODGE_DURATION)
 
     def _execute_fallback_dodge(self):
         """Legacy method name: bounded normal attacks when Q/E are unavailable."""
         if self.is_dead or not self.is_current_char:
-            self.logger.info("fallback attacks skipped (dead or not current)")
+            self.logger.info(f"{_LOG_PREFIX} fallback attacks skipped (dead or not current)")
             return False
 
-        self.logger.info("fallback normal attacks")
+        self.logger.info(f"{_LOG_PREFIX} fallback normal attacks")
         self._checkpointed_dodge(self.FALLBACK_DODGE_DURATION)
 
         if not self.is_current_char or self.is_dead:
-            self.logger.info("fallback dodge ended (char changed or dead)")
+            self.logger.info(f"{_LOG_PREFIX} fallback dodge ended (char changed or dead)")
             return False
 
         return True
@@ -237,10 +267,13 @@ class Baicang(BaseChar):
             while self._now() < deadline:
                 if not self.is_current_char or self.is_dead:
                     return False
-                # Periodic R during field time, sharing the same cooldown as burst.
-                if self._now() - self._baicang_last_arc_time >= self.ARC_CHECK_INTERVAL:
-                    self._baicang_last_arc_time = self._now()
-                    self.send_arc_key()
+                # Periodic R during field time, sharing the same global R
+                # cooldown as burst. _last_default_arc_time persists across
+                # fallbacks so the ~20s cadence accumulates over multiple short
+                # fallback windows.
+                if self._now() - self._last_default_arc_time >= self.ARC_CHECK_INTERVAL:
+                    self._last_default_arc_time = self._now()
+                    self.send_arc_key(action_name=("baicang_field_arc", self.index))
                 remaining = deadline - self._now()
                 self._normal_attack_slice(min(self.ATTACK_SLICE_DURATION, remaining))
                 self.sleep(0.01)
@@ -263,7 +296,7 @@ class Baicang(BaseChar):
                 self.sleep(min(self.NORMAL_ATTACK_INTERVAL, remaining))
 
     def _right_click_burst(self, duration):
-        """持续右键点击 ``duration`` 秒, 不管理方向键。"""
+        """持续右键点击 ``duration`` 秒，不管理方向键。"""
         if duration <= 0:
             return
         interval = self.DODGE_CLICK_INTERVAL
@@ -274,7 +307,7 @@ class Baicang(BaseChar):
             self.click(interval=interval, key="right")
 
     def _now(self):
-        """可 patch 的时钟, 供测试覆盖。"""
+        """可 patch 的时钟，供测试覆盖。"""
         return time.monotonic()
 
     def on_combat_end(self, chars):

@@ -1,14 +1,11 @@
 from src.char.BaseChar import BaseChar
-from src.combat.planner import (
-    CombatContext,
-    Planner,
-    RoleProfile,
-)
+from src.combat.planner import CombatContext, Planner, RoleProfile
 
 
 class Jiuyuan(BaseChar):
     cn_name = "九原"
     element = BaseChar.Element.GREEN
+    SKILL_SETTLE_DURATION = 1.2
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,20 +14,33 @@ class Jiuyuan(BaseChar):
         return RoleProfile(
             role=Planner.Role.SUB_DPS,
             field_preference=Planner.FieldPreference.SUB_DPS,
+            combat_start_priority=0,
             max_field_time=1.0,
         )
 
     def combat_plan(self, context):
         ultimate = self.click_ultimate_action()
-        skill = self.click_skill_action()
+
+        def _execute_skill(_):
+            return self.click_skill(post_sleep=self.SKILL_SETTLE_DURATION)
+
+        skill = self.planner_action(
+            tags={Planner.ActionTag.SKILL_ACTION},
+            slot=Planner.ActionSlot.SKILL,
+            execute=_execute_skill,
+            name=f"{self}_skill",
+            reason="Jiuyuan skill with grouping settle",
+            can_execute=lambda _: self.skill_available(),
+            priority_ready=lambda _: self.skill_available(),
+        )
         bullets = self.planner_action(
             tags=Planner.ActionTag.DEFAULT_ACTION,
             execute=self.fire_bullets,
         )
 
         def entry():
-            yield ultimate
             skill_result = yield skill
+            yield ultimate
             if not skill_result:
                 yield bullets
 
@@ -49,7 +59,6 @@ class Jiuyuan(BaseChar):
 
     def has_bullets(self, box):
         pct = self.task.calculate_color_percentage(bullet_color, box)
-        # self.logger.debug(f"Jiuyuan has_bullets {pct}")
         return pct > 0.1
 
 
