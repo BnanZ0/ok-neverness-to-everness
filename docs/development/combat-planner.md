@@ -1,6 +1,6 @@
 # Combat Planner 开发指南
 
-> **提示**：角色的具体代码实现可在 [`src/char`](../src/char) 目录中找到。
+> **提示**：角色的具体代码实现可在 [`src/char`](../../src/char) 目录中找到。
 
 Planner 是队伍大脑。角色只声明一个 `CombatPlan`：
 
