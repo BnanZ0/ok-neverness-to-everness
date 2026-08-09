@@ -204,6 +204,7 @@ config = {
         ["src.tasks.daily.FurnitureTask", "FurnitureTask"],
         ["src.tasks.daily.CinemaDateTask", "CinemaDateTask"],
         ["src.tasks.CombatDetectionTestTask", "CombatDetectionTestTask"],
+        ["src.tasks.AutoBidAuctionTask", "AutoBidAuctionTask"],
         ["ok", "DiagnosisTask"],
         # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
         # ["src.tasks.DebugCharTask", "DebugCharTask"],
