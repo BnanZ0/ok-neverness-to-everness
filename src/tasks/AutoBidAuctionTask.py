@@ -4,12 +4,12 @@ from src.tasks.BaseNTETask import BaseNTETask
 
 class AutoBidAuctionTask(BaseNTETask):
 
-    CONF_FIXED_PRICE = '自定义价格'
-    CONF_CYCLES = '循环次数'
-    CONF_SELL_INTERVAL = '出售藏品间隔次数'
-    CONF_USE_EMOTE = '启用表情包'
-    CONF_USE_WELFARE = '启用低保金'
-    CONF_KEEP_RED = '保留品质红'
+    CONF_FIXED_PRICE = "自定义价格"
+    CONF_CYCLES = "循环次数"
+    CONF_SELL_INTERVAL = "出售藏品间隔次数"
+    CONF_USE_EMOTE = "启用表情包"
+    CONF_USE_WELFARE = "启用低保金"
+    CONF_KEEP_RED = "保留品质红"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -26,9 +26,9 @@ class AutoBidAuctionTask(BaseNTETask):
         })
 
         self.config_description.update({
-            self.CONF_CYCLES: '设置为0则一直运行',
-            self.CONF_SELL_INTERVAL: '设置为0则不出售',
-            self.CONF_USE_EMOTE: '收藏的第一个表情包',
+            self.CONF_CYCLES: "设置为0则一直运行",
+            self.CONF_SELL_INTERVAL: "设置为0则不出售",
+            self.CONF_USE_EMOTE: "收藏的第一个表情包",
         })
 
     def _check_stop(self):
@@ -48,7 +48,8 @@ class AutoBidAuctionTask(BaseNTETask):
                 box=box_welfare_btn,
                 match=re.compile(r"低保金"),
                 time_out=10,
-                after_sleep=0.3
+                after_sleep=0.3,
+                target_height=1080
             )
             if not welfare_ready:
                 self.log_warning("低保金按钮未出现，跳过本次领取")
@@ -59,7 +60,8 @@ class AutoBidAuctionTask(BaseNTETask):
                 box=box_claim,
                 match=re.compile(r"领取"),
                 time_out=5,
-                after_sleep=0.5
+                after_sleep=0.5,
+                target_height=1080
             )
             self.sleep(1.0)
 
@@ -68,7 +70,8 @@ class AutoBidAuctionTask(BaseNTETask):
                 box=box_cancel,
                 match=re.compile(r"取消"),
                 time_out=5,
-                after_sleep=0.5
+                after_sleep=0.5,
+                target_height=1080
             )
             self.sleep(1.0)
             self.log_info("低保金领取流程完成")
@@ -82,7 +85,8 @@ class AutoBidAuctionTask(BaseNTETask):
                     box=box_cancel,
                     match=re.compile(r"取消"),
                     time_out=2,
-                    after_sleep=0.5
+                    after_sleep=0.5,
+                    target_height=1080
                 )
             except Exception:
                 pass
@@ -95,7 +99,8 @@ class AutoBidAuctionTask(BaseNTETask):
         self.wait_click_ocr(
             match=re.compile(r"藏品仓库"),
             time_out=10,
-            after_sleep=1.0
+            after_sleep=1.0,
+            target_height=1080
         )
 
         box_sell = self.box_of_screen_scaled(1920, 1080, 1788, 929, width_original=34, height_original=43)
@@ -111,7 +116,7 @@ class AutoBidAuctionTask(BaseNTETask):
             self.box_of_screen_scaled(1920, 1080, 1684, 863, width_original=18, height_original=18),
             self.box_of_screen_scaled(1920, 1080, 1780, 863, width_original=17, height_original=22),
         ]
-        quality_keys = ['品质白', '品质绿', '品质蓝', '品质紫', '品质橙', '品质红']
+        quality_keys = ["品质白", "品质绿", "品质蓝", "品质紫", "品质橙", "品质红"]
 
         try:
             self._check_stop()
@@ -119,7 +124,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
             for i, box_quality in enumerate(quality_boxes):
                 self._check_stop()
-                if self.config.get(self.CONF_KEEP_RED, True) and quality_keys[i] == '品质红':
+                if self.config.get(self.CONF_KEEP_RED, True) and quality_keys[i] == "品质红":
                     self.log_info("保留品质红")
                     continue
                 self.operate_click(box_quality, after_sleep=0.5)
@@ -171,16 +176,16 @@ class AutoBidAuctionTask(BaseNTETask):
         self.operate_click(box_clear, after_sleep=0.3)
 
         pad_map = {
-            '0': (429, 931, 63, 67),
-            '1': (431, 551, 61, 66),
-            '2': (592, 545, 69, 73),
-            '3': (756, 547, 74, 67),
-            '4': (445, 679, 43, 58),
-            '5': (596, 679, 63, 63),
-            '6': (767, 676, 63, 69),
-            '7': (434, 804, 50, 73),
-            '8': (600, 802, 63, 74),
-            '9': (769, 807, 63, 63),
+            "0": (429, 931, 63, 67),
+            "1": (431, 551, 61, 66),
+            "2": (592, 545, 69, 73),
+            "3": (756, 547, 74, 67),
+            "4": (445, 679, 43, 58),
+            "5": (596, 679, 63, 63),
+            "6": (767, 676, 63, 69),
+            "7": (434, 804, 50, 73),
+            "8": (600, 802, 63, 74),
+            "9": (769, 807, 63, 63),
         }
 
         for digit in price_str:
@@ -196,7 +201,8 @@ class AutoBidAuctionTask(BaseNTETask):
             box=box_bid_confirm,
             match=re.compile(r"确认出价"),
             time_out=5,
-            after_sleep=0.5
+            after_sleep=0.5,
+            target_height=1080
         )
         self.log_info(f"已输入价格 {price_str} 并确认")
 
@@ -206,45 +212,51 @@ class AutoBidAuctionTask(BaseNTETask):
         self.log_info("已点击异常确认框")
 
     def _stage_match(self, box_match, box_confirm, box_bid, re_match, re_confirm, re_bid):
+        fail_count = 0
         while True:
             self._check_stop()
             self.log_info("等待匹配开始...")
 
-            if self.ocr(box=box_bid, match=re_bid):
+            if self.ocr(box=box_bid, match=re_bid, target_height=1080):
                 self.log_info("检测到已在出价界面，跳过匹配步骤")
-                return 'bid'
+                return "bid"
 
-            if self.ocr(box=box_confirm, match=re_confirm):
+            if self.ocr(box=box_confirm, match=re_confirm, target_height=1080):
                 self.log_info("检测到已在确认界面，跳过匹配步骤")
-                return 'confirm'
+                return "confirm"
 
             try:
                 self._check_stop()
                 self.wait_click_ocr(
                     box=box_match,
                     match=re_match,
-                    time_out=10
+                    time_out=10,
+                    target_height=1080
                 )
                 self.log_info("已尝试点击开始匹配，验证界面是否跳转...")
 
                 self._check_stop()
-                matched_confirm = self.wait_ocr(box=box_confirm, match=re_confirm, time_out=3)
+                matched_confirm = self.wait_ocr(box=box_confirm, match=re_confirm, time_out=3, target_height=1080)
                 if matched_confirm:
                     self.log_info("确认按钮已出现，匹配真正成功！")
-                    return 'confirm'
+                    return "confirm"
 
-                matched_bid = self.wait_ocr(box=box_bid, match=re_bid, time_out=3)
+                matched_bid = self.wait_ocr(box=box_bid, match=re_bid, time_out=3, target_height=1080)
                 if matched_bid:
                     self.log_info("检测到跳转到出价界面，匹配成功！")
-                    return 'bid'
+                    return "bid"
 
                 self.log_warning("点击开始匹配后未出现确认或出价，可能是假点击，重新尝试")
                 self.operate_click(box_match, after_sleep=1)
 
             except WaitFailedException:
-                self.log_info("开始匹配超时，重新点击开始匹配并重试")
+                fail_count += 1
+                self.log_info(f"开始匹配超时，重新点击开始匹配并重试 ({fail_count}/3)")
                 self.operate_click(box_match)
                 self.sleep(0.5)
+                if fail_count >= 3:
+                    self.log_error("匹配阶段连续失败已达 3 次，放弃本轮拍卖")
+                    raise WaitFailedException("匹配阶段重试次数超出上限")
 
     def _stage_confirm(self, box_confirm, re_confirm):
         self._check_stop()
@@ -252,7 +264,8 @@ class AutoBidAuctionTask(BaseNTETask):
         self.wait_ocr(
             box=box_confirm,
             match=re_confirm,
-            time_out=5
+            time_out=5,
+            target_height=1080
         )
         self.log_info("确认按钮已出现，正在点击...")
         self.operate_click(box_confirm, after_sleep=0)
@@ -265,7 +278,8 @@ class AutoBidAuctionTask(BaseNTETask):
             self.wait_click_ocr(
                 box=box_bid,
                 match=re_bid,
-                time_out=5
+                time_out=5,
+                target_height=1080
             )
             self.log_info("已点击出价")
             self.sleep(0.5)
@@ -275,7 +289,8 @@ class AutoBidAuctionTask(BaseNTETask):
             panel_ready = self.wait_ocr(
                 box=box_bid_confirm,
                 match=re.compile(r"确认出价"),
-                time_out=5
+                time_out=5,
+                target_height=1080
             )
             if not panel_ready:
                 self.log_warning("点击出价后未出现数字面板，可能点击无效，重新开始拍卖")
@@ -299,14 +314,15 @@ class AutoBidAuctionTask(BaseNTETask):
             self._check_stop()
             self.next_frame()
 
-            if self.ocr(box=box_match, match=re_match):
+            if self.ocr(box=box_match, match=re_match, target_height=1080):
                 self.log_info("检测到已回到开始匹配界面，本轮拍卖（被中断）结束")
                 auction_finished = True
                 break
 
             skip_results = self.ocr(
                 box=box_skip_area,
-                match=[re_skip]
+                match=[re_skip],
+                target_height=1080
             )
             if skip_results:
                 matched_box = skip_results[0]
@@ -318,7 +334,8 @@ class AutoBidAuctionTask(BaseNTETask):
                     box=box_exit,
                     match=re_exit,
                     time_out=5,
-                    after_sleep=0.5
+                    after_sleep=0.5,
+                    target_height=1080
                 )
                 self.log_info("已点击退出按钮")
 
@@ -327,7 +344,7 @@ class AutoBidAuctionTask(BaseNTETask):
                 auction_finished = True
                 break
 
-            if self.ocr(box=box_bid, match=re_bid):
+            if self.ocr(box=box_bid, match=re_bid, target_height=1080):
                 self.log_info("检测到新一轮出价，继续出价循环")
                 break
 
@@ -336,6 +353,8 @@ class AutoBidAuctionTask(BaseNTETask):
         return auction_finished
 
     def run(self):
+        # self.ensure_main()
+
         max_count = self.configured_rounds()
         sell_interval = int(self.config.get(self.CONF_SELL_INTERVAL, 0))
         count = 0
@@ -390,7 +409,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
         matched_type = self._stage_match(box_match, box_confirm, box_bid, re_match, re_confirm, re_bid)
 
-        if matched_type == 'confirm':
+        if matched_type == "confirm":
             self._stage_confirm(box_confirm, re_confirm)
         else:
             self.log_info("已跳过确认环节，直接进入出价")
