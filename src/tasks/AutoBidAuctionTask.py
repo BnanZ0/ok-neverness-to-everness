@@ -17,7 +17,7 @@ class AutoBidAuctionTask(BaseNTETask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "自动拍卖"
-        self.description = "在拍卖主界面，选择低级会场后开始"
+        self.description = "在拍卖主界面,选择低级会场后开始"
 
         self.default_config.update({
             self.CONF_FIXED_PRICE: 1,
@@ -43,7 +43,7 @@ class AutoBidAuctionTask(BaseNTETask):
             return int(value)
         except (TypeError, ValueError):
             self.log_warning(
-                f"配置转换失败: {value!r}，使用默认值: {default}"
+                f"配置转换失败: {value!r},使用默认值: {default}"
             )
             return default
 
@@ -273,7 +273,7 @@ class AutoBidAuctionTask(BaseNTETask):
                     time_out=10,
                     target_height=self.SCREEN_HEIGHT
                 )
-                self.log_info("已点击开始匹配，等待状态变化")
+                self.log_info("已点击开始匹配,等待状态变化")
 
                 matched_confirm = self.wait_ocr(
                     box=box_confirm,
@@ -282,7 +282,7 @@ class AutoBidAuctionTask(BaseNTETask):
                     target_height=self.SCREEN_HEIGHT
                 )
                 if matched_confirm:
-                    self.log_info("匹配成功，进入确认阶段")
+                    self.log_info("匹配成功,进入确认阶段")
                     return "confirm"
 
                 matched_bid = self.wait_ocr(
@@ -292,10 +292,10 @@ class AutoBidAuctionTask(BaseNTETask):
                     target_height=self.SCREEN_HEIGHT
                 )
                 if matched_bid:
-                    self.log_info("匹配成功，进入出价阶段")
+                    self.log_info("匹配成功,进入出价阶段")
                     return "bid"
 
-                self.log_warning("点击匹配后未检测到后续界面，等待状态稳定后重试")
+                self.log_warning("点击匹配后未检测到后续界面,等待状态稳定后重试")
                 self.sleep(1)
 
             except WaitFailedException:
@@ -436,7 +436,8 @@ class AutoBidAuctionTask(BaseNTETask):
         self.info_set("当前阶段", "确认中" if stage == "confirm" else "出价中")
 
         if stage == "confirm":
-            self._stage_confirm(box_confirm, re_confirm)
+            if not self._stage_confirm(box_confirm, re_confirm):
+                raise WaitFailedException("确认阶段未完成")
         else:
             self.log_info("跳过确认阶段")
 
@@ -537,4 +538,4 @@ class AutoBidAuctionTask(BaseNTETask):
                     self.sleep(3)
 
         finally:
-            self.log_info(f"自动拍卖结束，共完成 {count} 次")
+            self.log_info(f"自动拍卖结束,共完成 {count} 次")
