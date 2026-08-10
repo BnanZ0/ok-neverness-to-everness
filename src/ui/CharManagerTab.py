@@ -83,7 +83,7 @@ class CharManagerTab(CustomTab):
                 "关于编写角色出招表的指南, 请参考 <a href='{doc_url}'>文档</a>。"
             ),
             refresh=og.app.tr("刷新列表"),
-            doc_url="https://cnb.cool/BnanZ0/ok-nte-update/-/tree/main/docs/combat_planner.md",
+            doc_url="https://cnb.cool/BnanZ0/ok-nte-update/-/tree/main/docs/development/combat_planner.md",
         )
         self.tr_import_failed = og.app.tr("导入失败")
         self.tr_import_success = og.app.tr("导入成功")

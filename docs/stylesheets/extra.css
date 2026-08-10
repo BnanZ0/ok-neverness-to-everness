@@ -1,0 +1,4 @@
+/* Keep language entry pages compact and readable on the documentation home page. */
+.md-content a {
+  text-decoration-thickness: 1px;
+}

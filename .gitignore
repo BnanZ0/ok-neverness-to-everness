@@ -72,6 +72,7 @@ ok_tasks/
 ok_import/
 temp_images/
 .ruff_cache
+site/
 
 #midi
 !mid_lib/
