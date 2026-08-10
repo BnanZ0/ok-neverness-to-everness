@@ -352,57 +352,8 @@ class AutoBidAuctionTask(BaseNTETask):
 
         return auction_finished
 
-    def run(self):
-        # self.ensure_main()
-
-        max_count = self.configured_rounds()
-        sell_interval = int(self.config.get(self.CONF_SELL_INTERVAL, 0))
-        count = 0
-        consecutive_failures = 0
-        self.info_set("已完成次数", count)
-
-        box_match = self.box_of_screen_scaled(1920, 1080, 1466, 945, width_original=135, height_original=49)
-        box_confirm = self.box_of_screen_scaled(1920, 1080, 1110, 687, width_original=99, height_original=47)
-        box_bid = self.box_of_screen_scaled(1920, 1080, 1694, 986, width_original=93, height_original=43)
-
-        re_match_start = re.compile(r"开始匹配")
-        re_confirm = re.compile(r"确认")
-        re_bid = re.compile(r"出价")
-        re_skip = re.compile(r"跳过")
-
-        try:
-            while max_count == 0 or count < max_count:
-                try:
-                    self._do_one_auction(
-                        box_match, box_confirm, box_bid,
-                        re_match_start, re_confirm, re_bid, re_skip
-                    )
-                    count += 1
-                    consecutive_failures = 0
-                    self.info_set("已完成次数", count)
-                    self.log_info(f"拍卖完成 {count}/{max_count if max_count > 0 else '∞'}")
-
-                    if sell_interval > 0 and count % sell_interval == 0:
-                        self._sell_collections()
-
-                except TaskDisabledException:
-                    self.log_info("用户停止任务")
-                    raise
-                except Exception as e:
-                    consecutive_failures += 1
-                    self.log_error(f"发生未知错误: {e}，第 {consecutive_failures} 次重试")
-                    if consecutive_failures >= 3:
-                        self.log_error("连续失败已达上限，终止任务")
-                        raise
-                    self.sleep(3)
-        finally:
-            if max_count > 0:
-                self.log_info(f"自动拍卖结束，共完成 {count} 次")
-            else:
-                self.log_info(f"自动拍卖已停止，共完成 {count} 次")
-
-    def _do_one_auction(self, box_match, box_confirm, box_bid,
-                        re_match, re_confirm, re_bid, re_skip):
+    def _exec_auction_round(self, box_match, box_confirm, box_bid,
+                            re_match, re_confirm, re_bid, re_skip):
         self._check_stop()
         self.log_info("已成功进入拍卖环节")
         self.sleep(0.5)
@@ -421,5 +372,51 @@ class AutoBidAuctionTask(BaseNTETask):
         box_exit = self.box_of_screen_scaled(1920, 1080, 1659, 977, width_original=155, height_original=50)
         re_exit = re.compile(r"退出")
 
-        if self._stage_result(box_match, box_bid, box_skip_area, box_exit, re_match, re_bid, re_skip, re_exit):
-            return
+        return self._stage_result(box_match, box_bid, box_skip_area, box_exit, re_match, re_bid, re_skip, re_exit)
+
+    def run(self):
+        max_count = self.configured_rounds()
+        sell_interval = int(self.config.get(self.CONF_SELL_INTERVAL, 0))
+        count = 0
+        consecutive_failures = 0
+        self.info_set("已完成次数", count)
+
+        box_match = self.box_of_screen_scaled(1920, 1080, 1466, 945, width_original=135, height_original=49)
+        box_confirm = self.box_of_screen_scaled(1920, 1080, 1110, 687, width_original=99, height_original=47)
+        box_bid = self.box_of_screen_scaled(1920, 1080, 1694, 986, width_original=93, height_original=43)
+
+        re_match_start = re.compile(r"开始匹配")
+        re_confirm = re.compile(r"确认")
+        re_bid = re.compile(r"出价")
+        re_skip = re.compile(r"跳过")
+
+        try:
+            while max_count == 0 or count < max_count:
+                try:
+                    if self._exec_auction_round(
+                        box_match, box_confirm, box_bid,
+                        re_match_start, re_confirm, re_bid, re_skip
+                    ):
+                        count += 1
+                        consecutive_failures = 0
+                        self.info_set("已完成次数", count)
+                        self.log_info(f"拍卖完成 {count}/{max_count if max_count > 0 else '∞'}")
+
+                        if sell_interval > 0 and count % sell_interval == 0:
+                            self._sell_collections()
+
+                except TaskDisabledException:
+                    self.log_info("用户停止任务")
+                    raise
+                except Exception as e:
+                    consecutive_failures += 1
+                    self.log_error(f"发生未知错误: {e}，第 {consecutive_failures} 次重试")
+                    if consecutive_failures >= 3:
+                        self.log_error("连续失败已达上限，终止任务")
+                        raise
+                    self.sleep(3)
+        finally:
+            if max_count > 0:
+                self.log_info(f"自动拍卖结束，共完成 {count} 次")
+            else:
+                self.log_info(f"自动拍卖已停止，共完成 {count} 次")
