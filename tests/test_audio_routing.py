@@ -46,6 +46,22 @@ class AudioRoutingTests(unittest.TestCase):
 
         self.assertEqual(devices, [DEFAULT_RENDER_DEVICE, "Speakers (Realtek(R) Audio)"])
 
+    def test_switch_process_device_logs_subprocess_errors_without_logging_failure(self):
+        router = _BackgroundAudioRouter()
+        with patch.object(audio_routing, "audio_route_command", return_value=["/s"]):
+            with patch.object(
+                audio_routing.subprocess,
+                "run",
+                side_effect=RuntimeError("route failed"),
+            ):
+                with patch.object(audio_routing.logger, "error") as error:
+                    result = router._switch_process_device("svcl.exe", "Speakers")
+
+        self.assertEqual(result, "")
+        error.assert_called_once_with(
+            "failed to route game audio with svcl: %s", unittest.mock.ANY
+        )
+
     def test_parse_sound_items_csv_infers_item_fields_from_svcl_stdout(self):
         data = _parse_sound_items_csv(
             "\ufeffCommand-Line Friendly ID,Item ID,Device State,Direction,Process ID\n"

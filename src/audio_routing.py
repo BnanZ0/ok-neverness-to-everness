@@ -84,7 +84,7 @@ def open_svcl_download_page(*_args, **_kwargs) -> None:
 
         QDesktopServices.openUrl(QUrl(SVCL_URL))
     except Exception as exc:
-        logger.error("failed to open SoundVolumeCommandLine download page", exc)
+        logger.error("failed to open SoundVolumeCommandLine download page: %s", exc)
         _alert_error("Failed to open SoundVolumeCommandLine download page")
 
 
@@ -526,7 +526,7 @@ class _BackgroundAudioRouter:
                 creationflags=subprocess.CREATE_NO_WINDOW
             )
         except Exception as exc:
-            logger.error("failed to route game audio with svcl", exc)
+            logger.error("failed to route game audio with svcl: %s", exc)
             return ""
         if result.returncode != 0:
             logger.warning(f"svcl audio route failed with exit code {result.returncode}")
