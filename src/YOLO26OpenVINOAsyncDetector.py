@@ -257,7 +257,7 @@ class YOLO26OpenVINOAsyncDetector:
             if result_holder is not None:
                 result_holder["results"] = tmp_results
         except Exception as e:
-            logger.error("openvino callback ignored failed/cancelled task", e)
+            logger.error("openvino callback ignored failed/cancelled task: %s", e)
         finally:
             if request_id is not None:
                 self._mark_request_job_finished(request_id)

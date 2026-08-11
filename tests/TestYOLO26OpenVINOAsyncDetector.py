@@ -103,6 +103,24 @@ class TestYOLO26OpenVINOAsyncDetector(unittest.TestCase):
     def test_numpy_fallback_accepts_avx2_on_old_windows(self, _windows_supports, _numpy_supports):
         self.assertTrue(YOLO26OpenVINOAsyncDetector._supports_avx2())
 
+    def test_callback_logs_inference_errors_without_logging_failure(self):
+        request = FakeInferRequest()
+        detector = self._detector([request])
+        request_id = detector._mark_request_job_started(request)
+
+        with patch("src.YOLO26OpenVINOAsyncDetector.logger.error") as error:
+            detector._callback(
+                {
+                    "request_id": request_id,
+                    "job_id": detector.job_id,
+                    "start_time": time.time(),
+                }
+            )
+
+        error.assert_called_once_with(
+            "openvino callback ignored failed/cancelled task: %s", unittest.mock.ANY
+        )
+
     @patch.object(YOLO26OpenVINOAsyncDetector, "_numpy_supports_avx2", return_value=False)
     @patch.object(YOLO26OpenVINOAsyncDetector, "_windows_supports_avx2", return_value=False)
     def test_avx2_requires_both_probes_to_report_unavailable(
