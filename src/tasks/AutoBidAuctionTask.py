@@ -199,6 +199,40 @@ class AutoBidAuctionTask(BaseNTETask):
         self.log_info(f"输入价格 {price}")
         return True
 
+    def _handle_match_click(self, box_match, box_confirm, box_bid,
+                            re_match, re_confirm, re_bid):
+        """匹配点击核心逻辑：点击开始匹配并等待后续状态变化."""
+        self.wait_click_ocr(
+            box=box_match,
+            match=re_match,
+            time_out=10
+        )
+        self.log_info("已点击开始匹配,等待状态变化")
+
+        matched_confirm = self.wait_ocr(
+            box=box_confirm,
+            match=re_confirm,
+            time_out=3,
+            raise_if_not_found=False
+        )
+        if matched_confirm:
+            self.log_info("匹配成功,进入确认阶段")
+            return "confirm"
+
+        matched_bid = self.wait_ocr(
+            box=box_bid,
+            match=re_bid,
+            time_out=3,
+            raise_if_not_found=False
+        )
+        if matched_bid:
+            self.log_info("匹配成功,进入出价阶段")
+            return "bid"
+
+        self.log_warning("点击匹配后未检测到后续界面,等待状态稳定后重试")
+        self.sleep(1)
+        return None
+
     def _stage_match(self, box_match, box_confirm, box_bid, box_skip_area, re_match, re_confirm, re_bid, re_skip):
         """阶段一: 进入并确定拍卖匹配状态."""
         fail_count = 0
@@ -222,36 +256,12 @@ class AutoBidAuctionTask(BaseNTETask):
                 return "skip"
 
             try:
-                self.wait_click_ocr(
-                    box=box_match,
-                    match=re_match,
-                    time_out=10
+                result = self._handle_match_click(
+                    box_match, box_confirm, box_bid,
+                    re_match, re_confirm, re_bid
                 )
-                self.log_info("已点击开始匹配,等待状态变化")
-
-                matched_confirm = self.wait_ocr(
-                    box=box_confirm,
-                    match=re_confirm,
-                    time_out=3,
-                    raise_if_not_found=False
-                )
-                if matched_confirm:
-                    self.log_info("匹配成功,进入确认阶段")
-                    return "confirm"
-
-                matched_bid = self.wait_ocr(
-                    box=box_bid,
-                    match=re_bid,
-                    time_out=3,
-                    raise_if_not_found=False
-                )
-                if matched_bid:
-                    self.log_info("匹配成功,进入出价阶段")
-                    return "bid"
-
-                self.log_warning("点击匹配后未检测到后续界面,等待状态稳定后重试")
-                self.sleep(1)
-
+                if result:
+                    return result
             except TaskDisabledException:
                 raise
             except WaitFailedException:
@@ -283,6 +293,45 @@ class AutoBidAuctionTask(BaseNTETask):
         self.log_info("已点击确认")
         return True
 
+    def _attempt_bid(self, box_bid, box_bid_confirm, re_bid) -> bool:
+        """单次出价尝试：包含出价、面板确认和表情包动作."""
+        self.log_info("等待出价按钮")
+        found = self.wait_click_ocr(
+            box=box_bid,
+            match=re_bid,
+            time_out=30,
+            raise_if_not_found=False
+        )
+
+        if not found:
+            self.log_warning("未找到出价按钮,准备重试")
+            raise WaitFailedException("出价按钮未出现")
+
+        self.log_info("点击出价")
+        self.sleep(0.5)
+
+        panel_ready = self.wait_ocr(
+            box=box_bid_confirm,
+            match=re.compile(r"确认出价"),
+            time_out=5,
+            raise_if_not_found=False
+        )
+
+        if not panel_ready:
+            raise WaitFailedException("数字面板未出现")
+
+        self.log_info("数字面板加载完成")
+        self._input_fixed_price()
+
+        self.sleep(0.3)
+        if self.ocr(box=box_bid, match=re_bid):
+            raise WaitFailedException("出价确认失败: 出价按钮仍存在")
+
+        if self.config.get(self.CONF_USE_EMOTE, False):
+            self._send_emote()
+
+        return True
+
     def _stage_bid_loop(self, box_bid, box_bid_confirm, re_bid) -> bool:
         """阶段三: 出价与数字面板确认循环."""
         retry = 0
@@ -290,46 +339,9 @@ class AutoBidAuctionTask(BaseNTETask):
 
         while retry < max_retry:
             try:
-                self.log_info("等待出价按钮")
-                found = self.wait_click_ocr(
-                    box=box_bid,
-                    match=re_bid,
-                    time_out=30,
-                    raise_if_not_found=False
-                )
-
-                if not found:
-                    self.log_warning("未找到出价按钮,准备重试")
-                    raise WaitFailedException("出价按钮未出现")
-
-                self.log_info("点击出价")
-                self.sleep(0.5)
-
-                panel_ready = self.wait_ocr(
-                    box=box_bid_confirm,
-                    match=re.compile(r"确认出价"),
-                    time_out=5,
-                    raise_if_not_found=False
-                )
-
-                if not panel_ready:
-                    raise WaitFailedException("数字面板未出现")
-
-                self.log_info("数字面板加载完成")
-                self._input_fixed_price()
-
-                self.sleep(0.3)
-                if self.ocr(box=box_bid, match=re_bid):
-                    raise WaitFailedException("出价确认失败: 出价按钮仍存在")
-
-                if self.config.get(self.CONF_USE_EMOTE, False):
-                    self._send_emote()
-
-                return True
-
+                return self._attempt_bid(box_bid, box_bid_confirm, re_bid)
             except TaskDisabledException:
                 raise
-
             except Exception as e:
                 retry += 1
                 self.log_warning(
