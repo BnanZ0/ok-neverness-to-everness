@@ -192,7 +192,7 @@ class AutoBidAuctionTask(BaseNTETask):
             after_sleep=0.3,
             raise_if_not_found=False
         ):
-            self.log_info("检测到异常确认框(价格较高)，正在点击确认")
+            self.log_info("检测到异常确认框(价格较高),正在点击确认")
         else:
             self.log_info("未检测到异常确认框，直接进入下一步")
 
@@ -201,7 +201,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
     def _handle_match_click(self, box_match, box_confirm, box_bid,
                             re_match, re_confirm, re_bid):
-        """匹配点击核心逻辑：点击开始匹配并等待后续状态变化."""
+        """匹配点击核心逻辑: 点击开始匹配并等待后续状态变化."""
         self.wait_click_ocr(
             box=box_match,
             match=re_match,
@@ -240,6 +240,7 @@ class AutoBidAuctionTask(BaseNTETask):
         max_loop = 120
 
         while loop_count < max_loop:
+            loop_count += 1
             self.log_info(f"等待匹配开始 ({loop_count}/{max_loop})")
 
             if self.ocr(box=box_bid, match=re_bid):
@@ -294,7 +295,7 @@ class AutoBidAuctionTask(BaseNTETask):
         return True
 
     def _attempt_bid(self, box_bid, box_bid_confirm, re_bid) -> bool:
-        """单次出价尝试：包含出价、面板确认和表情包动作."""
+        """单次出价尝试: 包含出价、面板确认和表情包动作."""
         self.log_info("等待出价按钮")
         found = self.wait_click_ocr(
             box=box_bid,
@@ -473,11 +474,14 @@ class AutoBidAuctionTask(BaseNTETask):
                         re_exit
                     ):
                         self.add_success()
-                        self.log_info(f"拍卖完成 {self.current_round}/{self._round_state.total_text}")
+                    else:
+                        self.add_failed("结果阶段进入下一轮出价")
 
-                        sell_interval = int(self.config.get(self.CONF_SELL_INTERVAL, 0))
-                        if sell_interval > 0 and self.current_round % sell_interval == 0:
-                            self._sell_collections()
+                    self.log_info(f"拍卖完成 {self.current_round}/{self._round_state.total_text}")
+
+                    sell_interval = int(self.config.get(self.CONF_SELL_INTERVAL, 0))
+                    if sell_interval > 0 and self.current_round % sell_interval == 0:
+                        self._sell_collections()
 
                 except TaskDisabledException:
                     raise
@@ -501,3 +505,4 @@ class AutoBidAuctionTask(BaseNTETask):
             raise
         except Exception as e:
             self.log_error("AutoBidAuctionTask Error", e)
+            raise
