@@ -1,4 +1,4 @@
-﻿import inspect
+import inspect
 import re
 import threading
 import time
@@ -22,9 +22,9 @@ from src.Labels import Labels
 from src.scene.NTEScene import NTEScene
 from src.scene.ScreenPosition import ScreenPosition
 from src.tasks.mixin.CharUIMixin import CharUIMixin
-from src.tasks.mixin.FlowTaskMixin import FlowTaskMixin
 from src.tasks.mixin.MovementMixin import MovementMixin
 from src.tasks.mixin.OgMixin import OgMixin
+from src.tasks.mixin.SceneFlowMixin import SceneFlowMixin
 from src.tasks.mixin.VisionMixin import VisionMixin
 from src.utils import image_utils as iu
 from src.utils import vision_utils as vu
@@ -81,7 +81,7 @@ class RoundState:
 
 
 class BaseNTETask(
-    FlowTaskMixin,
+    SceneFlowMixin,
     CharUIMixin,
     MovementMixin,
     VisionMixin,
@@ -109,7 +109,7 @@ class BaseNTETask(
         self._last_interval_action_time = {}
         self._action_interval_lock = threading.Lock()
         self._round_state = RoundState()
-        self.flow.interrupt(self.check_monthly_card, self.handle_monthly_card)
+        self.scene_flow.interrupt(self.check_monthly_card, self.handle_monthly_card)
 
     def configured_rounds(self, default=0) -> int:
         """读取统一的循环次数配置: 0 表示无限运行。"""
