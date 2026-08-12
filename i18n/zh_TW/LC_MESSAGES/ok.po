@@ -732,9 +732,6 @@ msgstr "試聽選中音軌"
 msgid "调试校准"
 msgstr "調試校準"
 
-msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
-msgstr "選中歌曲後可選擇參與分析與播放的 MIDI 音軌。"
-
 msgid "选择 MIDI 档案"
 msgstr "選擇 MIDI 檔案"
 

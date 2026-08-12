@@ -883,10 +883,10 @@ class HeistPathA(HeistPath):
         self.sleep(0.36)
         self.send_key_up("d")
         self.sleep(0.11)
+        self.wait_and_interact(time_out=1, raise_timeout=False, is_lock=True)
+        self.sleep(0.11)
         self.send_key_down("f")  # start pick
-        self.sleep(0.11)
-        self.wait_for_safe_loot(time_out=1)
-        self.sleep(0.11)
+        self.sleep(0.51)
         self.send_key_down("a")
         self.sleep(0.46)
         self.send_key_up("a")

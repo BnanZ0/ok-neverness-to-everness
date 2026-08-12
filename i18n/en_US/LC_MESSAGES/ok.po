@@ -732,9 +732,6 @@ msgstr "Audition Selected Track"
 msgid "调试校准"
 msgstr "Debug Calibration"
 
-msgid "选中歌曲后可选择参与分析与播放的 MIDI 音轨。"
-msgstr "After selecting a song, choose which MIDI tracks to analyze and play."
-
 msgid "选择 MIDI 档案"
 msgstr "Select MIDI File"
 

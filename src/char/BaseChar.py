@@ -674,14 +674,14 @@ class BaseChar:
         )
         box_ultimate = self.task.get_box_by_name(Labels.box_ultimate)
         snapshot = box_ultimate.crop_frame(self.task.frame)
-        processed_snapshot = gf.isolate_cd_to_black(snapshot)
+        processed_snapshot = gf.isolate_text_to_black(snapshot)
 
         def condition():
             if not self.task.find_one(
                 Labels.box_ultimate,
                 template=processed_snapshot,
                 box=box_ultimate,
-                frame_processor=gf.isolate_cd_to_black,
+                frame_processor=gf.isolate_text_to_black,
                 threshold=0.7,
             ):
                 self.logger.info("ultimate unfreeze cause cd changed")

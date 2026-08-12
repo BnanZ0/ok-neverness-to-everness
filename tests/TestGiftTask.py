@@ -66,6 +66,7 @@ class TestGiftTask(unittest.TestCase):
         task._report = lambda _message: None
         task.sleep = lambda _seconds: None
         task.screenshot = lambda _name: None
+        task.ocr = lambda *_args, **_kwargs: False
         remaining = [3]
         task._read_character_gift_remaining = lambda: remaining[0]
         task._find_gift_box = lambda _profile: object()
@@ -90,6 +91,7 @@ class TestGiftTask(unittest.TestCase):
         task = object.__new__(GiftTask)
         task._report = lambda _message: None
         task.screenshot = lambda _name: None
+        task.ocr = lambda *_args, **_kwargs: False
         task._read_character_gift_remaining = lambda: 3
         task._find_gift_box = lambda _profile: object()
         task._give_once = lambda _box, _previous: False
@@ -148,11 +150,11 @@ class TestGiftTask(unittest.TestCase):
         task._give_profile = lambda _profile_id, _profile, _summary: None
         task._executor = SimpleNamespace(frame=np.zeros((1, 1, 3), dtype=np.uint8))
         task._sidebar_box = lambda: Box(0, 0, 1, 1)
-        task._sidebar_unchanged = lambda _snapshot: False
 
         scroll_count = [0]
-        task.operate = lambda callback, block: callback()
-        task.scroll = lambda *_args: scroll_count.__setitem__(0, scroll_count[0] + 1)
+        task.scroll_and_is_end = lambda *_args, **_kwargs: (
+            scroll_count.__setitem__(0, scroll_count[0] + 1) or False
+        )
 
         GiftTask._scan_character_list(
             task,

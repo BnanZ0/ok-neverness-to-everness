@@ -66,9 +66,9 @@ numpy==2.4.6 ; sys_platform == 'win32'
     #   soundfile
     #   soxr
     #   tifffile
-ok-script==1.0.183 ; sys_platform == 'win32'
+ok-script==1.0.190 ; sys_platform == 'win32'
     # via ok-nte
-onnxocr-ppocrv5==0.0.19 ; sys_platform == 'win32'
+onnxocr-ppocrv5==0.0.20 ; sys_platform == 'win32'
     # via ok-nte
 opencc==1.4.1 ; sys_platform == 'win32'
     # via ok-nte

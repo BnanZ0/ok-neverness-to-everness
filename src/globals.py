@@ -1,5 +1,5 @@
 import threading
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import Future, ThreadPoolExecutor
 from threading import Event
 
 from ok import Logger, get_path_relative_to_exe
@@ -18,6 +18,7 @@ class Globals(QObject):
         self._periodic_tasks_lock = threading.Lock()
         exit_event.bind_stop(self)
         self._openvino_model_async = None
+        self._openvino_model_future = Future()
         self._sound_context_stop_event = Event()
         threading.Thread(
             target=self.init_sound_context, daemon=True, name="SoundContextInit"
@@ -159,14 +160,9 @@ class Globals(QObject):
 
     @property
     def openvino_model_async(self):
-        if self._openvino_model_async is None:
-            logger.info("openvino_model_async Using YOLO26OpenVINOAsyncDetector")
-            from src.YOLO26OpenVINOAsyncDetector import YOLO26OpenVINOAsyncDetector
-
-            self._openvino_model_async = YOLO26OpenVINOAsyncDetector(
-                xml_path=get_path_relative_to_exe("assets", "openvino", "best.xml")
-            )
-        return self._openvino_model_async
+        if self._openvino_model_async is not None:
+            return self._openvino_model_async
+        return self._openvino_model_future.result()
 
     @property
     def openvino_latency_async(self):
@@ -241,4 +237,16 @@ class Globals(QObject):
         from src.ui.util import wait_main_window
 
         wait_main_window()
-        self.openvino_model_async
+        try:
+            logger.info("openvino_model_async Using YOLO26OpenVINOAsyncDetector")
+            from src.YOLO26OpenVINOAsyncDetector import YOLO26OpenVINOAsyncDetector
+
+            detector = YOLO26OpenVINOAsyncDetector(
+                xml_path=get_path_relative_to_exe("assets", "openvino", "best.xml")
+            )
+        except BaseException as error:
+            logger.error(f"OpenVINO detector initialization failed: {error}")
+            self._openvino_model_future.set_exception(error)
+        else:
+            self._openvino_model_async = detector
+            self._openvino_model_future.set_result(detector)

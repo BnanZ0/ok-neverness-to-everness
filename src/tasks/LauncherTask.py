@@ -196,7 +196,7 @@ class LauncherTask(BaseNTETask):
                         deadline = self._extend_deadline_for_update(deadline, loop_start)
                     continue
 
-            box = self.box_of_screen(0.644, 0.306, 0.691, 0.378)
+            box = self.box_of_screen(0.644, 0.214, 0.784, 0.378)
             if btn := self.find_one(Labels.launcher_popup_close, box=box):
                 self.click(btn, after_sleep=2)
                 continue

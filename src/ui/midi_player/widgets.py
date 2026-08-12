@@ -364,7 +364,7 @@ class KeyConfigWidget(QFrame):
 class CollapsibleSection(ExpandGroupSettingCard):
     toggled = Signal(str, bool)
 
-    def __init__(self, section_key, title, content, collapsed=False, parent=None):
+    def __init__(self, section_key, title, content: QWidget = None, collapsed=False, parent=None):
         self._initializing_expand_state = True
         icons = {
             "playback_settings": FluentIcon.SETTING,
@@ -377,7 +377,8 @@ class CollapsibleSection(ExpandGroupSettingCard):
         super().__init__(icon, title, "", parent)
 
         self.section_key = section_key
-        self.addGroupWidget(content)
+        if content is not None:
+            self.addGroupWidget(content)
         self.setExpand(not collapsed)
         self._initializing_expand_state = False
         self.request_adjust_view_size()
@@ -390,25 +391,3 @@ class CollapsibleSection(ExpandGroupSettingCard):
 
     def request_adjust_view_size(self):
         QTimer.singleShot(50, self._adjustViewSize)
-
-    def showEvent(self, event):
-        super().showEvent(event)
-        self.request_adjust_view_size()
-
-    def resizeEvent(self, e):
-        super().resizeEvent(e)
-        if e.oldSize().isValid() and e.size().width() == e.oldSize().width():
-            return
-        self.request_adjust_view_size()
-
-    def _adjustViewSize(self):
-        # ExpandGroupSettingCard adds extra spacing per child, which leaves the
-        # bottom shadow detached from the card body. Keep the exact layout height.
-        h = self.viewLayout.sizeHint().height()
-        if hasattr(self, "spaceWidget"):
-            self.spaceWidget.setFixedHeight(h)
-        if hasattr(self, "view"):
-            self.view.setFixedHeight(h)
-        if getattr(self, "isExpand", False):
-            self.setFixedHeight(self.card.height() + h)
-

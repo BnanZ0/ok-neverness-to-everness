@@ -1107,6 +1107,16 @@ class BaseNTETask(
             return False
         return True
 
+    def scroll_and_is_end(self, x, y, count, box: Box, after_sleep=0.25, threshold=0.85):
+        snapshot = box.crop_frame(self.frame)
+        self.operate(
+            lambda: self.scroll(x, y, count=count),
+            block=True,
+        )
+        self.sleep(after_sleep)
+        if self.find_one(template=snapshot, box=box.scale(1.1), threshold=threshold):
+            return True
+
 
 def interac_mask(image):
     mask = iu.create_color_mask(image, interac_pink_color, to_bgr=False)

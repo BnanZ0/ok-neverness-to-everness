@@ -447,10 +447,10 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
 
     def get_heist_rewards(self):
         cash = self.ocr(
-            0.359, 0.595, 0.500, 0.642, frame_processor=gf.isolate_text_to_black, name="cash"
+            0.359, 0.595, 0.500, 0.642, frame_processor=gf.isolate_black_text, name="cash"
         )
         coin = self.ocr(
-            0.654, 0.595, 0.789, 0.641, frame_processor=gf.isolate_text_to_black, name="coin"
+            0.654, 0.595, 0.789, 0.641, frame_processor=gf.isolate_black_text, name="coin"
         )
         return self._parse_reward_number(cash, "earnfcash"), self._parse_reward_number(
             coin, "earnpcoin"
@@ -794,7 +794,13 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.switch_to_runner(check_switched=True)
 
     def wait_and_interact(
-        self, direction=None, interact=True, key_up_sleep=0.7, is_lock=False, time_out=10
+        self,
+        direction=None,
+        interact=True,
+        key_up_sleep=0.7,
+        is_lock=False,
+        time_out=10,
+        raise_timeout=False,
     ):
         """等待交互点并可选择按 `f` 交互。
 
@@ -807,7 +813,10 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
             self.send_key_up(direction)
             self.sleep(key_up_sleep)
         if not ret:
-            raise AbortException("timeout for wait_and_interact")
+            if raise_timeout:
+                raise AbortException("timeout for wait_and_interact")
+            else:
+                return False
         elif not interact:
             return True
         self.wait_until(

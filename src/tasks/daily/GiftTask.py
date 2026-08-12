@@ -18,7 +18,6 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
     MAX_GIFTS_PER_CHARACTER = 3
     NAME_MATCH_THRESHOLD = 0.82
     GIFT_MATCH_THRESHOLD = 0.80
-    SIDEBAR_UNCHANGED_THRESHOLD = 0.98
     NAME_RATIO = (0.524, 0.166, 0.750, 0.240)
     GIFT_FIRST_RATIO = (0.533, 0.497, 0.584, 0.534)
     GIFT_COLUMNS = 5
@@ -84,6 +83,10 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
                 f"赠礼结束：成功 {summary['success']} 次，"
                 f"跳过 {len(summary['skipped'])} 项，失败 {len(summary['failed'])} 项"
             )
+            for reason in summary["skipped"]:
+                self._report(f"跳过：{reason}")
+            for reason in summary["failed"]:
+                self._report(f"失败：{reason}")
 
     def _enter_gift_page_from_main(self) -> None:
         """User-owned navigation seam. Keep all game-specific route actions here."""
@@ -149,16 +152,6 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
     def _sidebar_box(self):
         return self.box_of_screen(*self.SIDEBAR_BOX, name="gift_character_sidebar")
 
-    def _sidebar_unchanged(self, snapshot: np.ndarray) -> bool:
-        return bool(
-            self.find_one(
-                "gift_sidebar_snapshot",
-                template=snapshot,
-                box=self._sidebar_box(),
-                threshold=self.SIDEBAR_UNCHANGED_THRESHOLD,
-            )
-        )
-
     def _scroll_sidebar_to_top(self) -> None:
         for _ in range(3):
             self.operate(
@@ -184,15 +177,13 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
         for _ in range(max_scrolls):
             if not remaining or summary["success"] >= self.MAX_TOTAL_GIFTS:
                 return
-            before = self._sidebar_box().crop_frame(self.frame).copy()
-            self.operate(
-                lambda: self.scroll(
-                    self.SIDEBAR_SCROLL_X, self.SIDEBAR_SCROLL_Y, self.SIDEBAR_SCROLL_STEP
-                ),
-                block=True,
-            )
-            self.sleep(0.4)
-            if self._sidebar_unchanged(before):
+            if self.scroll_and_is_end(
+                self.SIDEBAR_SCROLL_X,
+                self.SIDEBAR_SCROLL_Y,
+                self.SIDEBAR_SCROLL_STEP,
+                self._sidebar_box(),
+                after_sleep=0.4,
+            ):
                 return
             if not self._visit_character_slot(self.CHARACTER_SLOT_YS[-1], remaining, summary):
                 return
@@ -279,6 +270,16 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
             return
 
         while sent < requested and remaining > 0 and summary["success"] < self.MAX_TOTAL_GIFTS:
+            from src.utils.game_filters import isolate_text_to_black
+
+            if self.ocr(
+                0.789, 0.188, 0.832, 0.252, match="10", frame_processor=isolate_text_to_black
+            ):
+                summary["skipped"].append(
+                    f"{profile['display_name']}: 检测到好感度满级取消赠送; "
+                    f"已赠送 {sent}/{requested}"
+                )
+                return
             gift_box = self._find_gift_box(profile)
             if gift_box is None:
                 summary["skipped"].append(f"{profile['display_name']}: 首屏没有已配置礼物")

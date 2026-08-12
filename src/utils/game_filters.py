@@ -29,7 +29,7 @@ lv_white_hsv = HSVRange((0, 0, 180), (160, 20, 255))
 lv_red_hsv = HSVRange((0, 235, 180), (0, 255, 255))
 
 
-def isolate_cd_to_black(cv_image):
+def isolate_text_to_black(cv_image):
     return iu.create_color_mask(cv_image, text_white_color, invert=True)
 
 
@@ -57,8 +57,8 @@ def current_char_filter(cv_image):
     return lab[:, :, 1:3]
 
 
-def isolate_text_to_black(cv_image):
-    return iu.create_color_mask(cv_image, text_black_color, invert=True)
+def isolate_black_text(cv_image):
+    return iu.create_color_mask(cv_image, text_black_color, invert=False)
 
 
 def ultimate_ready_filter(cv_image):
