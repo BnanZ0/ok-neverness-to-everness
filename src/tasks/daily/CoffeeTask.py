@@ -2,6 +2,7 @@ from ok import TaskDisabledException
 from qfluentwidgets import FluentIcon
 
 from src.coffee import ALLOWED_DURATIONS, CoffeeRuntime
+from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 
@@ -15,6 +16,10 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
 
     DEFAULT_MOVE = True
 
+    CONF_MODE = "模式"
+    MODE_CLAIM_AND_RESTOCK = "领取/补货"
+    MODE_AUTO = "自动化"
+
     CONF_COLLECT_INCOME = "领取收益"
     CONF_RESTOCK_GOODS = "补货货物"
     CONF_BUY_GOODS = "购买货物送货上门"
@@ -27,16 +32,16 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "一咖舍自动化"
-        self.description = "领取一咖舍收益, 可选自动补货, 购买货物或优化商品"
+        self.name = "一咖舍"
         self.icon = FluentIcon.SHOPPING_CART
         self.group_name = "日常/周常"
         self.group_icon = FluentIcon.CALENDAR
+        self.visible = False
         # 一咖舍页面的所有 OCR 判定 (商品名、价格表、营收弹窗、补货时长选项等)
         # 仅在简体中文 UI 下匹配, 因此只对 zh_CN 暴露此任务.
-        self.supported_languages = ["zh_CN"]
         self.default_config.update(
             {
+                self.CONF_MODE: self.MODE_CLAIM_AND_RESTOCK,
                 self.CONF_COLLECT_INCOME: True,
                 self.CONF_RESTOCK_GOODS: True,
                 self.CONF_BUY_GOODS: True,
@@ -57,8 +62,26 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
                 self.CONF_PRICE_TABLE: "价格表识别(disabled 跳过商品优化以避免未识别价格的替换)",
             }
         )
+        options = [self.MODE_CLAIM_AND_RESTOCK]
+        if self.is_chinese():
+            options.append(self.MODE_AUTO)
         self.config_type.update(
             {
+                self.CONF_MODE: {
+                    "type": "drop_down",
+                    "options": options,
+                    "sub_configs": {
+                        self.MODE_AUTO: [
+                            self.CONF_COLLECT_INCOME,
+                            self.CONF_RESTOCK_GOODS,
+                            self.CONF_BUY_GOODS,
+                            self.CONF_OPTIMIZE_PRODUCTS,
+                            self.CONF_RESTOCK_DURATION,
+                            self.CONF_PRODUCT_SLOTS,
+                            self.CONF_PRICE_TABLE,
+                        ],
+                    },
+                },
                 self.CONF_RESTOCK_DURATION: {
                     "type": "drop_down",
                     "options": [self.AUTO, *ALLOWED_DURATIONS],
@@ -73,7 +96,6 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
                 },
             }
         )
-        self.add_exit_after_config()
 
     def run(self):
         super().run()
@@ -85,7 +107,10 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
             self.log_error("CoffeeTask error", e)
             raise
 
-    def do_run(self):
+    def do_run(self) -> bool:
+        if self.config.get(self.CONF_MODE) == self.MODE_CLAIM_AND_RESTOCK:
+            return self.claim_coffee()
+
         self.log_info("正在执行一咖舍自动化")
         self._apply_runtime_config()
 
@@ -158,3 +183,53 @@ class CoffeeTask(NTEOneTimeTask, BaseNTETask):
             self.config.get(self.CONF_RESTOCK_GOODS, False)
             and self.config.get(self.CONF_BUY_GOODS, False)
         )
+
+    def claim_coffee(self):
+        """领取一咖舍奖励"""
+
+        def action():
+            self.openF5panel()
+            self.operate_click(0.415, 0.753)
+            self.sleep(0.5)
+            return self.wait_panel(Labels.f5_coffee_panel)
+
+        self.log_info("正在领取一咖舍奖励")
+        result = self.retry_on_action(action, self.ensure_main)
+        if not result:
+            self.log_error("无法找到一咖舍面板")
+            return False
+        self.sleep(1)
+
+        # 提取收益
+        self.wait_until(
+            lambda: not self.find_one(Labels.f5_coffee_panel),
+            pre_action=lambda: self.operate_click(0.188, 0.877, interval=1),
+            time_out=10,
+        )
+        self.sleep(1)
+        self.wait_until(
+            lambda: self.find_one(Labels.f5_coffee_panel),
+            pre_action=lambda: self.operate_click(0.072, 0.886, interval=1),
+            time_out=10,
+            settle_time=0.5,
+        )
+        self.sleep(1)
+
+        # 进入补货
+        self.wait_until(
+            lambda: not self.find_one(Labels.f5_coffee_panel),
+            pre_action=lambda: self.operate_click(0.115, 0.530, interval=1),
+            time_out=10,
+            settle_time=0.5,
+        )
+        self.sleep(1)
+
+        # 补货
+        self.operate_click(0.340, 0.785)  # 24hr
+        self.sleep(1)
+        self.operate_click(0.717, 0.787)  # 补货
+        self.sleep(1)
+        self.operate_click(0.595, 0.776)  # 送货上门
+        self.sleep(1)
+        self.operate_click(0.600, 0.656)  # 确认
+        return True

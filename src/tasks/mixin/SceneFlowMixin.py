@@ -1,14 +1,14 @@
 from ok import BaseTask, TaskDisabledException
 
-from src.flow import Flow
+from src.scene_flow import SceneFlow
 
 
-class FlowTaskMixin(BaseTask):
+class SceneFlowMixin(BaseTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.flow = Flow()
-        self.flow.propagate(TaskDisabledException)
-        self.flow.before_step(self.next_frame)
+        self.scene_flow = SceneFlow()
+        self.scene_flow.propagate(TaskDisabledException)
+        self.scene_flow.before_step(self.next_frame)
 
     def wait_until(
         self,
@@ -19,8 +19,8 @@ class FlowTaskMixin(BaseTask):
         settle_time=-1,
         raise_if_not_found=False,
     ):
-        """Make ordinary waits a Flow interrupt safe point while Flow is active."""
-        if not self.flow.active or self.flow.handling_interrupt:
+        """Make ordinary waits SceneFlow interrupt safe points while active."""
+        if not self.scene_flow.active or self.scene_flow.handling_interrupt:
             return super().wait_until(
                 condition,
                 time_out=time_out,
@@ -31,7 +31,7 @@ class FlowTaskMixin(BaseTask):
             )
 
         def observed_condition():
-            self.flow.safe_point()
+            self.scene_flow.safe_point()
             return condition()
 
         return super().wait_until(

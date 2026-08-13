@@ -3,8 +3,7 @@ from enum import Enum
 
 class Labels(str, Enum):
     anomaly_fluff = 'anomaly_fluff'
-    anomaly_hamster_ball = 'anomaly_hamster_ball'
-    anomaly_wooden_crate = 'anomaly_wooden_crate'
+    anomaly_mammon = 'anomaly_mammon'
     auto_play = 'auto_play'
     bond_panel = 'bond_panel'
     bonfire_teleport = 'bonfire_teleport'
@@ -80,3 +79,6 @@ class Labels(str, Enum):
     treasure = 'treasure'
     ult_ready = 'ult_ready'
     unlimit_gift = 'unlimit_gift'
+    zankou_skill_gold = 'zankou_skill_gold'
+    zankou_skill_purple = 'zankou_skill_purple'
+    zankou_ult_purple = 'zankou_ult_purple'

@@ -60,7 +60,9 @@ class TestCoffeeRuntime(unittest.TestCase):
         # A legacy skip threshold left in config stays inert.
         task = _runtime_task({"coffee_recent_supply_skip_seconds": 1800})
         task.ocr_ui = Mock(
-            return_value=[SimpleNamespace(text="累计营业时间 00:05:00", x=0, y=0, width=10, height=10)]
+            return_value=[
+                SimpleNamespace(text="累计营业时间 00:05:00", x=0, y=0, width=10, height=10)
+            ]
         )
         runtime = CoffeeRuntime(task)
 
@@ -70,7 +72,9 @@ class TestCoffeeRuntime(unittest.TestCase):
         self.assertFalse(real_purchase)
         self.assertEqual(skip_reason, "supply_not_needed_or_not_found")
         self.assertFalse(
-            any(action.startswith("supply_recently_active_not_needed") for action in runtime.actions)
+            any(
+                action.startswith("supply_recently_active_not_needed") for action in runtime.actions
+            )
         )
 
     def test_runtime_falls_back_to_task_ocr_when_ocr_ui_absent(self):
@@ -114,8 +118,12 @@ class TestCoffeeRuntime(unittest.TestCase):
     def test_run_skips_claim_income_when_action_flag_disabled(self):
         runtime = CoffeeRuntime(_runtime_task({"coffee_action_collect_income": False}))
         runtime.open_coffee_shop = Mock(return_value=True)
-        runtime.claim_income_if_present = Mock(side_effect=AssertionError("must not run when disabled"))
-        runtime.is_income_report_popup = Mock(side_effect=AssertionError("must not check post-claim popup when disabled"))
+        runtime.claim_income_if_present = Mock(
+            side_effect=AssertionError("must not run when disabled")
+        )
+        runtime.is_income_report_popup = Mock(
+            side_effect=AssertionError("must not check post-claim popup when disabled")
+        )
         runtime.optimize_products = Mock()
         runtime.replenish_supply = Mock(return_value=(True, "", False))
 
@@ -361,19 +369,6 @@ class TestCoffeeTaskConfig(unittest.TestCase):
 
         self.assertTrue(CoffeeTask.do_run(task))
         self.assertIn(("info", "一咖舍未启用任何动作"), messages)
-
-
-class TestCoffeeTaskLocaleScope(unittest.TestCase):
-    """BnanZ0 PR #86 反馈: 一咖舍 OCR 仅匹配简体中文, 非 zh_CN 不暴露此任务."""
-
-    def test_supported_languages_is_zh_cn_only(self):
-        # supported_languages 是一个类级别声明 (在 __init__ 中赋值);
-        # ok-script TaskManger 用它过滤显示给用户的任务列表.
-        # 直接从源码确认: 不实例化 task (避免触发依赖的 OK runtime).
-        import inspect
-
-        source = inspect.getsource(CoffeeTask.__init__)
-        self.assertIn('self.supported_languages = ["zh_CN"]', source)
 
 
 if __name__ == "__main__":

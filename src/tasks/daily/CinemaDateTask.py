@@ -29,15 +29,15 @@ class CinemaDateTask(NTEOneTimeTask, BaseNTETask):
     def run(self):
         super().run()
         try:
-            target = self.config.get(self.CINEMA_DATE_TARGET, "")
-            self.do_run(target)
+            self.do_run()
         except TaskDisabledException:
             raise
         except Exception as e:
             self.log_error("CinemaDateTask error", e)
             raise
 
-    def do_run(self, target=""):
+    def do_run(self) -> bool:
+        target = self.config.get(self.CINEMA_DATE_TARGET, "")
         return self.run_cinema_date(target)
 
     def run_cinema_date(self, target=""):
@@ -60,7 +60,7 @@ class CinemaDateTask(NTEOneTimeTask, BaseNTETask):
 
             self.run_with_interval(lambda: self.operate(merged_action, block=True), interval=2)
 
-        self.wait_until(self.is_in_team, post_action=post, time_out=30)
+        return bool(self.wait_until(self.is_in_team, post_action=post, time_out=30))
 
     def _tp_to_cinema(self):
         self.open_f1_domain_page()

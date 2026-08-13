@@ -96,21 +96,23 @@ class CombatContext:
         action = ActionResult(name=action_name, tags=set(tags or set()), slot=slot)
         return step.wants(char, action)
 
-    def can_execute_action(
+    def is_slot_available(
         self,
         char: "BaseChar",
+        slot: ActionSlot | None = None,
         action_name: str = "",
         tags: set[ActionTag] | None = None,
-        slot: ActionSlot | None = None,
     ) -> bool:
-        """查询 planner 是否允许指定角色动作执行。
+        """查询 planner 是否允许指定角色的原始动作执行。
+
+        只检查 strict route 和 reservation; 不检查 `ActionIntent.can_execute`。
 
         Args:
             char: 准备执行动作的角色。
-            action_name: 动作名；用于高级精确匹配。
-            tags: 动作标签集合；用于 tag request 或特殊匹配。
             slot: 动作槽位。设置了 slot 的 `ActionIntent` 会由 planner 自动检查，
                 手写长动作时才需要主动调用。
+            action_name: 动作名；用于高级精确匹配。
+            tags: 动作标签集合；用于 tag request 或特殊匹配。
 
         Returns:
             True 表示 planner 没有 reservation 阻止此动作，或当前 strict route
@@ -141,11 +143,11 @@ class CombatContext:
             return False
         if action.slot is None:
             return True
-        return self.can_execute_action(
+        return self.is_slot_available(
             char,
-            action.name,
-            set(action.tags),
             slot=action.slot,
+            action_name=action.name,
+            tags=set(action.tags),
         )
 
     def request_route(

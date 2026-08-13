@@ -411,6 +411,8 @@ class FluentSystemIcon(FluentIconBase, Enum):
     NEXT = "Next"
     PREVIOUS = "Previous"
     HEART_FILL = "HeartFill"
+    CHEVRON_DOWN_UP = "Chevron_down_up"
+    CHEVRON_UP_DOWN = "Chevron_up_down"
 
     def path(self, theme=Theme.AUTO):
         path = get_path_relative_to_exe(

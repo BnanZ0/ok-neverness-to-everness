@@ -1,11 +1,7 @@
-
 from src.char.BaseChar import BaseChar
 from src.combat.planner import (
     ActionIntent,
     CombatContext,
-    FieldPreference,
-    Role,
-    RoleProfile,
 )
 
 SKILL_SHORT_TIMEOUT = 2.0
@@ -23,13 +19,6 @@ class Daffodill(BaseChar):
     cn_name = "达芙蒂尔"
     element = BaseChar.Element.PURPLE
     ULT_BURST_DURATION = 1.5
-    BURST_ATTACK_INTERVAL = 0.2
-
-    def describe_role(self):
-        return RoleProfile(
-            role=Role.SUB_DPS,
-            field_preference=FieldPreference.SETUP_ONLY,
-        )
 
     def combat_plan(self, context: CombatContext):
         ultimate = self.click_ultimate_action()
@@ -60,6 +49,6 @@ class Daffodill(BaseChar):
             if not skill_used and context.is_action_allowed(self, skill):
                 skill_used = self.click_skill()
             self.normal_attack()
-            self.sleep(self.BURST_ATTACK_INTERVAL)
+            self.sleep(0.2)
 
         self.logger.info(f"burst end (skill used={skill_used})")

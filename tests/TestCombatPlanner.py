@@ -1754,7 +1754,7 @@ class TestCombatPlanner(unittest.TestCase):
         planner = self._planner([source, target])
         context = planner.context_for(source)
 
-        self.assertFalse(context.can_execute_action(target, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(target, ActionSlot.SKILL))
 
     def test_combat_plan_published_requests_are_ignored(self):
         target = FakeChar(1, "target")
@@ -1775,7 +1775,7 @@ class TestCombatPlanner(unittest.TestCase):
         planner.decide_switch(source)
         context = planner.context_for(source)
 
-        self.assertTrue(context.can_execute_action(target, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(target, ActionSlot.SKILL))
 
     def test_reserve_actions_blocks_until_condition_releases(self):
         source = FakeChar(0, "source")
@@ -1793,12 +1793,12 @@ class TestCombatPlanner(unittest.TestCase):
         )
         context = planner.context_for(source)
 
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
         expired["value"] = True
         planner.state.prune()
 
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_reserve_actions_requires_explicit_lifetime(self):
         source = FakeChar(0, "source")
@@ -1849,7 +1849,7 @@ class TestCombatPlanner(unittest.TestCase):
         planner.state.prune()
         context = planner.context_for(source)
 
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_reset_closes_request_handles(self):
         source = FakeChar(0, "source")
@@ -1899,12 +1899,12 @@ class TestCombatPlanner(unittest.TestCase):
         self._publish(planner, hotori, publish)
         context = planner.context_for(hotori)
 
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
         planner.perform_current_char(zero)
 
         self.assertEqual(planner.state.locked_route, None)
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_reservation_can_release_when_route_is_expired(self):
         hotori = FakeChar(0, "hotori", field_preference=FieldPreference.SETUP_ONLY)
@@ -1928,13 +1928,13 @@ class TestCombatPlanner(unittest.TestCase):
         self._publish(planner, hotori, publish)
         context = planner.context_for(hotori)
 
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
         expired["value"] = True
         planner.state.prune()
 
         self.assertIsNone(planner.state.locked_route)
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_reservation_can_release_when_route_is_closed(self):
         hotori = FakeChar(0, "hotori", field_preference=FieldPreference.SETUP_ONLY)
@@ -1963,12 +1963,12 @@ class TestCombatPlanner(unittest.TestCase):
 
         self.assertTrue(handles["route"].is_fulfilled)
         self.assertFalse(handles["route"].is_closed)
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
         planner.perform_current_char(hotori)
 
         self.assertTrue(handles["route"].is_closed)
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_route_expiration_can_happen_after_fulfillment(self):
         hotori = FakeChar(0, "hotori", field_preference=FieldPreference.SETUP_ONLY)
@@ -2001,7 +2001,7 @@ class TestCombatPlanner(unittest.TestCase):
 
         self.assertTrue(handles["route"].is_fulfilled)
         self.assertFalse(handles["route"].is_expired)
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
         self.assertEqual(calls, ["fulfilled"])
 
         handles["route"].on_expired(lambda: calls.append("late_expired"))
@@ -2011,7 +2011,7 @@ class TestCombatPlanner(unittest.TestCase):
 
         self.assertTrue(handles["route"].is_fulfilled)
         self.assertTrue(handles["route"].is_expired)
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
         self.assertEqual(calls, ["fulfilled", "expired", "late_expired"])
 
     def test_route_handle_calls_fulfilled_callback(self):
@@ -2133,12 +2133,12 @@ class TestCombatPlanner(unittest.TestCase):
         planner.perform_current_char(zero)
 
         self.assertIsNone(planner.state.locked_route)
-        self.assertFalse(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertFalse(context.is_slot_available(nanally, ActionSlot.SKILL))
 
         expired["value"] = True
         planner.state.prune()
 
-        self.assertTrue(context.can_execute_action(nanally, slot=ActionSlot.SKILL))
+        self.assertTrue(context.is_slot_available(nanally, ActionSlot.SKILL))
 
     def test_request_route_can_request_entry_reaction(self):
         zero = FakeChar(0, "zero", cycle_full=True)

@@ -187,7 +187,7 @@ config = {
     ],  # 可选. 全局单例对象, 可以存放加载的模型, 使用og.my_app调用
     "onetime_tasks": [  # 用户点击触发的任务
         ["src.tasks.LauncherTask", "LauncherTask"],
-        ["src.tasks.DailyTask", "DailyTask"],
+        ["src.tasks.daily.DailyPlanTask", "DailyPlanTask"],
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.AnomalyTask", "AnomalyTask"],
         ["src.tasks.AnomalyHunter", "AnomalyHunter"],
@@ -198,6 +198,12 @@ config = {
         ["src.tasks.BagelAITools", "BagelAITools"],
         ["src.tasks.WhirlwindTask", "WhirlwindTask"],
         ["src.tasks.DSDFarmTask", "DSDFarmTask"],
+        ["src.tasks.CombatDetectionTestTask", "CombatDetectionTestTask"],
+        # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
+        # ["src.tasks.DebugCharTask", "DebugCharTask"],
+        ["ok", "DiagnosisTask"],
+        # 日常相关
+        ["src.tasks.daily.DailyClaimTask", "DailyClaimTask"],
         ["src.tasks.daily.GiftTask", "GiftTask"],
         ["src.tasks.daily.CoffeeTask", "CoffeeTask"],
         ["src.tasks.daily.FountainTask", "FountainTask"],
@@ -218,8 +224,9 @@ config = {
         ["src.tasks.trigger.AutoLoginTask", "AutoLoginTask"],
     ],
     "custom_tabs": [
-        ["src.ui.CharHubTab", "CharHubTab"],
+        ["src.ui.DailyPlanTab", "DailyPlanTab"],
         ["src.ui.GiftManagerTab", "GiftManagerTab"],
+        ["src.ui.CharHubTab", "CharHubTab"],
         ["src.ui.MidiPlayerTab", "MidiPlayerTab"],
         # ['src.ui.MyTab', 'MyTab'], #可选, 自定义UI, 显示在侧边栏
     ],

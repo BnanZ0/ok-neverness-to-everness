@@ -93,7 +93,7 @@ jobs:
         with:
           repos: |
             https://cnb:${{ secrets.CNB_GH }}@cnb.cool/BnanZ0/ok-nte-update.git
-            https://BnanZ0:${{ secrets.OK_GH }}@github.com/BnanZ0/ok-nte-update.git
+          #  https://BnanZ0:${{ secrets.OK_GH }}@github.com/BnanZ0/ok-nte-update.git
           sync_list: 'deploy.txt'
           tag: ${{ github.ref_name }}
           gitignore_file: '.update_repo_gitignore'

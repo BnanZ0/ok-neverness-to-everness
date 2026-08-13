@@ -142,8 +142,7 @@ class Baicang(BaseChar):
                 ready_streak += 1
                 if ready_streak == 1:
                     self.logger.info(
-                        f"skill ready streak="
-                        f"{ready_streak}/{self.SKILL_READY_STREAK_THRESHOLD}"
+                        f"skill ready streak={ready_streak}/{self.SKILL_READY_STREAK_THRESHOLD}"
                     )
             else:
                 if ready_streak > 0:
@@ -194,7 +193,7 @@ class Baicang(BaseChar):
 
     def _try_second_skill(self, context: CombatContext = None):
         """检查 reservation 后发送第二 E。"""
-        if context is not None and not context.can_execute_action(self, slot=ActionSlot.SKILL):
+        if context is not None and not context.is_slot_available(self, slot=ActionSlot.SKILL):
             self.logger.info("second skill blocked by reservation")
             return False
 

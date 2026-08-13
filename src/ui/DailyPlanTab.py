@@ -1,0 +1,449 @@
+from ok import og
+from ok.gui.common.design_system import DesignToken, configure_page_layout
+from ok.gui.common.style_sheet import StyleSheet
+from ok.gui.tasks.TaskCard import TaskCard
+from ok.gui.widget.CustomTab import CustomTab
+from PySide6.QtCore import QEasingCurve, QPointF, QPropertyAnimation, Qt, Signal
+from PySide6.QtGui import QColor, QPainter
+from PySide6.QtWidgets import (
+    QGraphicsOpacityEffect,
+    QHBoxLayout,
+    QLabel,
+    QSizePolicy,
+    QWidget,
+    QWidgetItem,
+)
+from qfluentwidgets import (
+    CheckBox,
+    ExpandLayout,
+    FluentIcon,
+    PushButton,
+    ScrollArea,
+    isDarkTheme,
+)
+
+from src.tasks.daily.DailyPlanTask import DailyPlanEntry, DailyPlanTask, selection_is_complete
+from src.ui.common import FluentSystemIcon
+
+
+class _DragHandle(QWidget):
+    def __init__(self, plan_tab, plan_card, parent=None):
+        super().__init__(parent)
+        self.plan_tab = plan_tab
+        self.plan_card = plan_card
+        self.press_position = QPointF()
+        self.dragging = False
+        self.setFixedSize(24, 40)
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        self.setAccessibleName("Drag to reorder")
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        color = QColor(255, 255, 255, 105) if isDarkTheme() else QColor(0, 0, 0, 95)
+        painter.setPen(Qt.PenStyle.NoPen)
+        painter.setBrush(color)
+        for row in range(3):
+            for column in range(2):
+                painter.drawEllipse(8 + column * 5, 14 + row * 5, 2, 2)
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.press_position = event.globalPosition()
+            self.dragging = False
+            self.grabMouse()
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+            event.accept()
+            return
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        if not event.buttons() & Qt.MouseButton.LeftButton:
+            super().mouseMoveEvent(event)
+            return
+        if not self.dragging:
+            if (event.globalPosition() - self.press_position).manhattanLength() < 8:
+                return
+            self.dragging = True
+            self.plan_tab.start_drag(self.plan_card, event.globalPosition())
+            self.plan_card.set_dragging(True)
+        self.plan_tab.move_drag(self.plan_card, event.globalPosition())
+        event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self.setCursor(Qt.CursorShape.OpenHandCursor)
+        if event.button() == Qt.MouseButton.LeftButton:
+            self.releaseMouse()
+            if self.dragging:
+                self.plan_card.set_dragging(False)
+                self.plan_tab.finish_drag(self.plan_card)
+            event.accept()
+            return
+        super().mouseReleaseEvent(event)
+
+
+class DailyPlanCardLayout(ExpandLayout):
+    """Lay out the Daily Plan's expandable cards and support drag reordering."""
+
+    def addCard(self, card):
+        if self.indexOf(card) >= 0:
+            return
+
+        parent = self.parentWidget()
+        if parent is not None and card.parentWidget() is not parent:
+            card.setParent(parent)
+
+        super().addWidget(card)
+        self.addItem(QWidgetItem(card))
+        card.show()
+        self.invalidate()
+
+    def removeCard(self, card):
+        index = self.indexOf(card)
+        if index >= 0:
+            item = self.takeAt(index)
+            if widget := item.widget():
+                widget.removeEventFilter(self)
+            self.invalidate()
+
+    def moveCard(self, card, index):
+        cards = self.cards()
+        try:
+            current_index = cards.index(card)
+        except ValueError:
+            return
+
+        index = max(0, min(index, len(cards) - 1))
+        if index == current_index:
+            return
+
+        cards.insert(index, cards.pop(current_index))
+        self._replace_cards(cards)
+        self.activate()
+
+    def cards(self):
+        return [self.itemAt(index).widget() for index in range(self.count())]
+
+    def _replace_cards(self, cards):
+        while self.count():
+            item = self.takeAt(0)
+            if widget := item.widget():
+                widget.removeEventFilter(self)
+
+        for card in cards:
+            self.addCard(card)
+
+
+class _DailyPlanCard(TaskCard):
+    enabled_changed = Signal(str, bool)
+    expansion_changed = Signal(bool)
+
+    def __init__(self, entry: DailyPlanEntry, task, plan_tab, enabled):
+        with plan_tab._plan_task().daily_task_card_context(entry.task_id, task):
+            super().__init__(task, True)
+        self.entry = entry
+        self.task = task
+        self.plan_tab = plan_tab
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.button_container.hide()
+        self._drag_effect = None
+
+        self.drag_handle = _DragHandle(plan_tab, self, self.card)
+        self.enabled_check = CheckBox(self.card)
+        self.enabled_check.setFixedSize(24, 24)
+        self.enabled_check.setAccessibleName("Include in this daily plan")
+        self.enabled_check.setChecked(True)
+        self.card.hBoxLayout.insertWidget(0, self.drag_handle, 0, Qt.AlignmentFlag.AlignVCenter)
+        self.card.hBoxLayout.insertSpacing(1, 8)
+        self.card.hBoxLayout.insertWidget(2, self.enabled_check, 0, Qt.AlignmentFlag.AlignVCenter)
+        self.card.hBoxLayout.insertSpacing(3, 8)
+
+        self.enabled_check.toggled.connect(
+            lambda checked: self.enabled_changed.emit(self.entry.task_id, checked)
+        )
+        self.set_enabled(enabled)
+
+    def set_enabled(self, enabled):
+        self.enabled_check.blockSignals(True)
+        self.enabled_check.setChecked(enabled)
+        self.enabled_check.blockSignals(False)
+        if enabled:
+            self.card.titleLabel.setGraphicsEffect(None)
+        else:
+            opacity_effect = QGraphicsOpacityEffect(self.card.titleLabel)
+            opacity_effect.setOpacity(0.5)
+            self.card.titleLabel.setGraphicsEffect(opacity_effect)
+
+    def setExpand(self, isExpand):
+        was_expanded = getattr(self, "isExpand", False)
+        super().setExpand(isExpand)
+        if was_expanded != self.isExpand:
+            self.expansion_changed.emit(self.isExpand)
+
+    def set_dragging(self, dragging):
+        if dragging:
+            effect = QGraphicsOpacityEffect(self)
+            effect.setOpacity(0.0)
+            self._drag_effect = effect
+            self.setGraphicsEffect(effect)
+            return
+        self.setGraphicsEffect(None)
+        self._drag_effect = None
+
+
+class DailyPlanTab(CustomTab):
+    ACTION_BAR_HEIGHT = 72
+
+    def __init__(self):
+        super().__init__()
+        self.setObjectName("DailyPlanTab")
+        self.icon = FluentIcon.CALENDAR
+        self.tr_name = og.app.tr("日常任务")
+        self._rendered = False
+        self._cards = {}
+        self._task_control_card = None
+        self._order_changed = False
+        self._drag_proxy = None
+        self._drag_animations = []
+        self._drag_offset = None
+        self.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.vBoxLayout.setContentsMargins(0, 0, 0, 0)
+        self.vBoxLayout.setSpacing(0)
+
+        self.plan_scroll_area = ScrollArea(self.view)
+        self.plan_scroll_area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.plan_scroll_area.setWidgetResizable(True)
+        StyleSheet.TAB.apply(self.plan_scroll_area)
+
+        self.plan_view = QWidget(self.plan_scroll_area)
+        self.plan_view.setObjectName("view")
+        self.plan_layout = DailyPlanCardLayout(self.plan_view)
+        configure_page_layout(self.plan_layout)
+        self.plan_scroll_area.setWidget(self.plan_view)
+        self.vBoxLayout.addWidget(self.plan_scroll_area, 1)
+
+        self.action_bar = QWidget(self.view)
+        self.action_bar.setObjectName("dailyPlanActionBar")
+        self.action_bar.setFixedHeight(self.ACTION_BAR_HEIGHT)
+
+        action_layout = QHBoxLayout(self.action_bar)
+        action_layout.setContentsMargins(DesignToken.PAGE_MARGIN, 12, DesignToken.PAGE_MARGIN, 12)
+        action_layout.setSpacing(16)
+        self.select_all_check = CheckBox(self.tr("全选"), self.action_bar)
+        self.collapse_button = PushButton(
+            FluentSystemIcon.CHEVRON_UP_DOWN, self.tr("全部展开"), self.action_bar
+        )
+        self.reset_button = PushButton(FluentIcon.CANCEL, self.tr("重置配置"), self.action_bar)
+        action_layout.addWidget(self.select_all_check)
+        action_layout.addWidget(self.collapse_button)
+        action_layout.addWidget(self.reset_button)
+        action_layout.addStretch(1)
+        self.action_layout = action_layout
+        self.vBoxLayout.addWidget(self.action_bar)
+
+        self.select_all_check.toggled.connect(self._set_all_selected)
+        self.collapse_button.clicked.connect(self._toggle_all_expansion)
+        self.reset_button.clicked.connect(self._reset_plan)
+
+    @property
+    def executor(self):
+        return self._executor
+
+    @executor.setter
+    def executor(self, value):
+        self._executor = value
+        if value is not None and getattr(self, "_rendered", False) is False:
+            self._render_plan()
+
+    @property
+    def name(self):
+        return self.tr_name
+
+    def _plan_task(self):
+        if self.executor is None:
+            return None
+        return self.get_task(DailyPlanTask)
+
+    def _render_plan(self):
+        plan_task = self._plan_task()
+        if plan_task is None:
+            return
+        while self.plan_layout.count():
+            layout_item = self.plan_layout.takeAt(0)
+            if widget := layout_item.widget():
+                widget.deleteLater()
+        self._cards.clear()
+        for plan_item in plan_task.normalize_items():
+            entry = plan_task.entries_by_id()[plan_item["id"]]
+            task = plan_task.task_for_id(entry.task_id)
+            if task is None:
+                continue
+            card = _DailyPlanCard(entry, task, self, plan_item["enabled"])
+            card.setParent(self.plan_view)
+            card.enabled_changed.connect(self._set_enabled)
+            card.expansion_changed.connect(self._sync_expansion_control)
+            self.plan_layout.addCard(card)
+            self._cards[entry.task_id] = card
+        self._install_task_controls(plan_task)
+        self.plan_layout.invalidate()
+        self.plan_layout.activate()
+        self._rendered = True
+        self._sync_selection_controls()
+        self._sync_expansion_control()
+
+    def start_drag(self, card, global_position):
+        pixmap = card.grab()
+        self._drag_proxy = QLabel(self.plan_view)
+        self._drag_proxy.setPixmap(pixmap)
+        effect = QGraphicsOpacityEffect(self._drag_proxy)
+        effect.setOpacity(0.7)
+        self._drag_proxy.setGraphicsEffect(effect)
+
+        self._drag_offset = card.mapFromGlobal(global_position.toPoint())
+        self._drag_proxy.resize(card.size())
+
+        local_pos = self.plan_view.mapFromGlobal(global_position.toPoint()) - self._drag_offset
+        self._drag_proxy.move(card.pos().x(), local_pos.y())
+
+        self._drag_proxy.raise_()
+        self._drag_proxy.show()
+
+    def move_drag(self, card, global_position):
+        if not self._drag_proxy:
+            return
+
+        local_pos = self.plan_view.mapFromGlobal(global_position.toPoint()) - self._drag_offset
+
+        target_x = card.pos().x()
+        max_y = self.plan_view.height()
+        clamped_y = max(- self._drag_proxy.height(), min(local_pos.y(), max_y))
+        self._drag_proxy.move(target_x, clamped_y)
+
+        local_y = self._drag_proxy.geometry().center().y()
+        current_index = self.plan_layout.indexOf(card)
+        target_index = self.plan_layout.count()
+
+        for index in range(self.plan_layout.count()):
+            candidate = self.plan_layout.itemAt(index).widget()
+            if candidate and candidate is not card:
+                if local_y < candidate.geometry().center().y():
+                    target_index = index
+                    break
+
+        if target_index > current_index:
+            target_index -= 1
+
+        if target_index != current_index:
+            self.plan_view.setUpdatesEnabled(False)
+            old_positions = {}
+            for index in range(self.plan_layout.count()):
+                w = self.plan_layout.itemAt(index).widget()
+                if w:
+                    old_positions[w] = w.pos()
+
+            self.plan_layout.moveCard(card, target_index)
+
+            self._drag_animations.clear()
+
+            for index in range(self.plan_layout.count()):
+                w = self.plan_layout.itemAt(index).widget()
+                if w and w in old_positions:
+                    new_pos = w.pos()
+                    old_pos = old_positions[w]
+                    if new_pos != old_pos and w is not card:
+                        anim = QPropertyAnimation(w, b"pos")
+                        anim.setDuration(200)
+                        anim.setEasingCurve(QEasingCurve.Type.OutQuad)
+                        anim.setStartValue(old_pos)
+                        anim.setEndValue(new_pos)
+                        self._drag_animations.append(anim)
+                        w.move(old_pos)
+            self.plan_view.setUpdatesEnabled(True)
+            for anim in self._drag_animations:
+                anim.start()
+
+            self._order_changed = True
+
+    def finish_drag(self, card):
+        if self._drag_proxy:
+            self._drag_proxy.hide()
+            self._drag_proxy.deleteLater()
+            self._drag_proxy = None
+
+        if self._order_changed:
+            self._order_changed = False
+            self._plan_task().set_available_item_order(
+                [
+                    self.plan_layout.itemAt(index).widget().entry.task_id
+                    for index in range(self.plan_layout.count())
+                ]
+            )
+
+    def _visible_items(self):
+        return [
+            {"id": card.entry.task_id, "enabled": card.enabled_check.isChecked()}
+            for index in range(self.plan_layout.count())
+            if (card := self.plan_layout.itemAt(index).widget()) is not None
+        ]
+
+    def _sync_plan_items(self, items):
+        enabled_by_id = {item["id"]: item["enabled"] for item in items}
+        for task_id, card in self._cards.items():
+            card.set_enabled(enabled_by_id.get(task_id, False))
+        self._sync_selection_controls()
+
+    def _set_enabled(self, task_id, enabled):
+        items = self._plan_task().set_item_enabled(task_id, enabled)
+        self._sync_plan_items(items)
+
+    def _set_all_selected(self, selected):
+        items = self._plan_task().set_all_available_items_selected(selected)
+        self._sync_plan_items(items)
+
+    def _sync_selection_controls(self):
+        items = self._visible_items()
+        has_selection = any(item["enabled"] for item in items)
+        if self._task_control_card is not None:
+            plan_task = self._plan_task()
+            self._task_control_card.update_buttons(plan_task)
+            if not plan_task.enabled:
+                self._task_control_card.start_button.setEnabled(has_selection)
+        entries = {item["id"]: self._plan_task().entries_by_id()[item["id"]] for item in items}
+        is_complete = selection_is_complete(items, entries)
+        self.select_all_check.blockSignals(True)
+        self.select_all_check.setChecked(is_complete)
+        self.select_all_check.blockSignals(False)
+        self.select_all_check.setText(self.tr("取消全选") if is_complete else self.tr("全选"))
+
+    def _toggle_all_expansion(self):
+        expand = not any(card.isExpand for card in self._cards.values())
+        for card in self._cards.values():
+            card.setExpand(expand)
+
+    def _sync_expansion_control(self):
+        should_collapse = any(card.isExpand for card in self._cards.values())
+        self.collapse_button.setIcon(
+            FluentSystemIcon.CHEVRON_DOWN_UP
+            if should_collapse
+            else FluentSystemIcon.CHEVRON_UP_DOWN
+        )
+        self.collapse_button.setText(
+            self.tr("全部折叠") if should_collapse else self.tr("全部展开")
+        )
+
+    def _reset_plan(self):
+        plan_task = self._plan_task()
+        if plan_task is None:
+            return
+        plan_task.reset_items()
+        self._render_plan()
+
+    def _install_task_controls(self, plan_task):
+        if self._task_control_card is not None:
+            return
+        self._task_control_card = TaskCard(plan_task, True)
+        self._task_control_card.hide()
+        controls = self._task_control_card.button_container
+        controls.setParent(self.action_bar)
+        self.action_layout.addWidget(controls)
+        controls.show()

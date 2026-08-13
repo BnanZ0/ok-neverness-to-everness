@@ -311,10 +311,11 @@ class BaseChar:
             name: 动作名。默认 `"{角色名}_ultimate"`，用于日志和高级精确匹配。
             tags: 动作标签。默认 `{Planner.ActionTag.ULTIMATE_ACTION}`。
             reason: 切人/执行日志理由。
-            can_execute: 额外硬限制；slot reservation 由 planner 统一检查。
+            can_execute: 额外限制; 终结技不可用时禁止执行。
 
         Behavior:
             - 自动设置 `slot=Planner.ActionSlot.ULTIMATE`。
+            - `can_execute` 默认包含 `self.ultimate_available()`。
             - `priority_ready` 自动使用 `self.ultimate_available()`。
             - `execute` 调用 `self.click_ultimate()`。
             - planner 会自动用 `slot=ULTIMATE` 检查 reservation。
@@ -329,7 +330,9 @@ class BaseChar:
             execute=lambda context: self.click_ultimate(),
             name=name,
             reason=reason,
-            can_execute=can_execute,
+            can_execute=lambda context: (
+                self.ultimate_available() and (can_execute is None or can_execute(context))
+            ),
             priority_ready=lambda _: self.ultimate_available(),
         )
 
@@ -348,10 +351,11 @@ class BaseChar:
             tags: 动作标签。默认 `{Planner.ActionTag.SKILL_ACTION}`。
             reason: 切人/执行日志理由。
             down_time: 传给 `click_skill(down_time=...)` 的按下时间。
-            can_execute: 额外硬限制；slot reservation 由 planner 统一检查。
+            can_execute: 额外限制; 技能不可用时禁止执行。
 
         Behavior:
             - 自动设置 `slot=Planner.ActionSlot.SKILL`。
+            - `can_execute` 默认包含 `self.skill_available()`。
             - `priority_ready` 自动使用 `self.skill_available()`。
             - `execute` 调用 `self.click_skill(...)`。
             - planner 会自动用 `slot=SKILL` 检查 reservation。
@@ -366,7 +370,9 @@ class BaseChar:
             execute=lambda context: self.click_skill(down_time=down_time),
             name=name,
             reason=reason,
-            can_execute=can_execute,
+            can_execute=lambda context: (
+                self.skill_available() and (can_execute is None or can_execute(context))
+            ),
             priority_ready=lambda _: self.skill_available(),
         )
 
@@ -401,7 +407,7 @@ class BaseChar:
         Note:
             只要 `slot` 不为 None，`CombatPlanner` 会自动检查 reservation。
             开发者传入的 `can_execute` 只表达额外机制限制，不需要重复写
-            `context.can_execute_action(...)`。
+            `context.is_slot_available(...)`。
         """
 
         if not isinstance(tags, set):
@@ -778,8 +784,7 @@ class BaseChar:
         return animated
 
     def click_arc(self):
-        self.send_arc_key()
-        return True
+        return self.send_arc_key()
 
     def send_skill_key(self, after_sleep=0, interval=-1, down_time=0.01, action_name=None):
         """发送技能按键。
@@ -806,7 +811,7 @@ class BaseChar:
             interval (float, optional): 按键按下和释放的间隔。默认为 -1 (使用默认值)。
             down_time (float, optional): 按键按下的持续时间。默认为 0.01。
         """
-        self.send_key(
+        return self.send_key(
             self.get_arc_key(), interval=interval, down_time=down_time, after_sleep=after_sleep
         )
 

@@ -488,7 +488,8 @@ class ProcessLoopbackSource(AudioCaptureSource):
                 if pid is None:
                     self._log_gate.info(
                         f"Waiting for audio process {self.process_name}...",
-                        interval=30.0,
+                        interval=None,
+                        changed=True,
                         key=missing_log_key,
                     )
                     if self._stop.wait(PROCESS_WAIT_INTERVAL):

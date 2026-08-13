@@ -43,7 +43,7 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.name = "Gift Manager"
+        self.name = "羁遇赠礼"
         self.icon = FluentIcon.HEART
         self.visible = False
         self.manager = GiftManager()
@@ -54,13 +54,17 @@ class GiftTask(NTEOneTimeTask, BaseNTETask):
     def run(self):
         super().run()
         try:
-            self.run_gifts()
+            self.do_run()
         except TaskDisabledException:
             raise
         except Exception as e:
             self.screenshot("gift_task_failure")
             self.log_error("GiftTask error", e)
             raise
+
+    def do_run(self) -> bool:
+        summary = self.run_gifts()
+        return not summary["failed"]
 
     def run_gifts(self) -> dict:
         profiles = self.manager.get_enabled_profiles()

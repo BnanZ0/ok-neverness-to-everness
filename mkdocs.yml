@@ -56,7 +56,7 @@ nav:
   - Development:
       - Contributing: development/contributing.md
       - Running from source: development/running-from-source.md
-      - Flow author guide: development/flow.md
+      - SceneFlow author guide: development/scene_flow.md
       - Combat Planner guide: development/combat-planner.md
 
 markdown_extensions:

@@ -1,4 +1,4 @@
-﻿import inspect
+import inspect
 import re
 import threading
 import time
@@ -22,9 +22,9 @@ from src.Labels import Labels
 from src.scene.NTEScene import NTEScene
 from src.scene.ScreenPosition import ScreenPosition
 from src.tasks.mixin.CharUIMixin import CharUIMixin
-from src.tasks.mixin.FlowTaskMixin import FlowTaskMixin
 from src.tasks.mixin.MovementMixin import MovementMixin
 from src.tasks.mixin.OgMixin import OgMixin
+from src.tasks.mixin.SceneFlowMixin import SceneFlowMixin
 from src.tasks.mixin.VisionMixin import VisionMixin
 from src.utils import image_utils as iu
 from src.utils import vision_utils as vu
@@ -81,7 +81,7 @@ class RoundState:
 
 
 class BaseNTETask(
-    FlowTaskMixin,
+    SceneFlowMixin,
     CharUIMixin,
     MovementMixin,
     VisionMixin,
@@ -109,7 +109,7 @@ class BaseNTETask(
         self._last_interval_action_time = {}
         self._action_interval_lock = threading.Lock()
         self._round_state = RoundState()
-        self.flow.interrupt(self.check_monthly_card, self.handle_monthly_card)
+        self.scene_flow.interrupt(self.check_monthly_card, self.handle_monthly_card)
 
     def configured_rounds(self, default=0) -> int:
         """读取统一的循环次数配置: 0 表示无限运行。"""
@@ -313,7 +313,7 @@ class BaseNTETask(
         self.sleep(after_sleep)
         return result
 
-    def send_key(self, key, down_time=0.02, interval=-1, after_sleep=0, action_name=None) -> Any:
+    def send_key(self, key, down_time=0.02, interval=-1, after_sleep=0, action_name=None) -> bool:
         if action_name is not None:
             if not self._check_action_interval(action_name, interval):
                 return False
@@ -1107,14 +1107,25 @@ class BaseNTETask(
             return False
         return True
 
-    def scroll_and_is_end(self, x, y, count, box: Box, after_sleep=0.25, threshold=0.85):
-        snapshot = box.crop_frame(self.frame)
+    def scroll_and_is_end(
+        self,
+        x,
+        y,
+        count,
+        snap_box: Box,
+        check_box: Box | None = None,
+        after_sleep=0.25,
+        threshold=0.85,
+    ):
+        if check_box is None:
+            check_box = snap_box.scale(1.2)
+        snapshot = snap_box.crop_frame(self.frame)
         self.operate(
             lambda: self.scroll(x, y, count=count),
             block=True,
         )
         self.sleep(after_sleep)
-        if self.find_one(template=snapshot, box=box.scale(1.1), threshold=threshold):
+        if self.find_one("snapshot", template=snapshot, box=check_box, threshold=threshold):
             return True
 
 

@@ -6,11 +6,12 @@ from qfluentwidgets import FluentIcon
 
 from src.Labels import Labels
 from src.tasks.BaseNTETask import BaseNTETask, interac_pink_color
+from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.tasks.trigger.SkipDialogTask import SkipDialogTask
 from src.utils import image_utils as iu
 
 
-class FountainTask(BaseNTETask):
+class FountainTask(NTEOneTimeTask, BaseNTETask):
     CONF_SIGN_MODE = "签到方式"
     SIGN_MODE_SIGN = "签到"
     SIGN_MODE_COIN = "捞币"
@@ -58,7 +59,7 @@ class FountainTask(BaseNTETask):
             self.log_error("FountainTask Error", e, notify=True)
             raise
 
-    def do_run(self, sign_mode=SIGN_MODE_SIGN):
+    def do_run(self, sign_mode=SIGN_MODE_SIGN) -> bool:
         last_error = None
         for attempt in range(1, self.TASK_RETRY_COUNT + 2):
             self._fountain_task_start = time.time()
