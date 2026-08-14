@@ -198,10 +198,6 @@ config = {
         ["src.tasks.BagelAITools", "BagelAITools"],
         ["src.tasks.WhirlwindTask", "WhirlwindTask"],
         ["src.tasks.DSDFarmTask", "DSDFarmTask"],
-        ["src.tasks.CombatDetectionTestTask", "CombatDetectionTestTask"],
-        # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
-        # ["src.tasks.DebugCharTask", "DebugCharTask"],
-        ["ok", "DiagnosisTask"],
         # 日常相关
         ["src.tasks.daily.DailyClaimTask", "DailyClaimTask"],
         ["src.tasks.daily.GiftTask", "GiftTask"],
