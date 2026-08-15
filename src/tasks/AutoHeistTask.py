@@ -11,6 +11,7 @@ from src.combat.BaseCombatTask import BaseCombatTask
 from src.heist_path.HeistEntrancePath import HeistEntrancePath
 from src.heist_path.HeistPathA import HeistPathA
 from src.heist_path.HeistPathB import HeistPathB
+from src.heist_path.HeistPathC import HeistPathC
 from src.Labels import Labels
 from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 from src.tasks.trigger.SkipDialogTask import SkipDialogTask
@@ -58,7 +59,7 @@ INST = "<br>".join(
         _inst_line("├─ 移动镜头修正：禁用", "#FE821D", bold=True, indent=2),
         _inst_line("└─ 按下锁定镜头回正：启用", "#FE821D", bold=True, indent=2),
         _inst_line("⚠️ 必备条件：至少有一个复活道具", "#FF5555", bold=True),
-        _inst_line("🥷 避战方式：翳【长按 Shift】/ 浔【长按攻击】", "#FF5555", bold=True),
+        _inst_line("🥷 避战方式：翳【长按 Shift】/ 浔【长按攻击】/残虹【点按G】", "#FF5555", bold=True),
         _inst_gap(),
         _inst_line("路径1推荐设置", bold=True),
         _inst_line("FPS: 60~120", indent=1),
@@ -75,8 +76,12 @@ INST = "<br>".join(
             indent=2,
         ),
         _inst_line("避战角色: 翳", indent=2),
+        _inst_line("路径3推荐设置", bold=True),
+        _inst_line("画质：性能 | 分辨率: 1080P | FPS: 60 | 插帧: 关闭", indent=1),
+        _inst_line("跑图角色: 薄荷", indent=1),
+        _inst_line("避战角色: 残虹(必须)", indent=2),
         # _inst_line("浔避战：", indent=1),
-        # _inst_line("战斗角色: 随意 (战斗角色随意，可塞安魂曲) / 主角 / 哈尼娅", indent=2),
+        _inst_line("战斗角色: 随意 (战斗角色随意，可塞安魂曲) / 主角 / 哈尼娅", indent=2),
         # _inst_line("避战角色: 浔", indent=2),
     ]
 )
@@ -132,6 +137,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
     ROLE_AVOIDER = "avoider"
     AVOID_METHOD_DASH = "长按shift"
     AVOID_METHOD_ATTACK = "长按攻击"
+    AVOID_METHOD_G = "点按G"
     LOCK_PICK_MATCH_THRESHOLD = 0.75
     DEFAULT_SLEEP_CHECK_INTERVAL = 1
     FAST_SLEEP_CHECK_INTERVAL = 0.1
@@ -149,9 +155,10 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.paths = {
             "路径1(路线参考自B站UP: 早柚大魔王丶)": HeistPathA,
             "路径2(在路径1基础上优化了大厅到办公层的路线)": HeistPathB,
+            "路径3(使用残虹避战，更加安全)":HeistPathC,
         }
         path_names = list(self.paths.keys())
-        self.avoid_methods = [self.AVOID_METHOD_DASH, self.AVOID_METHOD_ATTACK]
+        self.avoid_methods = [self.AVOID_METHOD_DASH, self.AVOID_METHOD_ATTACK, self.AVOID_METHOD_G]
         self.add_rounds_config()
         self.default_config.update(
             {
@@ -550,7 +557,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.sleep(1)
         rewards = self.get_heist_rewards()
         if not self.wait_click_confirm(
-            action=lambda: self.operate_click(0.604, 0.701, interval=1),
+            lambda: self.operate_click(0.604, 0.701, interval=1),
             range=(0.5359, 0.8139, 0.5852, 0.9062),
             time_out=20,
             raise_if_not_found=False,
@@ -708,7 +715,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         """返回避战策略索引。
 
         `-1` 表示未配置避战角色，路径应走无避战角色的路线；
-        `0` 表示长按 shift，`1` 表示长按攻击。
+        `0` 表示长按 shift，`1` 表示长按攻击,'2'表示点按G
         """
         keys = self.config.get(self.CONF_AVOIDER, [])
         if not keys:
@@ -717,6 +724,10 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         if method_name not in self.avoid_methods:
             self.log_warning(f"unknown avoid method {method_name}, use {self.AVOID_METHOD_DASH}")
             return 0
+        if method_name == self.AVOID_METHOD_G:
+            return 2
+        if method_name == self.AVOID_METHOD_ATTACK:
+            return 1
         return self.avoid_methods.index(method_name)
 
     def switch_to_avoider(self, check_switched=False):
@@ -746,6 +757,10 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
             self.send_key_up("w")
         elif method_name == self.AVOID_METHOD_ATTACK:
             self.click(down_time=0.6)
+        elif method_name == self.AVOID_METHOD_G:
+            self.send_key_down("g")
+            self.sleep(1.0)
+            self.send_key_up("g")
 
     def clear_current_combat(self):
         """处理并等待当前小战斗结束。
