@@ -557,7 +557,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.sleep(1)
         rewards = self.get_heist_rewards()
         if not self.wait_click_confirm(
-            lambda: self.operate_click(0.604, 0.701, interval=1),
+            pre_action=lambda: self.operate_click(0.604, 0.701, interval=1),
             range=(0.5359, 0.8139, 0.5852, 0.9062),
             time_out=20,
             raise_if_not_found=False,

@@ -1276,5 +1276,8 @@ msgstr "Collapse All"
 msgid "全部展开"
 msgstr "Expand All"
 
-msgid "重置配置"
-msgstr "Reset Config"
+msgid "排球之星"
+msgstr "Star of Volleyball"
+
+msgid "刷经验"
+msgstr "Farm EXP"

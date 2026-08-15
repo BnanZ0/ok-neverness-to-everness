@@ -422,13 +422,20 @@ class FishingTask(NTEOneTimeTask, BaseNTETask):
         return False
 
     def wait_click_confirm(
-        self, action=None, range=None, time_out=10, settle_time=1.0, raise_if_not_found=True
+        self,
+        pre_action=None,
+        range=None,
+        on_found=None,
+        time_out=10,
+        settle_time=1.0,
+        raise_if_not_found=True,
     ):
         if range is None:
             range = (0.641, 0.610, 0.713, 0.698)
         return super().wait_click_confirm(
-            action=action,
+            pre_action=pre_action,
             range=range,
+            on_found=on_found,
             time_out=time_out,
             settle_time=settle_time,
             raise_if_not_found=raise_if_not_found,

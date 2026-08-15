@@ -167,7 +167,7 @@ class CinemaDateTask(NTEOneTimeTask, BaseNTETask):
             return False
 
         return self.wait_click_confirm(
-            action=lambda: self.operate_click(target_box, interval=1),
+            pre_action=lambda: self.operate_click(target_box, interval=1),
             range=(0.650, 0.608, 0.705, 0.707),
         )
 

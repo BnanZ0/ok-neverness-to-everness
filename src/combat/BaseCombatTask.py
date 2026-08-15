@@ -133,7 +133,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         session = self.combat_session
         if session.start_char is None:
             session.combat_start = time.time()
-            self.click()
+            self.click(after_sleep=0.25)
             self.switch_to_combat_start_char()
             session.start_char = self.get_current_char(raise_exception=False)
             logger.info(f"combat session started, start char: {session.start_char}")
@@ -666,7 +666,7 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
             free_intro (bool, optional): 是否强制认为拥有入场技 (通常在协奏值满时)。默认为 False。
         """
         if not self.combat_session.switch_enabled or self.team_size <= 1:
-            self.click(action_name="switch_char_click", interval=0.1)
+            self.click(after_sleep=0.1)
             return
 
         decision = self.combat_planner.decide_switch(

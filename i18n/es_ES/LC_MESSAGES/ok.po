@@ -1276,5 +1276,8 @@ msgstr "Contraer todo"
 msgid "全部展开"
 msgstr "Expandir todo"
 
-msgid "重置配置"
-msgstr "Restablecer conf."
+msgid "排球之星"
+msgstr "Estrella del voleibol"
+
+msgid "刷经验"
+msgstr "Farmear EXP"

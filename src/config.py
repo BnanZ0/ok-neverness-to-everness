@@ -187,7 +187,7 @@ config = {
     ],  # 可选. 全局单例对象, 可以存放加载的模型, 使用og.my_app调用
     "onetime_tasks": [  # 用户点击触发的任务
         ["src.tasks.LauncherTask", "LauncherTask"],
-        ["src.tasks.daily.DailyPlanTask", "DailyPlanTask"],
+        ["src.tasks.daily.DailyRoutineTask", "DailyRoutineTask"],
         ["src.tasks.FishingTask", "FishingTask"],
         ["src.tasks.AnomalyTask", "AnomalyTask"],
         ["src.tasks.AnomalyHunter", "AnomalyHunter"],
@@ -198,9 +198,10 @@ config = {
         ["src.tasks.BagelAITools", "BagelAITools"],
         ["src.tasks.WhirlwindTask", "WhirlwindTask"],
         ["src.tasks.DSDFarmTask", "DSDFarmTask"],
+        ["src.tasks.AutoBidAuctionTask", "AutoBidAuctionTask"],
+        ["src.tasks.VolleyballTask", "VolleyballTask"],        
+        # 测试相关
         ["src.tasks.CombatDetectionTestTask", "CombatDetectionTestTask"],
-        # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
-        # ["src.tasks.DebugCharTask", "DebugCharTask"],
         ["ok", "DiagnosisTask"],
         # 日常相关
         ["src.tasks.daily.DailyClaimTask", "DailyClaimTask"],
@@ -209,6 +210,8 @@ config = {
         ["src.tasks.daily.FountainTask", "FountainTask"],
         ["src.tasks.daily.FurnitureTask", "FurnitureTask"],
         ["src.tasks.daily.CinemaDateTask", "CinemaDateTask"],
+        # ["src.tasks.custom.TeamScannerTask", "TeamScannerTask"],
+        # ["src.tasks.DebugCharTask", "DebugCharTask"],
     ],
     "trigger_tasks": [  # 不断执行的触发式任务
         ["src.tasks.trigger.AutoCombatTask", "AutoCombatTask"],
@@ -219,7 +222,7 @@ config = {
         ["src.tasks.trigger.AutoLoginTask", "AutoLoginTask"],
     ],
     "custom_tabs": [
-        ["src.ui.DailyPlanTab", "DailyPlanTab"],
+        ["src.ui.DailyRoutineTab", "DailyRoutineTab"],
         ["src.ui.GiftManagerTab", "GiftManagerTab"],
         ["src.ui.CharHubTab", "CharHubTab"],
         ["src.ui.MidiPlayerTab", "MidiPlayerTab"],

@@ -8,6 +8,7 @@ class Iroi(Support):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self._mouse_pressed = False
 
     def combat_plan(self, context):
         skill = self.click_skill_action()
@@ -23,14 +24,15 @@ class Iroi(Support):
 
     def click_ultimate(self, send_click=True, wait_if_no_cd=0):
         try:
-            ret = super().click_ultimate(send_click=send_click, wait_if_no_cd=wait_if_no_cd)
-            if ret:
+            if ret := super().click_ultimate(send_click=send_click, wait_if_no_cd=wait_if_no_cd):
                 self.sleep(0.7)
             return ret
         finally:
-            if ret:
+            if self._mouse_pressed:
                 self.task.mouse_up()
+            self._mouse_pressed = False
 
     def _wait_ultimate_unfreeze(self, start, click=False):
         self.task.mouse_down()
+        self._mouse_pressed = True
         return super()._wait_ultimate_unfreeze(start=start, click=click)

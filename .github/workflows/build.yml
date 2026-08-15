@@ -1,67 +1,70 @@
-name: Build
+name: Windows Release
+run-name: Windows release · ${{ github.ref_name }}
 
 on:
   push:
-    # Sequence of patterns matched against refs/tags
     tags:
       - 'v*'
 
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: '3.12'
+  PYTHONIOENCODING: 'UTF-8'
+  PYTHONLEGACYWINDOWSSTDIO: 'UTF-8'
+  SIGN_BUILD: 'true'
+  SIGN_SETUP: 'false'
+  BUILD_EXE: 'true'
+  USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.2.25'
+
+defaults:
+  run:
+    shell: pwsh
+
 jobs:
   build:
-
+    name: Build and release
     runs-on: windows-latest
-
-    env:
-      PYTHONIOENCODING: 'UTF-8'
-      SIGN_BUILD: 'true'
-      SIGN_SETUP: 'false'
-      BUILD_EXE: 'true'
-      USE_RELEASE: 'https://api.github.com/repos/BnanZ0/ok-nte/releases/tags/v1.2.25'
-
-    strategy:
-      matrix:
-        python-version: [ 3.12 ]
-
     permissions:
       actions: write
       contents: write
 
     steps:
-      - name: Configure git
+      - name: Configure runner
         run: |
           [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
           git config --global core.autocrlf false
           git config --global core.eol lf
           git config --global user.email "110257560+BnanZ0@users.noreply.github.com"
           git config --global user.name "RU"
-          echo "action_state=yellow" >> $env:GITHUB_ENV
-          echo "${{ env.action_state }}"
 
-      - uses: actions/checkout@v7
+      - name: Check out source
+        uses: actions/checkout@v7
         with:
+          submodules: true
           lfs: true
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
         uses: actions/setup-python@v7
         with:
-          python-version: ${{ matrix.python-version }}
-      - name: Set UTF-8 encoding
-        run: |
-          set PYTHONIOENCODING=utf-8
-          set PYTHONLEGACYWINDOWSSTDIO=utf-8
-          echo PYTHONIOENCODING=utf-8 >> $GITHUB_ENV
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
-        run: |
-          pip install -r requirements.txt
+        run: python -m pip install -r requirements.txt
 
-      - name: inline_ok_requirements #把ok-script加入源码, 从requirements.txt中删除以提高升级更新速度
-        run: |
-          python -m ok.update.inline_ok_requirements --tag ${{ github.ref_name }}
+      - name: Prepare release requirements
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: python -m ok.update.inline_ok_requirements --tag "$env:RELEASE_TAG"
 
       - name: Run tests
-        # Keep release and signing credentials out of test process environment.
+        # Keep release and signing credentials out of the test process environment.
         env:
           GITHUB_TOKEN: ''
           GH_TOKEN: ''
@@ -87,59 +90,57 @@ jobs:
 
           python -m unittest discover -s tests -p "*test*.py" --top-level-directory . -v
 
-      - name: Sync Repositories # 同步部分代码(deploy.txt中), 合并tag中间更新日志, 到更新库, 以减少用户更新使用的git库大小
-        id: sync   # Give the step an ID to access its outputs
-        uses: ok-oldking/partial-sync-repo@bbd55c1dffbcc1292a12295d949e7807b35ea93e # Replace with your action path
+      - name: Synchronize update repository
+        id: sync
+        uses: ok-oldking/partial-sync-repo@bbd55c1dffbcc1292a12295d949e7807b35ea93e
         with:
           repos: |
             https://cnb:${{ secrets.CNB_GH }}@cnb.cool/BnanZ0/ok-nte-update.git
-          #  https://BnanZ0:${{ secrets.OK_GH }}@github.com/BnanZ0/ok-nte-update.git
           sync_list: 'deploy.txt'
           tag: ${{ github.ref_name }}
           gitignore_file: '.update_repo_gitignore'
-          show_author: true #在更新日志中加入作者
+          show_author: true
 
       - name: Check release version
-        id: release-version
+        id: release_version
         if: env.BUILD_EXE == 'true'
-        shell: pwsh
         env:
-          REF_NAME: ${{ github.ref_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: |
-          $tag = $env:REF_NAME
-          $isRelease = $tag -match '^v?\d+\.\d+\.\d+$'
+          $isRelease = $env:RELEASE_TAG -match '^v?\d+\.\d+\.\d+$'
           "is_release=$($isRelease.ToString().ToLowerInvariant())" >> $env:GITHUB_OUTPUT
           Write-Host "Release version: $isRelease"
 
-      - name: pyappify build-exe-only use_release
-        id: build-exe-only-use_release
-        uses: ok-oldking/pyappify-action@master #使用pyappify打包exe
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.USE_RELEASE != ''
+      - name: Reuse base executable
+        id: reuse_executable
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.USE_RELEASE != ''
+        uses: ok-oldking/pyappify-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # 使用上一个稳定版本的 Release 来获取已打包的启动器，从而跳过耗时的打包过程
           use_release: ${{ env.USE_RELEASE }}
 
-      - name: pyappify build-exe-only
-        id: build-exe-only
+      - name: Build portable executable
+        id: build_executable
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.USE_RELEASE == ''
         uses: ok-oldking/pyappify-action@master
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.USE_RELEASE == ''
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           build_exe_only: ${{ env.SIGN_BUILD == 'true' }}
 
       - name: Upload unsigned EXE artifact
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
-        id: upload-unsigned-artifact
+        id: upload_executable
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
         uses: actions/upload-artifact@v7
         with:
           name: to-sign
-          path: ${{ steps.build-exe-only.outputs.exe-path }}
+          path: ${{ steps.build_executable.outputs.exe-path }}
+          if-no-files-found: error
 
       - name: Sign EXE
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
+        id: submit_executable_signing
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
         uses: signpath/github-action-submit-signing-request@v2
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
@@ -147,29 +148,69 @@ jobs:
           project-slug: 'ok-nte'
           signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'single-exe'
-          github-artifact-id: '${{ steps.upload-unsigned-artifact.outputs.artifact-id }}'
-          wait-for-completion: true
-          wait-for-completion-timeout-in-seconds: 60000
-          output-artifact-directory: ${{ steps.build-exe-only.outputs.exe-folder }}
+          github-artifact-id: '${{ steps.upload_executable.outputs.artifact-id }}'
+          wait-for-completion: false
 
-      - name: pyappify build-setup-exe
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true'
-        id: build-setup-exe
+      - name: Approve portable executable signing
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
+        env:
+          SIGNING_REQUEST_ID: ${{ steps.submit_executable_signing.outputs.signing-request-id }}
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+        run: |
+          $baseUrl = "https://app.signpath.io/API/v1/30cc9397-0ebf-4584-8030-12f4b872ecdc/SigningRequests/$env:SIGNING_REQUEST_ID"
+          $headers = @{ Authorization = "Bearer $env:SIGNPATH_API_TOKEN" }
+
+          Invoke-RestMethod -Method Post -Uri "$baseUrl/Approve" -Headers $headers -ContentType 'application/json' -Body '{}' -ErrorAction Stop
+
+      - name: Download signed EXE
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.USE_RELEASE == ''
+        env:
+          SIGNING_REQUEST_ID: ${{ steps.submit_executable_signing.outputs.signing-request-id }}
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          OUTPUT_DIRECTORY: ${{ steps.build_executable.outputs.exe-folder }}
+        run: |
+          $baseUrl = "https://app.signpath.io/API/v1/30cc9397-0ebf-4584-8030-12f4b872ecdc/SigningRequests/$env:SIGNING_REQUEST_ID"
+          $headers = @{ Authorization = "Bearer $env:SIGNPATH_API_TOKEN" }
+
+          $deadline = (Get-Date).AddSeconds(60000)
+          do {
+            $status = Invoke-RestMethod -Uri "$baseUrl/Status" -Headers $headers -ErrorAction Stop
+            Write-Host "SignPath status: $($status.status) ($($status.workflowStatus))"
+
+            if ($status.status -eq 'Completed') {
+              break
+            }
+            if ($status.isFinalStatus) {
+              throw "SignPath request ended with status '$($status.status)' ($($status.workflowStatus))."
+            }
+            if ((Get-Date) -ge $deadline) {
+              throw 'Timed out waiting for SignPath to sign the EXE.'
+            }
+
+            Start-Sleep -Seconds 10
+          } while ($true)
+
+          $archivePath = Join-Path $env:RUNNER_TEMP 'signed-executable.zip'
+          Invoke-WebRequest -Uri "$baseUrl/SignedArtifact" -Headers $headers -OutFile $archivePath -ErrorAction Stop
+          Expand-Archive -LiteralPath $archivePath -DestinationPath $env:OUTPUT_DIRECTORY -Force
+
+      - name: Build setup executable
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true'
         uses: ok-oldking/pyappify-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload unsigned setup EXE artifact
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.SIGN_SETUP == 'true'
-        id: upload-unsigned-setup-artifact
+      - name: Upload unsigned setup executable
+        id: upload_setup
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.SIGN_SETUP == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: setup-to-sign
           path: pyappify_dist/*setup.exe
           if-no-files-found: error
 
-      - name: Sign setup EXEs
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.SIGN_SETUP == 'true'
+      - name: Sign setup executables
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && env.SIGN_BUILD == 'true' && env.SIGN_SETUP == 'true'
         uses: signpath/github-action-submit-signing-request@v2
         with:
           api-token: '${{ secrets.SIGNPATH_API_TOKEN }}'
@@ -177,25 +218,25 @@ jobs:
           project-slug: 'ok-nte'
           signing-policy-slug: 'release-signing'
           artifact-configuration-slug: 'setupexe'
-          github-artifact-id: '${{ steps.upload-unsigned-setup-artifact.outputs.artifact-id }}'
+          github-artifact-id: '${{ steps.upload_setup.outputs.artifact-id }}'
           wait-for-completion: true
           wait-for-completion-timeout-in-seconds: 60000
-          output-artifact-directory: 'pyappify_dist'
+          output-artifact-directory: pyappify_dist
 
       - name: Release
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           body: |
-            ###  更新日志 ${{ steps.sync.outputs.start_tag }} -> ${{ steps.sync.outputs.end_tag }}:
+            ### 更新日志 ${{ steps.sync.outputs.start_tag }} -> ${{ steps.sync.outputs.end_tag }}:
               ${{ steps.sync.outputs.changes_with_asterisk }}
             ### 下载包说明
               * [ok-nte-win32-China-setup.exe](https://github.com/BnanZ0/ok-nte/releases/download/${{ github.ref_name }}/ok-nte-win32-China-setup.exe) 完整安装包, 更新使用阿里云+腾讯CNB.
-              * [ok-nte-win32-online-setup.exe](https://github.com/BnanZ0/ok-nte/releases/download/${{ github.ref_name }}/ok-nte-win32-online-setup.exe) 在线安装包, 在线白嫖的服务器不一定稳定, 建议优先使用完整包. 
-              * [ok-nte-win32-Global-setup.exe](https://github.com/BnanZ0/ok-nte/releases/download/${{ github.ref_name }}/ok-nte-win32-Global-setup.exe) full package with dependencies, using GitHub and PyPi as update source 
-              * 不要下载ok-nte-win32.zip,和SourceCode.zip, Do Not Download the SourceCode, ok-nte-win32.zip            
+              * [ok-nte-win32-online-setup.exe](https://github.com/BnanZ0/ok-nte/releases/download/${{ github.ref_name }}/ok-nte-win32-online-setup.exe) 在线安装包, 在线白嫖的服务器不一定稳定, 建议优先使用完整包.
+              * [ok-nte-win32-Global-setup.exe](https://github.com/BnanZ0/ok-nte/releases/download/${{ github.ref_name }}/ok-nte-win32-Global-setup.exe) full package with dependencies, using GitHub and PyPi as update source
+              * 不要下载ok-nte-win32.zip,和SourceCode.zip, Do Not Download the SourceCode, ok-nte-win32.zip
             ### 如果无法下载或下载慢, 可以使用其他下载源
               * [Mirror酱下载渠道](https://mirrorchyan.com/zh/projects?rid=ok-nte&channel=stable), 国内网页直链, 下载需要购买CD-KEY, 已有Mirror酱CD-KEY可免费下载
               * [百度网盘](https://pan.baidu.com/s/102Mh1djq2B1T-cIJhct9Gg?pwd=okww) 免费下载
@@ -205,11 +246,11 @@ jobs:
           make_latest: true
           files: pyappify_dist/*
 
-      - name: Trigger MirrorChyanUploading
-        if: env.BUILD_EXE == 'true' && steps.release-version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
+      - name: Trigger MirrorChyan workflows
+        if: env.BUILD_EXE == 'true' && steps.release_version.outputs.is_release == 'true' && startsWith(github.ref, 'refs/tags/')
         shell: bash
-        run: |
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release.yml -f tag=${{ github.ref_name }}
-          gh workflow run --repo $GITHUB_REPOSITORY mirrorchyan_release_note.yml -f tag=${{ github.ref_name }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_release.yml -f tag=${{ github.ref_name }}
+          gh workflow run --repo "$GITHUB_REPOSITORY" mirrorchyan_release_note.yml -f tag=${{ github.ref_name }}

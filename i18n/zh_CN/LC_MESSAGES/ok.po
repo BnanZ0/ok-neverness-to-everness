@@ -1259,5 +1259,8 @@ msgstr ""
 msgid "全部展开"
 msgstr ""
 
-msgid "重置配置"
+msgid "排球之星"
+msgstr ""
+
+msgid "刷经验"
 msgstr ""

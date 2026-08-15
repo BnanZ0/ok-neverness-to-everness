@@ -171,7 +171,7 @@ class OwnerSelectionTask(NTEOneTimeTask, RecordTask):
         # 步骤4：关闭结果界面 → 结算确认
         self.info_set("当前阶段", "结算确认")
         self.wait_click_confirm(
-            action=lambda: self.operate_click(
+            pre_action=lambda: self.operate_click(
                 *self.POS_CLOSE, action_name="settle_reward", interval=1
             ),
             range=(0.629, 0.734, 0.688, 0.819),

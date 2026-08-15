@@ -110,7 +110,7 @@
         },
         {
             "id": 18,
-            "file_name": "images/10.png",
+            "file_name": "images/11.png",
             "width": 1920,
             "height": 1080
         },
@@ -176,13 +176,13 @@
         },
         {
             "id": 29,
-            "file_name": "images/11.png",
+            "file_name": "images/12.png",
             "width": 1600,
             "height": 900
         },
         {
             "id": 30,
-            "file_name": "images/9.png",
+            "file_name": "images/10.png",
             "width": 2560,
             "height": 1440
         },
@@ -200,7 +200,7 @@
         },
         {
             "id": 34,
-            "file_name": "images/0.png",
+            "file_name": "images/9.png",
             "width": 2560,
             "height": 1440
         },
@@ -225,6 +225,18 @@
         {
             "id": 39,
             "file_name": "images/4.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 40,
+            "file_name": "images/1.png",
+            "width": 2560,
+            "height": 1440
+        },
+        {
+            "id": 43,
+            "file_name": "images/0.png",
             "width": 2560,
             "height": 1440
         }
@@ -1269,6 +1281,45 @@
             ],
             "area": 7875,
             "iscrowd": 0
+        },
+        {
+            "id": 81,
+            "image_id": 40,
+            "category_id": 81,
+            "bbox": [
+                1103,
+                1085,
+                47,
+                48
+            ],
+            "area": 2256,
+            "iscrowd": 0
+        },
+        {
+            "id": 82,
+            "image_id": 34,
+            "category_id": 82,
+            "bbox": [
+                64,
+                27,
+                70,
+                77
+            ],
+            "area": 5390,
+            "iscrowd": 0
+        },
+        {
+            "id": 83,
+            "image_id": 43,
+            "category_id": 83,
+            "bbox": [
+                91,
+                1165,
+                65,
+                64
+            ],
+            "area": 4160,
+            "iscrowd": 0
         }
     ],
     "categories": [
@@ -1670,6 +1721,21 @@
         {
             "id": 80,
             "name": "zankou_skill_purple",
+            "supercategory": ""
+        },
+        {
+            "id": 81,
+            "name": "no_remind_today",
+            "supercategory": ""
+        },
+        {
+            "id": 82,
+            "name": "in_domain_2",
+            "supercategory": ""
+        },
+        {
+            "id": 83,
+            "name": "volleyball_restart",
             "supercategory": ""
         }
     ]

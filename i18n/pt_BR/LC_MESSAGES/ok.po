@@ -1004,5 +1004,8 @@ msgstr "Recolher Tudo"
 msgid "全部展开"
 msgstr "Expandir Tudo"
 
-msgid "重置配置"
-msgstr "Redefinir conf."
+msgid "排球之星"
+msgstr "Estrela do Vôlei"
+
+msgid "刷经验"
+msgstr "Farmar EXP"

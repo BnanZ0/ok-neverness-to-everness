@@ -1,27 +1,28 @@
-from types import SimpleNamespace
 import unittest
-from unittest.mock import Mock
+from types import SimpleNamespace
+from unittest.mock import Mock, patch
 
 from src.tasks.AnomalyHunter import AnomalyHunter
 from src.tasks.AnomalyTask import AnomalyTask
 from src.tasks.BaseNTETask import BaseNTETask
-from src.tasks.daily.DailyPlanTask import (
-    DailyPlanTask,
-    plan_has_active_tasks,
-    selected_plan_tasks,
+from src.tasks.daily.DailyRoutineTask import (
+    DailyRoutineTask,
+    routine_has_active_tasks,
+    selected_routine_tasks,
     selection_is_complete,
-    start_plan_tasks,
+    start_routine_tasks,
 )
 
 
-class TestDailyPlanConfig(unittest.TestCase):
-    def _plan_task(self, items):
-        task = object.__new__(DailyPlanTask)
-        task.config = {DailyPlanTask.CONF_ITEMS: items}
+class TestDailyRoutineConfig(unittest.TestCase):
+    def _routine_task(self, items):
+        task = object.__new__(DailyRoutineTask)
+        task.config = {DailyRoutineTask.CONF_ITEMS: items}
+        task.routine_task_configs = {}
         return task
 
     def test_normalize_appends_missing_items_and_keeps_defaults(self):
-        task = self._plan_task([{"id": "daily_claim", "enabled": False}])
+        task = self._routine_task([{"id": "daily_claim", "enabled": False}])
 
         items = task.normalize_items()
 
@@ -30,7 +31,7 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertIn({"id": "daily_anomaly", "enabled": True}, items)
 
     def test_normalize_keeps_first_enabled_task_in_exclusive_group(self):
-        task = self._plan_task(
+        task = self._routine_task(
             [
                 {"id": "daily_anomaly_hunter", "enabled": True},
                 {"id": "daily_anomaly", "enabled": True},
@@ -43,15 +44,26 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertIn("daily_anomaly_hunter", enabled)
         self.assertNotIn("daily_anomaly", enabled)
 
-    def test_anomaly_plan_entries_use_the_original_task_classes(self):
-        entries = DailyPlanTask.entries_by_id()
+    def test_anomaly_routine_entries_use_the_original_task_classes(self):
+        entries = DailyRoutineTask.entries_by_id()
 
         self.assertIs(entries["daily_anomaly"].task_class, AnomalyTask)
         self.assertIs(entries["daily_anomaly_hunter"].task_class, AnomalyHunter)
 
-    def test_daily_task_config_is_saved_in_the_plan_without_changing_normal_config(self):
-        plan_task = self._plan_task([])
-        plan_task.config[DailyPlanTask.CONF_TASK_CONFIGS] = {}
+    @patch("src.tasks.daily.DailyRoutineTask.Config")
+    def test_on_create_uses_a_separate_task_config_store(self, config_class):
+        task = self._routine_task([])
+
+        task.on_create()
+
+        config_class.assert_called_once_with(
+            DailyRoutineTask.TASK_CONFIGS_FILE_NAME,
+            DailyRoutineTask.default_task_configs(),
+        )
+        self.assertIs(task.routine_task_configs, config_class.return_value)
+
+    def test_daily_task_config_is_saved_separately_without_changing_normal_config(self):
+        routine_task = self._routine_task([])
         normal_config = {"领取邮件": True}
         candidate = SimpleNamespace(
             config=normal_config,
@@ -60,24 +72,24 @@ class TestDailyPlanConfig(unittest.TestCase):
             config_type={},
         )
 
-        config = plan_task.daily_task_config("daily_claim", candidate)
+        config = routine_task.daily_task_config("daily_claim", candidate)
         config["领取邮件"] = False
 
         self.assertEqual(normal_config, {"领取邮件": True})
         self.assertEqual(
-            plan_task.config[DailyPlanTask.CONF_TASK_CONFIGS]["daily_claim"],
+            routine_task.routine_task_configs["daily_claim"],
             {"领取邮件": False},
         )
 
     def test_daily_anomaly_schema_hides_normal_reward_count(self):
-        plan_task = self._plan_task([])
+        routine_task = self._routine_task([])
         candidate = SimpleNamespace(
             default_config={BaseNTETask.CONF_CLAIM_REWARD_COUNT: 0},
             config_description={BaseNTETask.CONF_CLAIM_REWARD_COUNT: "normal"},
             config_type={},
         )
 
-        schema = plan_task.daily_task_schema("daily_anomaly", candidate)
+        schema = routine_task.daily_task_schema("daily_anomaly", candidate)
 
         self.assertEqual(next(iter(schema.default_config)), AnomalyTask.CONF_STAMINA_TARGET)
         self.assertIn(AnomalyTask.CONF_CYCLEB_TASK_MODE, schema.default_config)
@@ -85,8 +97,8 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertNotIn(BaseNTETask.CONF_CLAIM_REWARD_COUNT, schema.config_description)
 
     def test_daily_anomaly_config_normalizes_existing_field_order(self):
-        plan_task = self._plan_task([])
-        plan_task.config[DailyPlanTask.CONF_TASK_CONFIGS] = {
+        routine_task = self._routine_task([])
+        routine_task.routine_task_configs = {
             "daily_anomaly": {
                 AnomalyTask.CONF_TASK_TYPE: AnomalyTask.TASK_EXP_COIN,
                 AnomalyTask.CONF_STAMINA_TARGET: 120,
@@ -98,18 +110,23 @@ class TestDailyPlanConfig(unittest.TestCase):
             config_type={},
         )
 
-        plan_task.daily_task_config("daily_anomaly", candidate)
+        routine_task.daily_task_config("daily_anomaly", candidate)
 
-        saved = plan_task.config[DailyPlanTask.CONF_TASK_CONFIGS]["daily_anomaly"]
+        saved = routine_task.routine_task_configs["daily_anomaly"]
         self.assertEqual(next(iter(saved)), AnomalyTask.CONF_STAMINA_TARGET)
         self.assertEqual(saved[AnomalyTask.CONF_STAMINA_TARGET], 120)
 
-    def test_daily_anomaly_cycle_is_saved_to_the_plan_config(self):
-        task = object.__new__(DailyPlanTask)
-        task.config = {DailyPlanTask.CONF_TASK_CONFIGS: {}}
-        task.task_status = {"success": [], "failed": [], "skipped": [], "pending": ["daily_anomaly"]}
+    def test_daily_anomaly_cycle_is_saved_to_the_routine_config(self):
+        task = object.__new__(DailyRoutineTask)
+        task.routine_task_configs = {}
+        task.task_status = {
+            "success": [],
+            "failed": [],
+            "skipped": [],
+            "pending": ["daily_anomaly"],
+        }
         task.current_task_key = None
-        task._active_plan_task = None
+        task._active_routine_task = None
         task.sleep_check_interval = 1
         task.info_set = Mock()
         task.log_info = Mock()
@@ -138,23 +155,23 @@ class TestDailyPlanConfig(unittest.TestCase):
         )
         task.task_for_id = Mock(return_value=child)
 
-        task._execute_plan_item({"id": "daily_anomaly", "enabled": True})
+        task._execute_routine_item({"id": "daily_anomaly", "enabled": True})
 
         self.assertIs(child.config, normal_config)
         self.assertIsNot(observed["config"], normal_config)
         self.assertIn(
             AnomalyTask.CONF_CYCLEB_TASK_MODE,
-            task.config[DailyPlanTask.CONF_TASK_CONFIGS]["daily_anomaly"],
+            task.routine_task_configs["daily_anomaly"],
         )
         self.assertNotIn(
             BaseNTETask.CONF_CLAIM_REWARD_COUNT,
-            task.config[DailyPlanTask.CONF_TASK_CONFIGS]["daily_anomaly"],
+            task.routine_task_configs["daily_anomaly"],
         )
 
     def test_selected_tasks_follow_persisted_order(self):
         first = Mock(enabled=False, running=False)
         second = Mock(enabled=False, running=False)
-        task = self._plan_task(
+        task = self._routine_task(
             [
                 {"id": "daily_claim", "enabled": True},
                 {"id": "coffee", "enabled": True},
@@ -162,23 +179,23 @@ class TestDailyPlanConfig(unittest.TestCase):
         )
         task.task_for_id = Mock(side_effect=[first, second, *[Mock() for _ in range(8)]])
 
-        selected = selected_plan_tasks(task)
+        selected = selected_routine_tasks(task)
 
         self.assertEqual(selected[:2], [first, second])
 
     def test_selected_tasks_skip_tasks_unavailable_in_the_current_language(self):
-        task = self._plan_task(
+        task = self._routine_task(
             [
                 {"id": entry.task_id, "enabled": entry.task_id == "coffee"}
-                for entry in DailyPlanTask.entries_by_id().values()
+                for entry in DailyRoutineTask.entries_by_id().values()
             ]
         )
         task.task_for_id = Mock(return_value=None)
 
-        self.assertEqual(selected_plan_tasks(task), [])
+        self.assertEqual(selected_routine_tasks(task), [])
 
     def test_full_selection_accepts_one_choice_per_exclusive_group(self):
-        entries = DailyPlanTask.entries_by_id()
+        entries = DailyRoutineTask.entries_by_id()
         items = [
             {
                 "id": entry.task_id,
@@ -196,7 +213,7 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertFalse(selection_is_complete(items, entries))
 
     def test_enabling_an_exclusive_item_disables_its_peer(self):
-        task = self._plan_task(
+        task = self._routine_task(
             [
                 {"id": "daily_anomaly", "enabled": True},
                 {"id": "daily_anomaly_hunter", "enabled": False},
@@ -210,7 +227,7 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertNotIn("daily_anomaly", enabled)
 
     def test_select_all_only_changes_tasks_available_in_the_current_language(self):
-        task = self._plan_task(
+        task = self._routine_task(
             [
                 {"id": "daily_claim", "enabled": False},
                 {"id": "gift", "enabled": True},
@@ -224,19 +241,19 @@ class TestDailyPlanConfig(unittest.TestCase):
         self.assertTrue(next(item for item in items if item["id"] == "gift")["enabled"])
 
 
-class TestDailyPlanStart(unittest.TestCase):
-    def test_starts_daily_plan_task_through_the_standard_controller(self):
-        plan_task = Mock(enabled=False, running=False)
+class TestDailyRoutineStart(unittest.TestCase):
+    def test_starts_daily_routine_task_through_the_standard_controller(self):
+        routine_task = Mock(enabled=False, running=False)
         controller = Mock()
         controller.do_start.return_value = True
 
-        started = start_plan_tasks(controller, plan_task)
+        started = start_routine_tasks(controller, routine_task)
 
         self.assertTrue(started)
-        controller.do_start.assert_called_once_with(plan_task)
+        controller.do_start.assert_called_once_with(routine_task)
 
-    def test_daily_plan_do_run_executes_selected_tasks_in_order_and_records_results(self):
-        task = object.__new__(DailyPlanTask)
+    def test_daily_routine_do_run_executes_selected_tasks_in_order_and_records_results(self):
+        task = object.__new__(DailyRoutineTask)
         task.scene = Mock()
         task.normalize_items = Mock(
             return_value=[
@@ -252,9 +269,10 @@ class TestDailyPlanStart(unittest.TestCase):
         task.info_set = Mock()
         task.ensure_main = Mock()
         task.current_task_key = None
-        task._active_plan_task = None
+        task._active_routine_task = None
         task.sleep_check_interval = 1
-        task.config = {DailyPlanTask.CONF_TASK_CONFIGS: {}}
+        task.config = {}
+        task.routine_task_configs = {}
         first = Mock(name="领取", enabled=False, running=False)
         second = Mock(name="一咖舍", enabled=False, running=False)
         for child in (first, second):
@@ -280,10 +298,11 @@ class TestDailyPlanStart(unittest.TestCase):
         second.do_run.assert_called_once_with()
 
     def test_active_task_context_delegates_sleep_checks(self):
-        task = object.__new__(DailyPlanTask)
-        task._active_plan_task = None
+        task = object.__new__(DailyRoutineTask)
+        task._active_routine_task = None
         task.sleep_check_interval = 1
-        task.config = {DailyPlanTask.CONF_TASK_CONFIGS: {}}
+        task.config = {}
+        task.routine_task_configs = {}
         normal_config = {"normal": True}
         child = SimpleNamespace(
             sleep_check_interval=0.2,
@@ -295,18 +314,18 @@ class TestDailyPlanStart(unittest.TestCase):
         )
 
         with task._active_task_context("daily_claim", child):
-            self.assertIs(task._active_plan_task, child)
+            self.assertIs(task._active_routine_task, child)
             self.assertEqual(task.sleep_check_interval, 0.2)
             self.assertIsNot(child.config, normal_config)
             task.sleep_check()
 
         child.sleep_check.assert_called_once_with()
-        self.assertIsNone(task._active_plan_task)
+        self.assertIsNone(task._active_routine_task)
         self.assertEqual(task.sleep_check_interval, 1)
         self.assertIs(child.config, normal_config)
 
-    def test_daily_plan_do_run_skips_already_active_tasks(self):
-        task = object.__new__(DailyPlanTask)
+    def test_daily_routine_do_run_skips_already_active_tasks(self):
+        task = object.__new__(DailyRoutineTask)
         task.scene = Mock()
         task.normalize_items = Mock(return_value=[{"id": "daily_claim", "enabled": True}])
         task.log_info = Mock()
@@ -320,6 +339,6 @@ class TestDailyPlanStart(unittest.TestCase):
         task.task_for_id.assert_called_once_with("daily_claim")
 
     def test_active_task_detection(self):
-        self.assertTrue(plan_has_active_tasks([SimpleNamespace(enabled=True, running=False)]))
-        self.assertTrue(plan_has_active_tasks([SimpleNamespace(enabled=False, running=True)]))
-        self.assertFalse(plan_has_active_tasks([SimpleNamespace(enabled=False, running=False)]))
+        self.assertTrue(routine_has_active_tasks([SimpleNamespace(enabled=True, running=False)]))
+        self.assertTrue(routine_has_active_tasks([SimpleNamespace(enabled=False, running=True)]))
+        self.assertFalse(routine_has_active_tasks([SimpleNamespace(enabled=False, running=False)]))

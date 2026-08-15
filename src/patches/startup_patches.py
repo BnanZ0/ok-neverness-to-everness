@@ -9,6 +9,8 @@ def install_startup_patches():
         return
 
     from src.patches.i18n_patch import install_i18n_patch
+    from src.patches.task_tab_patch import install_task_tab_patch
 
     install_i18n_patch()
+    install_task_tab_patch()
     _PATCH_INSTALLED = True

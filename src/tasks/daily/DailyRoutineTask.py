@@ -3,6 +3,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 
 from ok import TaskDisabledException
+from ok.util.config import Config
 from qfluentwidgets import FluentIcon
 
 from src.tasks.AnomalyHunter import AnomalyHunter
@@ -18,7 +19,7 @@ from src.tasks.NTEOneTimeTask import NTEOneTimeTask
 
 
 @dataclass(frozen=True)
-class DailyPlanEntry:
+class DailyRoutineEntry:
     task_id: str
     task_class: type
     enabled_by_default: bool = False
@@ -26,34 +27,34 @@ class DailyPlanEntry:
     daily_config: bool = False
 
 
-DAILY_PLAN_ENTRIES = (
-    DailyPlanEntry("daily_anomaly", AnomalyTask, True, "daily_anomaly", True),
-    DailyPlanEntry("daily_anomaly_hunter", AnomalyHunter, False, "daily_anomaly", True),
-    DailyPlanEntry("coffee", CoffeeTask),
-    DailyPlanEntry("daily_claim", DailyClaimTask, True),
-    DailyPlanEntry("cinema_date", CinemaDateTask),
-    DailyPlanEntry("fountain", FountainTask),
-    DailyPlanEntry("furniture", FurnitureTask),
-    DailyPlanEntry("gift", GiftTask),
+DAILY_ROUTINE_ENTRIES = (
+    DailyRoutineEntry("daily_anomaly", AnomalyTask, True, "daily_anomaly", True),
+    DailyRoutineEntry("daily_anomaly_hunter", AnomalyHunter, False, "daily_anomaly", True),
+    DailyRoutineEntry("coffee", CoffeeTask),
+    DailyRoutineEntry("daily_claim", DailyClaimTask, True),
+    DailyRoutineEntry("cinema_date", CinemaDateTask),
+    DailyRoutineEntry("fountain", FountainTask),
+    DailyRoutineEntry("furniture", FurnitureTask),
+    DailyRoutineEntry("gift", GiftTask),
 )
 
 
-def selected_plan_tasks(plan_task):
+def selected_routine_tasks(routine_task):
     tasks = []
-    for item in plan_task.normalize_items():
+    for item in routine_task.normalize_items():
         if not item["enabled"]:
             continue
-        if task := plan_task.task_for_id(item["id"]):
+        if task := routine_task.task_for_id(item["id"]):
             tasks.append(task)
     return tasks
 
 
-def plan_has_active_tasks(tasks):
+def routine_has_active_tasks(tasks):
     return any(task.enabled or task.running for task in tasks)
 
 
-def start_plan_tasks(start_controller, plan_task):
-    return start_controller.do_start(plan_task)
+def start_routine_tasks(start_controller, routine_task):
+    return start_controller.do_start(routine_task)
 
 
 def selection_is_complete(items, entries):
@@ -81,16 +82,15 @@ class _DailyTaskSchema:
 
 
 class _DailyTaskConfig(dict):
-    """A task config view persisted under the daily plan's config file."""
+    """A task config view persisted in the daily routine task-config store."""
 
-    def __init__(self, plan_task, task_id, task, default_config):
-        self.plan_task = plan_task
+    def __init__(self, routine_task, task_id, task, default_config):
+        self.routine_task = routine_task
         self.task_id = task_id
         self.task = task
         self.default = deepcopy(default_config)
         values = deepcopy(self.default)
-        stored = plan_task.config.get(plan_task.CONF_TASK_CONFIGS, {})
-        stored_values = stored.get(task_id) if isinstance(stored, dict) else None
+        stored_values = routine_task.routine_task_configs.get(task_id)
         if isinstance(stored_values, dict):
             for key, value in stored_values.items():
                 if key in values and isinstance(value, type(values[key])):
@@ -126,42 +126,49 @@ class _DailyTaskConfig(dict):
         self.save_file()
 
     def save_file(self):
-        task_configs = self.plan_task.config.get(self.plan_task.CONF_TASK_CONFIGS, {})
-        task_configs = deepcopy(task_configs) if isinstance(task_configs, dict) else {}
-        task_configs[self.task_id] = deepcopy(dict(self))
-        self.plan_task.config[self.plan_task.CONF_TASK_CONFIGS] = task_configs
+        self.routine_task.routine_task_configs[self.task_id] = deepcopy(dict(self))
 
 
-class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
-    CONF_ITEMS = "计划任务"
-    CONF_TASK_CONFIGS = "任务设置"
+class DailyRoutineTask(NTEOneTimeTask, BaseNTETask):
+    CONF_ITEMS = "Routine Items"
+    TASK_CONFIGS_FILE_NAME = "DailyRoutineTaskConfigs"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.name = "日常任务"
-        self.icon = FluentIcon.CALENDAR
-        self.visible = False
+        self.support_schedule_task = True
+        self.show_in_task_tab = False
+        self.icon = FluentIcon.CAR
+        self.visible = True
         self.task_status = {"success": [], "failed": [], "skipped": [], "pending": []}
         self.current_task_key = None
-        self._active_plan_task = None
+        self._active_routine_task = None
+        self.routine_task_configs = None
         self.default_config[self.CONF_ITEMS] = self.default_items()
-        self.default_config[self.CONF_TASK_CONFIGS] = {}
         self.config_description[self.CONF_ITEMS] = "日常任务中的任务顺序和启用状态"
         self.config_type[self.CONF_ITEMS] = {"hidden": True}
-        self.config_type[self.CONF_TASK_CONFIGS] = {"hidden": True}
+        self.add_exit_after_config()
 
     @staticmethod
     def default_items():
         return [
             {"id": entry.task_id, "enabled": entry.enabled_by_default}
-            for entry in DAILY_PLAN_ENTRIES
+            for entry in DAILY_ROUTINE_ENTRIES
         ]
 
     @staticmethod
+    def default_task_configs():
+        return {entry.task_id: {} for entry in DAILY_ROUTINE_ENTRIES}
+
+    @staticmethod
     def entries_by_id():
-        return {entry.task_id: entry for entry in DAILY_PLAN_ENTRIES}
+        return {entry.task_id: entry for entry in DAILY_ROUTINE_ENTRIES}
 
     def on_create(self):
+        self.routine_task_configs = Config(
+            self.TASK_CONFIGS_FILE_NAME,
+            self.default_task_configs(),
+        )
         self.normalize_items()
 
     def normalize_items(self):
@@ -178,7 +185,7 @@ class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
                 continue
             normalized.append({"id": task_id, "enabled": bool(item.get("enabled", False))})
             seen.add(task_id)
-        for entry in DAILY_PLAN_ENTRIES:
+        for entry in DAILY_ROUTINE_ENTRIES:
             if entry.task_id not in seen:
                 normalized.append({"id": entry.task_id, "enabled": entry.enabled_by_default})
 
@@ -321,11 +328,11 @@ class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
         except TaskDisabledException:
             raise
         except Exception as error:
-            self.screenshot("daily_plan_unexpected_exception")
+            self.screenshot("daily_routine_unexpected_exception")
             if self.current_task_key:
                 self.info_set("当前失败任务", self.current_task_key)
             self._print_result()
-            self.log_error("DailyPlanTask error", error)
+            self.log_error("DailyRoutineTask error", error)
             raise
 
     def do_run(self) -> bool:
@@ -336,19 +343,19 @@ class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
             self.log_info("日常任务没有已选任务，跳过执行")
             return True
         tasks = [self.task_for_id(item["id"]) for item in selected]
-        if plan_has_active_tasks([task for task in tasks if task is not None]):
+        if routine_has_active_tasks([task for task in tasks if task is not None]):
             self.log_warning("日常任务中的任务已在运行或排队，跳过重复入队")
             return False
         self._reset_task_status(items)
         self.log_info("开始执行日常任务")
         for item in items:
-            self._execute_plan_item(item)
+            self._execute_routine_item(item)
         self.ensure_main()
         self._print_result()
         self.log_info("结束执行日常任务")
         return not self.task_status["failed"]
 
-    def _execute_plan_item(self, item):
+    def _execute_routine_item(self, item):
         task_id = item["id"]
         self.task_status["pending"].remove(task_id)
         task = self.task_for_id(task_id)
@@ -378,7 +385,7 @@ class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
 
         if not result:
             self.task_status["failed"].append(task_id)
-            self.screenshot(f"daily_plan_fail_{task_id}")
+            self.screenshot(f"daily_routine_fail_{task_id}")
             self.log_info(f"任务失败: {task.name}")
             return
 
@@ -420,20 +427,20 @@ class DailyPlanTask(NTEOneTimeTask, BaseNTETask):
 
     @contextmanager
     def _active_task_context(self, task_id, task):
-        previous_task = self._active_plan_task
+        previous_task = self._active_routine_task
         previous_interval = self.sleep_check_interval
         original_config = task.config
-        self._active_plan_task = task
+        self._active_routine_task = task
         self.sleep_check_interval = task.sleep_check_interval
         task.config = self.daily_task_config(task_id, task)
         try:
             yield task
         finally:
             task.config = original_config
-            self._active_plan_task = previous_task
+            self._active_routine_task = previous_task
             self.sleep_check_interval = previous_interval
 
     def sleep_check(self):
-        if self._active_plan_task is not None:
-            return self._active_plan_task.sleep_check()
+        if self._active_routine_task is not None:
+            return self._active_routine_task.sleep_check()
         return super().sleep_check()

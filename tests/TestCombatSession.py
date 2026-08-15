@@ -20,7 +20,7 @@ class TestCombatSession(unittest.TestCase):
 
         task.switch_to_combat_start_char = switch_to_start
         task.get_current_char = lambda raise_exception=False: task.current_char
-        task.click = lambda: None
+        task.click = lambda *_args, **_kwargs: None
         return task
 
     def test_begin_combat_session_switches_once_and_records_start_char(self):
@@ -96,7 +96,7 @@ class TestCombatSession(unittest.TestCase):
         task.current_char = object()
         task.switch_to_combat_start_char = lambda: None
         task.get_current_char = lambda raise_exception=False: task.current_char
-        task.click = lambda: None
+        task.click = lambda *_args, **_kwargs: None
 
         task.combat_session.switch_enabled = not task.config.get(
             task.CONF_DONT_SWITCH, False

@@ -391,13 +391,14 @@ class HeistTask(BaseNTETask, TriggerTask):
 
         self._log_target_key_event(msg, data)
 
+        is_key_repeat = msg in self.KEY_DOWN_MESSAGES and data.vkCode in self.physical_keys_pressed
         if msg in self.KEY_DOWN_MESSAGES:
             self.physical_keys_pressed.add(data.vkCode)
         elif msg in self.KEY_UP_MESSAGES:
             self.physical_keys_pressed.discard(data.vkCode)
 
         listener = self.listener
-        if listener is not None and self._should_suppress(msg, data.vkCode):
+        if listener is not None and self._should_suppress(msg, data.vkCode, is_key_repeat):
             listener.suppress_event()
         return True
 
@@ -409,13 +410,15 @@ class HeistTask(BaseNTETask, TriggerTask):
             bool(win32api.GetAsyncKeyState(vk_code) & 0x8000) for vk_code in self._get_vk_codes(key)
         )
 
-    def _should_suppress(self, msg, vk_code):
+    def _should_suppress(self, msg, vk_code, is_key_repeat=False):
         if msg in self.KEY_UP_MESSAGES:
             should_suppress = vk_code in self.suppressed_keys
             self.suppressed_keys.discard(vk_code)
             return should_suppress
         if msg not in self.KEY_DOWN_MESSAGES or not self._is_active():
             return False
+        if is_key_repeat:
+            return vk_code in self.suppressed_keys
         should_suppress = vk_code in self._suppressed_trigger_keys()
         if should_suppress:
             self.suppressed_keys.add(vk_code)

@@ -1276,5 +1276,8 @@ msgstr "모두 접기"
 msgid "全部展开"
 msgstr "모두 펼치기"
 
-msgid "重置配置"
-msgstr "설정 리셋"
+msgid "排球之星"
+msgstr "배구의 별"
+
+msgid "刷经验"
+msgstr "경험치 파밍"

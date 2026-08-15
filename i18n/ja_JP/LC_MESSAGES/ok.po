@@ -1276,5 +1276,8 @@ msgstr "すべて折りたたむ"
 msgid "全部展开"
 msgstr "すべて展開"
 
-msgid "重置配置"
-msgstr "設定リセット"
+msgid "排球之星"
+msgstr "バレーボールの星"
+
+msgid "刷经验"
+msgstr "経験値周回"

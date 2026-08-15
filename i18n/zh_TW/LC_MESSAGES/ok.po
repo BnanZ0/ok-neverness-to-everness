@@ -1276,5 +1276,8 @@ msgstr "全部折疊"
 msgid "全部展开"
 msgstr "全部展開"
 
-msgid "重置配置"
-msgstr "重置配置"
+msgid "排球之星"
+msgstr "排球之星"
+
+msgid "刷经验"
+msgstr "刷經驗"

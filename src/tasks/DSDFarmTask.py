@@ -66,7 +66,7 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
                 self.CONF_USE_ULT: True,
                 self.CONF_DONT_SWITCH: False,
                 self.CONF_MAX_COMBAT_TIME: 1200,
-                self.CONF_WAIT_FULL_DURATION: False
+                self.CONF_WAIT_FULL_DURATION: False,
             }
         )
 
@@ -112,8 +112,7 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
                 raise_if_not_found=True,
             )
             self.sleep(2)
-            self.operate_click(0.057, 0.218)
-            self.sleep(0.5)
+            self.refresh_monster()
             self.ensure_main()
             if self.do_teleport_on_spot:
                 self.sleep(0.5)
@@ -128,6 +127,28 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
         super().sleep_check()
         if self.check_monthly_card():
             self.handle_monthly_card()
+
+    def refresh_monster(self):
+        box = self.box_of_screen(0.470, 0.869, 0.534, 0.928)
+        if not self.run_and_check_changed(
+            lambda: self.operate_click(0.057, 0.218),
+            snap_box=box,
+            check_box=box.scale(1.1, 1.1),
+            after_sleep=0.5,
+        ):
+            return
+
+        def click_no_remind():
+            box = self.wait_until(
+                lambda: self.find_one(Labels.no_remind_today, horizontal_variance=0.1), time_out=3
+            )
+            self.operate_click(box, after_sleep=0.5)
+
+        self.wait_click_confirm(
+            range=(0.650, 0.611, 0.707, 0.708),
+            on_found=click_no_remind,
+            time_out=3,
+        )
 
     def deside_map_zoom(self):
         location = self.config.get(self.CONF_LOCATION, None)
@@ -225,9 +246,7 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
             max_combat_time = self.config.get(self.CONF_MAX_COMBAT_TIME, 1200)
 
             session = self.combat_session
-            session.switch_enabled = not self.config.get(
-                self.CONF_DONT_SWITCH, False
-            )
+            session.switch_enabled = not self.config.get(self.CONF_DONT_SWITCH, False)
             session.use_ultimate = self.config.get(self.CONF_USE_ULT, True)
             start_combat = time.time()
             self.combat_once(max_combat_time=max_combat_time)
@@ -295,7 +314,7 @@ class DSDFarmTask(NTEOneTimeTask, BaseCombatTask):
         self.operate_click(teleport, action_name="click_nearest_map_teleport")
         self.sleep(0.5)
         return self.click_traval_button(raise_if_not_found=False)
-    
+
     def teleport_to_bonfire(self, box: Box = None, threshold=0.7, order=1):
         self.ensure_main()
         self.open_map()

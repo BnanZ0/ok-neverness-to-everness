@@ -152,17 +152,18 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
                 self.log_warning(
                     f"异象追猎连续失败 {consecutive_failures}/{self.MAX_CONSECUTIVE_FAILURES}"
                 )
-                if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
-                    self.log_warning("连续失败已达上限，将传送最近的电话亭传送点", notify=True)
-                    break
 
-            self.sleep(2)
-            self.log_info("当前异象追猎任务完成！")
+            self.exit_anomaly()
+
+            if consecutive_failures >= self.MAX_CONSECUTIVE_FAILURES:
+                self.log_warning("连续失败已达上限，将传送最近的电话亭传送点", notify=True)
+                break
 
         self.log_info("异象追猎任务完成，尝试传送到最近的电话亭")
-        self.sleep(1)
+        self.sleep(0.5)
         self.click_nearest_map_teleport()
-        self.sleep(2)
+        self.sleep(0.5)
+        self.ensure_main()
         self.log_warning(
             f"异象追猎执行结果: 成功次数: {success_count},"
             f"失败次数: {failed_count}，共计消耗体力: {success_count * self.TASK_COST}"
@@ -216,6 +217,7 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
         self.sleep(0.5)
 
     def enter_hunter(self, target: str):
+        self.sleep(3)
         self.walk_until_interac_or_combat(script=self.WALK_METHOD.get(target, ["w"]))
         if self.is_in_team() and self.find_interac():
             self.wait_until(
@@ -339,24 +341,48 @@ class AnomalyHunter(NTEOneTimeTask, BaseCombatTask):
             self.log_info("发现BOSS宝箱, 跳过战斗")
         else:
             self.log_info("未发现BOSS宝箱, 调用战斗模块")
-            self.walk_until_combat(run=True, delay=1)
-            self.combat_once(retarget_turn=False)
+            if self.walk_until_combat(run=True, delay=1):
+                self.combat_once(retarget_turn=False)
+            else:
+                return False
 
         self.log_info("调用领取BOSS宝箱模块")
 
-        def action():
-            if not self.find_interac():
-                self.walk_to_boss_treasure()
+        if not self.walk_to_boss_treasure():
+            return
 
-            if self.find_interac():
-                self.log_info("发现宝箱，正在领取交互中")
-                self.send_interac(handle_claim=False)
-                if self.wait_until(self.is_claim_btn_ready, raise_if_not_found=False, time_out=5):
-                    self.log_info("发现奖励领取页面，领取奖励")
-                    if self.wait_until(
-                        self.is_in_team,
-                        pre_action=lambda: self.operate_click(0.609, 0.659, after_sleep=2),
-                    ):
-                        return True
+        self.log_info("正在领取交互中")
 
-        return self.retry_on_action(action, reset_action=self.ensure_main)
+        if self.wait_until(
+            self.is_claim_btn_ready,
+            pre_action=lambda: self.send_interac(handle_claim=False),
+            raise_if_not_found=False,
+            time_out=5,
+        ):
+            self.log_info("发现奖励领取页面，领取奖励")
+            if self.wait_until(
+                self.is_in_team,
+                pre_action=lambda: self.operate_click(0.609, 0.659, after_sleep=2),
+            ):
+                return True
+
+    def exit_anomaly(self):
+        deadline = time.time() + 10
+        while time.time() < deadline:
+            if self.is_in_team():
+                if self.find_best_match_in_box(
+                    self.box_of_screen(0.004, 0.012, 0.061, 0.082),
+                    [Labels.in_domain, Labels.in_domain_2],
+                    threshold=0.7
+                ):
+                    self.send_key("esc", after_sleep=2)
+                else:
+                    return True
+            else:
+                if self.wait_click_confirm(
+                    lambda: self.send_key("esc", interval=1),
+                    range=(0.637, 0.607, 0.697, 0.709),
+                    raise_if_not_found=False,
+                    time_out=1,
+                ):
+                    self.sleep(2)
