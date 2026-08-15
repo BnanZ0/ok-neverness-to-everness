@@ -59,7 +59,9 @@ INST = "<br>".join(
         _inst_line("├─ 移动镜头修正：禁用", "#FE821D", bold=True, indent=2),
         _inst_line("└─ 按下锁定镜头回正：启用", "#FE821D", bold=True, indent=2),
         _inst_line("⚠️ 必备条件：至少有一个复活道具", "#FF5555", bold=True),
-        _inst_line("🥷 避战方式：翳【长按 Shift】/ 浔【长按攻击】/残虹【点按G】", "#FF5555", bold=True),
+        _inst_line(
+            "🥷 避战方式：翳【长按 Shift】/ 浔【长按攻击】/ 残虹【点按G】", "#FF5555", bold=True
+        ),
         _inst_gap(),
         _inst_line("路径1推荐设置", bold=True),
         _inst_line("FPS: 60~120", indent=1),
@@ -76,13 +78,12 @@ INST = "<br>".join(
             indent=2,
         ),
         _inst_line("避战角色: 翳", indent=2),
+        _inst_gap(),
         _inst_line("路径3推荐设置", bold=True),
         _inst_line("画质：性能 | 分辨率: 1080P | FPS: 60 | 插帧: 关闭", indent=1),
         _inst_line("跑图角色: 薄荷", indent=1),
         _inst_line("避战角色: 残虹(必须)", indent=1),
-        # _inst_line("浔避战：", indent=1),
         _inst_line("战斗角色: 随意 (战斗角色随意，可塞安魂曲) / 主角 / 哈尼娅", indent=1),
-        # _inst_line("避战角色: 浔", indent=2),
     ]
 )
 
@@ -118,9 +119,15 @@ EN_INST = "<br>".join(
             indent=2,
         ),
         _inst_line("Stealth Character: Skia", indent=2),
-        # _inst_line("Stealth (Hotori):", indent=1),
-        # _inst_line("Combat Team: Flexible (Any, can include Lacrimosa) / Zero / Haniel", indent=2),
-        # _inst_line("Stealth Character: Hotori", indent=2),
+        _inst_gap(),
+        _inst_line("Recommended Settings for Route 3", bold=True),
+        _inst_line(
+            "Graphics: Performance | Resolution: 1080P | FPS: 60 | Frame Interpolation: Off",
+            indent=1,
+        ),
+        _inst_line("Exploration: Mint", indent=1),
+        _inst_line("Stealth Character: Zankou (Required)", indent=1),
+        _inst_line("Combat Team: Flexible (Any, can include Lacrimosa) / Zero / Haniel", indent=1),
     ]
 )
 # ruff: enable[E501]
@@ -155,7 +162,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         self.paths = {
             "路径1(路线参考自B站UP: 早柚大魔王丶)": HeistPathA,
             "路径2(在路径1基础上优化了大厅到办公层的路线)": HeistPathB,
-            "路径3(使用残虹避战，更加安全)":HeistPathC,
+            "路径3(使用残虹避战，更加安全)": HeistPathC,
         }
         path_names = list(self.paths.keys())
         self.avoid_methods = [self.AVOID_METHOD_DASH, self.AVOID_METHOD_ATTACK, self.AVOID_METHOD_G]
@@ -220,6 +227,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
             raise
 
     def _run_loop(self):
+        self._check_setup()
         self._start_quick_pick_loop()
         self.start_rounds()
         self.info_set("总方斯获取数", 0)
@@ -654,8 +662,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
                 self._scroll_switch = not self._scroll_switch
 
     def run_path(self):
-        path_name = self.config.get(self.CONF_PATH)
-        path_cls = self.paths.get(path_name, next(iter(self.paths.values())))
+        path_cls = self._get_path_cls()
         path = path_cls(self)
         failed = False
         try:
@@ -715,7 +722,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         """返回避战策略索引。
 
         `-1` 表示未配置避战角色，路径应走无避战角色的路线；
-        `0` 表示长按 shift，`1` 表示长按攻击,'2'表示点按G
+        `0` 表示长按 shift, `1` 表示长按攻击, '2'表示点按G
         """
         keys = self.config.get(self.CONF_AVOIDER, [])
         if not keys:
@@ -724,10 +731,6 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         if method_name not in self.avoid_methods:
             self.log_warning(f"unknown avoid method {method_name}, use {self.AVOID_METHOD_DASH}")
             return 0
-        if method_name == self.AVOID_METHOD_G:
-            return 2
-        if method_name == self.AVOID_METHOD_ATTACK:
-            return 1
         return self.avoid_methods.index(method_name)
 
     def switch_to_avoider(self, check_switched=False):
@@ -758,9 +761,7 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         elif method_name == self.AVOID_METHOD_ATTACK:
             self.click(down_time=0.6)
         elif method_name == self.AVOID_METHOD_G:
-            self.send_key_down("g")
-            self.sleep(1.0)
-            self.send_key_up("g")
+            self.send_key("g", down_time=1)
 
     def clear_current_combat(self):
         """处理并等待当前小战斗结束。
@@ -966,3 +967,20 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
         while time.time() < deadline:
             self.send_key(key, interval=interval)
             self.sleep(0.01)
+
+    def _get_path_cls(self):
+        path_name = self.config.get(self.CONF_PATH)
+        return self.paths.get(path_name, next(iter(self.paths.values())))
+
+    def _check_setup(self):
+        idx = self.avoider_strategy_index()
+        cls = self._get_path_cls()
+
+        if cls is HeistPathC and idx != 2:
+            msg = (
+                "路径3避战方式配置错误"
+                if self.is_chinese()
+                else "Path 3 avoidance of combat configuration incorrect"
+            )
+            self.log_error(msg, notify=True)
+            raise TaskDisabledException

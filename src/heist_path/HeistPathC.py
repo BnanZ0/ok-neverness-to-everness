@@ -1,16 +1,10 @@
-import re
 
 from src.heist_path.HeistPathB import HeistPathB
 
+
 class HeistPathC(HeistPathB):
-    """路径3：使用残虹作为避战角色，更加安全"""
+    """路径3: 使用残虹作为避战角色, 更加安全"""
     def run_path(self):
-        idx = self.avoider_strategy_index()
-        if idx != 2:
-            self.log_error("路径3需要配置'点按G'避战方法！路线终止")
-            from src.tasks.AutoHeistTask import AbortException
-            raise AbortException("路径3避战方式配置错误")
-        self.log_round_info("配置避战角色残虹，使用残虹避战")
         self.goto_lg1_skip_Cankou()
         self.wait_team_ui_settle()
         self.switch_to_runner(check_switched=True)
