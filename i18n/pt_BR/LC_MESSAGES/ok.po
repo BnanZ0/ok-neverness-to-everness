@@ -1009,3 +1009,6 @@ msgstr "Estrela do Vôlei"
 
 msgid "刷经验"
 msgstr "Farmar EXP"
+
+msgid "点按G"
+msgstr "Pressionar G"

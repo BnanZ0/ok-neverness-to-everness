@@ -1281,3 +1281,6 @@ msgstr "バレーボールの星"
 
 msgid "刷经验"
 msgstr "経験値周回"
+
+msgid "点按G"
+msgstr "Gキーをタップ"

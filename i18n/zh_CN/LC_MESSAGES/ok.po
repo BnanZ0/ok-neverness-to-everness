@@ -1264,3 +1264,6 @@ msgstr ""
 
 msgid "刷经验"
 msgstr ""
+
+msgid "点按G"
+msgstr ""

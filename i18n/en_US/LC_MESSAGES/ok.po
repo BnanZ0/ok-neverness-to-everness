@@ -1281,3 +1281,6 @@ msgstr "Star of Volleyball"
 
 msgid "刷经验"
 msgstr "Farm EXP"
+
+msgid "点按G"
+msgstr "Tap G"

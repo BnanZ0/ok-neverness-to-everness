@@ -1281,3 +1281,6 @@ msgstr "배구의 별"
 
 msgid "刷经验"
 msgstr "경험치 파밍"
+
+msgid "点按G"
+msgstr "G키 탭"

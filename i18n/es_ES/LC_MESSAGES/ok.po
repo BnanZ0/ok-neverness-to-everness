@@ -1281,3 +1281,6 @@ msgstr "Estrella del voleibol"
 
 msgid "刷经验"
 msgstr "Farmear EXP"
+
+msgid "点按G"
+msgstr "Pulsar G"
