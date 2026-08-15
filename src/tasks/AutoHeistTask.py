@@ -721,8 +721,8 @@ class AutoHeistTask(NTEOneTimeTask, BaseCombatTask):
     def avoider_strategy_index(self):
         """返回避战策略索引。
 
-        `-1` 表示未配置避战角色，路径应走无避战角色的路线；
-        `0` 表示长按 shift, `1` 表示长按攻击, '2'表示点按G
+        `-1` 表示未配置避战角色，路径应走无避战角色的路线\n
+        `0` 表示长按 shift, `1` 表示长按攻击, `2`表示点按G
         """
         keys = self.config.get(self.CONF_AVOIDER, [])
         if not keys:
