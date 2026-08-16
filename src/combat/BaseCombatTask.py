@@ -902,6 +902,10 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         if not self.sleep_check_skip.check_combat:
             self.check_combat()
 
+    def can_sound_trigger(self) -> bool:
+        """Reject audio reactions while the game cannot accept a dodge input."""
+        return bool(self._in_combat and not self.in_animation)
+
     def _apply_sound_config(self, dodge_action=ACTION_UNSET, counter_action=ACTION_UNSET):
         sound_context = SoundCombatContext()
         if self.sound_config:
