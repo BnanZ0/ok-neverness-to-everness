@@ -343,9 +343,19 @@ class BaseCombatTask(CharElementUIMixin, CombatCheck):
         if cds is None:
             cds = {}
             self.cds[index] = cds
-        cds["time"] = time.time()
-        cds["skill"] = 0
-        cds["ultimate"] = 0
+        # Preserve previous CD values when OCR fails to read them.
+        # Instead of resetting to 0 (which falsely reports "available"),
+        # decay the last known CD by elapsed time so remaining CD stays accurate.
+        old_time = cds.get("time")
+        new_time = time.time()
+        if old_time is not None:
+            elapsed = self.time_elapsed_accounting_for_freeze(old_time)
+            cds["skill"] = max(0, cds.get("skill", 0) - elapsed)
+            cds["ultimate"] = max(0, cds.get("ultimate", 0) - elapsed)
+        else:
+            cds["skill"] = 0
+            cds["ultimate"] = 0
+        cds["time"] = new_time
         texts = self.ocr(
             0.8594, 0.8847, 0.9578, 0.9139, frame_processor=gf.isolate_text_to_black, match=cd_regex
         )
