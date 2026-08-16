@@ -157,12 +157,19 @@ class SoundCombatContext:
             }
 
             from src.sound_trigger.SoundListener import SoundListener
+            # is_allow_successive_trigger=True disables the listener's own shared 0.5s gate
+            # (_trigger_interval). That gate silently drops a second attack sound arriving
+            # within 0.5s of the previous trigger, and dodge/counter share one
+            # _last_trigger_time. With it enabled, the per-action gates in
+            # DodgeCounterTrigger (dodge 0.3s / counter 1.0s) are the single authority.
+            # Dodge priority is untouched: _check_triggers still tests dodge first.
             self._listener = SoundListener(
                 sample_path=sample_path,
                 counter_attack_sample_path=counter_attack_sample_path,
                 threshold=threshold,
                 counter_attack_threshold=counter_attack_threshold,
                 process_name=audio_process_name,
+                is_allow_successive_trigger=True,
             )
 
             self._trigger = DodgeCounterTrigger(
