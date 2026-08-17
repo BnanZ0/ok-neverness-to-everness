@@ -108,7 +108,7 @@ or consequences are not associated with this software.
 * **[Mirror酱](https://mirrorchyan.com/zh/projects?rid=ok-nte&channel=stable)**: 国内镜像，下载可能需要购买其平台的
   CD-KEY。
 * **[百度网盘](https://pan.baidu.com/s/102Mh1djq2B1T-cIJhct9Gg?pwd=okww)**: 免费下载
-* **[夸克网盘](https://pan.quark.cn/s/418018ddf7a0)**: 免费下载
+* **[夸克网盘](https://pan.quark.cn/s/24433f3febc1)**: 免费下载
 
 ### 方式二：从源码运行 (适合开发者)
 
