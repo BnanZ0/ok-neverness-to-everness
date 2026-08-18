@@ -377,8 +377,7 @@ class DailyRoutineTask(NTEOneTimeTask, BaseNTETask):
                 entry = self.entries_by_id()[task_id]
                 if result and entry.daily_config and (shift_id := getattr(task, "shift_id", None)):
                     shift_id(task)
-        except TaskDisabledException:
-            raise
+        # Keep child stop signals as item failures so the outer one-time task can finish and disable.
         except Exception as error:
             self.log_error(f"任务运行失败: {task.name}", error)
             result = False
