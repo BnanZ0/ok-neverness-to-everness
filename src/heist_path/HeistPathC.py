@@ -1,3 +1,4 @@
+import re
 
 from src.heist_path.HeistPathB import HeistPathB
 
@@ -73,20 +74,42 @@ class HeistPathC(HeistPathB):
         self.send_key_up('a', after_sleep=0.37) 
         self.send_key('d', down_time=0.13, after_sleep=0.41) 
         self.send_key('s', down_time=0.06, after_sleep=0.83) 
+        self.click(0.50, 0.50, key="middle", down_time=0.15)
         self.send_key('g', down_time=0.08, after_sleep=1.33) 
-        self.send_key_down('s', after_sleep=0.31) 
+        self.send_key_down('w', after_sleep=0.31) 
         self.send_key('shift', down_time=0.20, after_sleep=1.08) 
         self.send_key('shift', down_time=1.06, after_sleep=0.40) 
-        self.send_key_up("s")
+        self.send_key_up("w")
         self.sleep(0.1)
-        self.send_key_down("a")
-        self.wait_and_interact(direction="a", is_lock=True, time_out=5.2) 
         self.send_key_down("d")
+        self.wait_and_interact(direction="d", is_lock=True, time_out=3.2) 
+        if self.find_interac():
+            self.clear_current_combat()
+            self.sleep(0.20)
+            self.send_key('a', down_time=2.32, after_sleep=0.35) # press key 'a'
+            self.send_key_down('w', after_sleep=1.08) # key down 'w'
+            self.send_key('a', down_time=0.63, after_sleep=0.30) # press key 'a'
+            self.send_key_up('w', after_sleep=0.84) # key up 'w'
+            self.send_key('d', down_time=2.07, after_sleep=0.16) # press key 'd'
+            if self.wait_ocr(x=0.55, y=0.48, to_x=0.75, to_y=0.61, match=re.compile("开门"), time_out=1.14):
+                self.sleep(0.20)
+                self.send_key("f",down_time=0.01)
+                self.sleep(0.20)
+                self.send_key_down("a")
+                self.sleep(0.15)
+                self.send_key_up("a")
+                self.send_key_down("w")
+                self.wait_and_interact(direction="w", is_lock=False,time_out=5.0 )
+            else:
+                 from src.tasks.AutoHeistTask import AbortException
+                 raise AbortException("路径中断")                
+
+        self.send_key_down("a")
         self.sleep(0.2)
-        self.send_key_down("s")
+        self.send_key_down("w")
         self.sleep(0.2)
-        self.send_key_up("d")
-        self.wait_and_interact(direction="s", is_lock=True, time_out=5.2)
+        self.send_key_up("a")
+        self.wait_and_interact(direction="w", is_lock=True, time_out=5.2)
         self.sleep(2.00)
 
     def lg1_wp5_Cankou(self):
