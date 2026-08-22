@@ -91,7 +91,7 @@ jobs:
 
       - name: pyappify build-exe-only
         id: build-exe-only
-        uses: ok-oldking/pyappify-action@91cb0dfeb63d297bc260f2d7efc1a16304fba724
+        uses: ok-oldking/pyappify-action@c5cc8fe5c9bd5c732969018694a2645474c48b7e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -127,7 +127,7 @@ jobs:
 
       - name: pyappify build-setup-exe
         id: build-setup-exe
-        uses: ok-oldking/pyappify-action@91cb0dfeb63d297bc260f2d7efc1a16304fba724
+        uses: ok-oldking/pyappify-action@c5cc8fe5c9bd5c732969018694a2645474c48b7e
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
