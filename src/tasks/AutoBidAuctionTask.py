@@ -30,20 +30,24 @@ class AutoBidAuctionTask(BaseNTETask):
         self.group_name = "都市闲趣"
         self.add_rounds_config()
 
-        self.default_config.update({
-            self.CONF_FIXED_PRICE: 1,
-            self.CONF_SELL_INTERVAL: 0,
-            self.CONF_USE_EMOTE: False,
-            self.CONF_USE_WELFARE: False,
-            self.CONF_AUTO_CLEAR_COLLECTIONS: False,
-            self.CONF_KEEP_RED: True,
-        })
+        self.default_config.update(
+            {
+                self.CONF_FIXED_PRICE: 1,
+                self.CONF_SELL_INTERVAL: 0,
+                self.CONF_USE_EMOTE: False,
+                self.CONF_USE_WELFARE: False,
+                self.CONF_AUTO_CLEAR_COLLECTIONS: False,
+                self.CONF_KEEP_RED: True,
+            }
+        )
 
-        self.config_description.update({
-            self.CONF_SELL_INTERVAL: "设置为0则不出售",
-            self.CONF_USE_EMOTE: "收藏的第一个表情包",
-            self.CONF_AUTO_CLEAR_COLLECTIONS: "启用会禁用出售间隔",
-        })
+        self.config_description.update(
+            {
+                self.CONF_SELL_INTERVAL: "设置为0则不出售",
+                self.CONF_USE_EMOTE: "收藏的第一个表情包",
+                self.CONF_AUTO_CLEAR_COLLECTIONS: "启用会禁用出售间隔",
+            }
+        )
 
         self.last_bid_price = None
 
@@ -82,8 +86,14 @@ class AutoBidAuctionTask(BaseNTETask):
                     break
                 try:
                     if self._exec_auction_round(
-                        box_match, box_confirm, box_bid,
-                        re_match, re_confirm, re_bid, re_skip, re_exit
+                        box_match,
+                        box_confirm,
+                        box_bid,
+                        re_match,
+                        re_confirm,
+                        re_bid,
+                        re_skip,
+                        re_exit,
                     ):
                         self.add_success()
                     else:
@@ -110,8 +120,9 @@ class AutoBidAuctionTask(BaseNTETask):
         finally:
             self.finish_rounds()
 
-    def _exec_auction_round(self, box_match, box_confirm, box_bid,
-                            re_match, re_confirm, re_bid, re_skip, re_exit) -> bool:
+    def _exec_auction_round(
+        self, box_match, box_confirm, box_bid, re_match, re_confirm, re_bid, re_skip, re_exit
+    ) -> bool:
         """执行单轮拍卖，按序调度各阶段。
 
         Returns:
@@ -127,14 +138,12 @@ class AutoBidAuctionTask(BaseNTETask):
         box_bid_confirm = self.box_of_screen(0.649, 0.868, to_x=0.726, to_y=0.911)
 
         stage = self._stage_match(
-            box_match, box_confirm, box_bid, box_skip_area,
-            re_match, re_confirm, re_bid, re_skip
+            box_match, box_confirm, box_bid, box_skip_area, re_match, re_confirm, re_bid, re_skip
         )
 
         if stage == "skip":
             return self._stage_result(
-                box_match, box_bid, box_skip_area, box_exit,
-                re_match, re_bid, re_skip, re_exit
+                box_match, box_bid, box_skip_area, box_exit, re_match, re_bid, re_skip, re_exit
             )
 
         self.info_set("当前阶段", "确认中" if stage == "confirm" else "出价中")
@@ -145,16 +154,18 @@ class AutoBidAuctionTask(BaseNTETask):
             self.log_info("跳过确认阶段")
 
         self.info_set("当前阶段", "出价中")
-        self._stage_bid_loop(box_bid, box_bid_confirm, re_bid, box_skip_area, box_match, re_skip, re_match)
+        self._stage_bid_loop(
+            box_bid, box_bid_confirm, re_bid, box_skip_area, box_match, re_skip, re_match
+        )
 
         self.info_set("当前阶段", "结算中")
         return self._stage_result(
-            box_match, box_bid, box_skip_area, box_exit,
-            re_match, re_bid, re_skip, re_exit
+            box_match, box_bid, box_skip_area, box_exit, re_match, re_bid, re_skip, re_exit
         )
 
-    def _stage_match(self, box_match, box_confirm, box_bid, box_skip_area,
-                     re_match, re_confirm, re_bid, re_skip):
+    def _stage_match(
+        self, box_match, box_confirm, box_bid, box_skip_area, re_match, re_confirm, re_bid, re_skip
+    ):
         """匹配阶段：等待进入可出价状态。"""
         fail_count = 0
         loop_count = 0
@@ -178,8 +189,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
             try:
                 result = self._handle_match_click(
-                    box_match, box_confirm, box_bid,
-                    re_match, re_confirm, re_bid
+                    box_match, box_confirm, box_bid, re_match, re_confirm, re_bid
                 )
                 if result:
                     return result
@@ -194,32 +204,19 @@ class AutoBidAuctionTask(BaseNTETask):
 
         raise WaitFailedException("匹配阶段等待超时")
 
-    def _handle_match_click(self, box_match, box_confirm, box_bid,
-                            re_match, re_confirm, re_bid):
+    def _handle_match_click(self, box_match, box_confirm, box_bid, re_match, re_confirm, re_bid):
         """点击开始匹配，并等待后续界面状态变化。"""
-        self.wait_click_ocr(
-            box=box_match,
-            match=re_match,
-            time_out=10
-        )
+        self.wait_click_ocr(box=box_match, match=re_match, time_out=10)
         self.log_info("已点击开始匹配，等待状态变化")
 
         matched_confirm = self.wait_ocr(
-            box=box_confirm,
-            match=re_confirm,
-            time_out=3,
-            raise_if_not_found=False
+            box=box_confirm, match=re_confirm, time_out=3, raise_if_not_found=False
         )
         if matched_confirm:
             self.log_info("匹配成功，进入确认阶段")
             return "confirm"
 
-        matched_bid = self.wait_ocr(
-            box=box_bid,
-            match=re_bid,
-            time_out=3,
-            raise_if_not_found=False
-        )
+        matched_bid = self.wait_ocr(box=box_bid, match=re_bid, time_out=3, raise_if_not_found=False)
         if matched_bid:
             self.log_info("匹配成功，进入出价阶段")
             return "bid"
@@ -232,10 +229,7 @@ class AutoBidAuctionTask(BaseNTETask):
         """确认阶段：点击确认按钮。"""
         self.log_info("等待确认按钮")
         result = self.wait_ocr(
-            box=box_confirm,
-            match=re_confirm,
-            time_out=5,
-            raise_if_not_found=False
+            box=box_confirm, match=re_confirm, time_out=5, raise_if_not_found=False
         )
         if not result:
             self.log_warning("确认按钮未出现")
@@ -245,8 +239,9 @@ class AutoBidAuctionTask(BaseNTETask):
         self.log_info("已点击确认")
         return True
 
-    def _stage_bid_loop(self, box_bid, box_bid_confirm, re_bid,
-                        box_skip_area, box_match, re_skip, re_match) -> bool:
+    def _stage_bid_loop(
+        self, box_bid, box_bid_confirm, re_bid, box_skip_area, box_match, re_skip, re_match
+    ) -> bool:
         """出价阶段：循环出价直到拍卖结束（支持多轮竞拍）。"""
         self.last_bid_price = None
         retry = 0
@@ -294,7 +289,7 @@ class AutoBidAuctionTask(BaseNTETask):
         """单次出价尝试：包含出价、面板确认和表情包动作。"""
         # 放弃按钮
         box_abandon = self.box_of_screen(0.7276, 0.9083, to_x=0.7833, to_y=0.9583)
-        # 资产值区域
+        # 资产值区域（出价面板右上角）
         box_asset_value = self.box_of_screen(0.8583, 0.0426, to_x=0.9870, to_y=0.0806)
 
         # 出价前资产判断（资产值为0时放弃）
@@ -304,15 +299,13 @@ class AutoBidAuctionTask(BaseNTETask):
         asset_boxes = self.ocr(box=box_asset_value)
         if asset_boxes:
             raw_text = "".join(box.name for box in asset_boxes)
-            # 全角数字转半角
-            full_to_half_map = {'０':'0', '１':'1', '２':'2', '３':'3', '４':'4', '５':'5', '６':'6', '７':'7', '８':'8', '９':'9'}
-            normalized_text = "".join(full_to_half_map.get(c, c) for c in raw_text)
-            digits = re.sub(r"[^\d]", "", normalized_text)
+            asset_value = self._parse_asset_value(raw_text)
 
             self.log_debug(f"出价前资产原始 OCR: '{raw_text}'")
-            self.log_debug(f"清洗后数字为: '{digits}'")
+            self.log_debug(f"解析后资产值: {asset_value}")
 
-            if digits == "0":
+            # 资产明确为 0 时放弃本轮出价
+            if asset_value == 0:
                 self.log_info("检测到当前资产值: 0")
                 self.log_info("当前资产值为 0，放弃本轮出价")
                 self.operate_click(box_abandon, after_sleep=0.5)
@@ -323,18 +316,17 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.operate_click(box_abandon_confirm, after_sleep=0.5)
 
                 return True
+            elif asset_value is not None:
+                self.log_debug(f"当前资产值为 {asset_value}，不等于 0，继续执行出价")
             else:
-                self.log_debug(f"OCR 数字为 '{digits}'，不等于 0，继续执行出价")
+                self.log_debug("资产值解析失败（未识别到有效数字），按安全策略继续出价")
         else:
-            self.log_debug("资产值识别失败（未匹配到有效文本），按安全策略继续出价")
+            self.log_debug("资产值识别失败（OCR 未匹配到有效文本），按安全策略继续出价")
 
         # 后续正常出价逻辑
         self.log_info("等待出价按钮")
         found = self.wait_click_ocr(
-            box=box_bid,
-            match=re_bid,
-            time_out=10,
-            raise_if_not_found=False
+            box=box_bid, match=re_bid, time_out=10, raise_if_not_found=False
         )
         if not found:
             self.log_warning("未找到出价按钮，准备重试")
@@ -347,7 +339,7 @@ class AutoBidAuctionTask(BaseNTETask):
             box=box_bid_confirm,
             match=re.compile(r"确认出价|[0-9]"),
             time_out=5,
-            raise_if_not_found=False
+            raise_if_not_found=False,
         )
         if not panel_ready:
             self.log_warning("数字面板识别失败，按 ESC 关闭可能残留的面板")
@@ -366,8 +358,9 @@ class AutoBidAuctionTask(BaseNTETask):
 
         return True
 
-    def _stage_result(self, box_match, box_bid, box_skip_area, box_exit,
-                      re_match, re_bid, re_skip, re_exit) -> bool:
+    def _stage_result(
+        self, box_match, box_bid, box_skip_area, box_exit, re_match, re_bid, re_skip, re_exit
+    ) -> bool:
         """结果阶段：等待拍卖结算，处理跳过动画或返回匹配界面。"""
         self.log_info("等待拍卖结算结果")
         loop_count = 0
@@ -375,8 +368,8 @@ class AutoBidAuctionTask(BaseNTETask):
 
         # 藏品库存不足提示区域
         box_collection_insufficient = self.box_of_screen(0.240, 0.467, to_x=0.747, to_y=0.536)
-        # 主界面资产区域
-        box_main_asset = self.box_of_screen(0.6922, 0.0361, to_x=0.8063, to_y=0.0806)
+        # 主界面资产区域 - 适当扩大，避免资产为 0 时单字符偏移导致漏识别
+        box_main_asset = self.box_of_screen(0.670, 0.025, to_x=0.830, to_y=0.095)
 
         while loop_count < max_loop:
             loop_count += 1
@@ -387,26 +380,24 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.log_info("检测到跳过动画")
                 self.operate_click(skip_results[0], after_sleep=0.5)
 
-                self.wait_click_ocr(
-                    box=box_exit,
-                    match=re_exit,
-                    time_out=5,
-                    after_sleep=0.5
-                )
+                self.wait_click_ocr(box=box_exit, match=re_exit, time_out=5, after_sleep=0.5)
                 self.log_info("退出拍卖")
 
                 self.log_info("等待主界面加载稳定……")
+                # 等待时同样使用带 match 的 OCR，确保能捕获到资产数字（包括单字符 0）
                 self.wait_until(
-                    lambda: self.ocr(box=box_main_asset, match=re.compile(r"[\d,￥]+")),
+                    lambda: self.ocr(box=box_main_asset, match=re.compile(r"[0-9０-９,]+")),
                     time_out=15,
                     raise_if_not_found=False,
-                    settle_time=0.2
+                    settle_time=0.2,
                 )
 
                 need_clear_collections = False
                 auto_clear = self.config.get(self.CONF_AUTO_CLEAR_COLLECTIONS, False)
                 if auto_clear:
-                    insufficient_text = self.ocr(box=box_collection_insufficient, match=re.compile(r"少于200格"))
+                    insufficient_text = self.ocr(
+                        box=box_collection_insufficient, match=re.compile(r"少于200格")
+                    )
                     if insufficient_text:
                         self.log_info("检测到库存不足提示，标记需要自动清理藏品")
                         need_clear_collections = True
@@ -416,43 +407,34 @@ class AutoBidAuctionTask(BaseNTETask):
                 # 低保金领取
                 if self.config.get(self.CONF_USE_WELFARE, False):
                     self.next_frame()
-                    asset_boxes = self.ocr(box=box_main_asset)
+                    # 资产为 0 时单字符识别容易失败，强制使用 match 正则捕获数字模式
+                    asset_re = re.compile(r"[0-9０-９,]+")
+                    asset_boxes = self.ocr(box=box_main_asset, match=asset_re)
                     if not asset_boxes:
-                        self.sleep(0.2)
+                        self.sleep(0.5)  # 增加等待时间让 UI 完全稳定
                         self.next_frame()
-                        asset_boxes = self.ocr(box=box_main_asset)
+                        asset_boxes = self.ocr(box=box_main_asset, match=asset_re)
 
                     if asset_boxes:
                         raw_text = "".join(box.name for box in asset_boxes)
-                        full_to_half_map = {'０':'0', '１':'1', '２':'2', '３':'3', '４':'4', '５':'5', '６':'6', '７':'7', '８':'8', '９':'9'}
-                        normalized_text = "".join(full_to_half_map.get(c, c) for c in raw_text)
-                        digits = re.sub(r"[^\d]", "", normalized_text)
+                        self.log_debug(f"主界面资产原始 OCR: '{raw_text}'")
+                        asset_value = self._parse_asset_value(raw_text)
 
-                        if digits:
-                            try:
-                                asset_value = int(digits)
-                                self.log_info(f"当前资产：{asset_value}")
-                                if asset_value < 100000:
-                                    self.log_info("资产低于100000，执行低保金领取")
-                                    self._try_claim_welfare()
-                                else:
-                                    self.log_info("资产达到100000，跳过低保金领取")
-                            except ValueError:
-                                corrected_digits = digits.replace('l', '1').replace('I', '1').replace('O', '0')
-                                try:
-                                    asset_value = int(corrected_digits)
-                                    self.log_info(f"OCR纠错后识别资产：{asset_value}")
-                                    if asset_value < 100000:
-                                        self.log_info("资产低于100000，执行低保金领取")
-                                        self._try_claim_welfare()
-                                    else:
-                                        self.log_info("资产达到100000，跳过低保金领取")
-                                except ValueError:
-                                    self.log_warning(f"资产值识别失败，OCR原始文本为: {raw_text}，跳过本次低保金领取")
+                        if asset_value is not None:
+                            self.log_info(f"当前资产：{asset_value}")
+                            if asset_value < 100000:
+                                self.log_info("资产低于100000，执行低保金领取")
+                                self._try_claim_welfare()
+                            else:
+                                self.log_info("资产达到100000，跳过低保金领取")
                         else:
-                            self.log_warning("资产值识别失败（未识别到有效数字），跳过本次低保金领取")
+                            self.log_warning(
+                                f"资产值解析失败，OCR 原始文本为: {raw_text}，跳过本次低保金领取"
+                            )
                     else:
-                        self.log_warning("资产值识别失败（OCR未匹配到有效文本），跳过本次低保金领取")
+                        self.log_warning(
+                            "资产值识别失败（OCR 未匹配到有效文本），跳过本次低保金领取"
+                        )
 
                 if need_clear_collections:
                     self.log_info("根据之前的标记，现在执行自动清理藏品")
@@ -471,6 +453,41 @@ class AutoBidAuctionTask(BaseNTETask):
             self.sleep(0.5)
 
         raise WaitFailedException("结果阶段等待超时")
+
+    # --- 资产解析公共方法 ---
+    def _parse_asset_value(self, raw_text: str) -> int | None:
+        """统一解析资产 OCR 文本，返回整数或 None。
+
+        处理流程：
+        1. 全角数字转半角
+        2. 提取纯数字
+        3. 常见 OCR 错误纠正（O→0, l/I→1）
+        4. 转 int，失败返回 None
+        """
+        full_to_half_map = {
+            "０": "0",
+            "１": "1",
+            "２": "2",
+            "３": "3",
+            "４": "4",
+            "５": "5",
+            "６": "6",
+            "７": "7",
+            "８": "8",
+            "９": "9",
+        }
+        normalized_text = "".join(full_to_half_map.get(c, c) for c in raw_text)
+        digits = re.sub(r"[^\d]", "", normalized_text)
+
+        if not digits:
+            return None
+
+        # 常见 OCR 错误纠正
+        corrected = digits.replace("l", "1").replace("I", "1").replace("O", "0")
+        try:
+            return int(corrected)
+        except ValueError:
+            return None
 
     # --- 具体操作辅助方法 ---
 
@@ -537,7 +554,7 @@ class AutoBidAuctionTask(BaseNTETask):
             match=re.compile(r"确认出价"),
             time_out=5,
             after_sleep=0.5,
-            raise_if_not_found=False
+            raise_if_not_found=False,
         )
 
         box_exception_area = self.box_of_screen(0.579, 0.641, to_x=0.634, to_y=0.681)
@@ -546,7 +563,7 @@ class AutoBidAuctionTask(BaseNTETask):
             match=re.compile(r"确认"),
             time_out=5,
             after_sleep=0.3,
-            raise_if_not_found=False
+            raise_if_not_found=False,
         ):
             self.log_info("检测到异常确认框，点击确认")
         else:
@@ -566,23 +583,14 @@ class AutoBidAuctionTask(BaseNTETask):
         try:
             self.log_info("执行低保金领取流程")
             self.wait_click_ocr(
-                box=box_welfare_btn,
-                match=re.compile(r"低保金"),
-                time_out=5,
-                after_sleep=0.5
+                box=box_welfare_btn, match=re.compile(r"低保金"), time_out=5, after_sleep=0.5
             )
             self.wait_click_ocr(
-                box=box_claim,
-                match=re.compile(r"领取"),
-                time_out=5,
-                after_sleep=0.5
+                box=box_claim, match=re.compile(r"领取"), time_out=5, after_sleep=0.5
             )
             self.sleep(1)
             self.wait_click_ocr(
-                box=box_cancel,
-                match=re.compile(r"取消"),
-                time_out=5,
-                after_sleep=0.5
+                box=box_cancel, match=re.compile(r"取消"), time_out=5, after_sleep=0.5
             )
             self.sleep(1)
             self.log_info("低保金领取完成")
@@ -601,10 +609,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
         try:
             self.wait_click_ocr(
-                box=box_warehouse_btn,
-                match=re.compile(r"藏品仓库"),
-                time_out=10,
-                after_sleep=1
+                box=box_warehouse_btn, match=re.compile(r"藏品仓库"), time_out=10, after_sleep=1
             )
 
             box_sell = self.box_of_screen(0.931, 0.860, to_x=0.949, to_y=0.900)
