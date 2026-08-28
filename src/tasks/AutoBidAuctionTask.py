@@ -68,11 +68,11 @@ class AutoBidAuctionTask(BaseNTETask):
 
         # 拍卖主界面 UI 元素坐标（多个阶段共享）
         # 开始匹配按钮
-        box_match = self.box_of_screen(0.7427, 0.8972, to_x=0.8360, to_y=0.9472)
+        box_match = self.box_of_screen(0.7427, 0.8972, 0.8360, 0.9472)
         # 确认按钮（匹配成功后的确认）
-        box_confirm = self.box_of_screen(0.578, 0.636, to_x=0.630, to_y=0.680)
+        box_confirm = self.box_of_screen(0.578, 0.636, 0.630, 0.680)
         # 出价按钮（出现此按钮表示可以出价）
-        box_bid = self.box_of_screen(0.882, 0.913, to_x=0.930, to_y=0.953)
+        box_bid = self.box_of_screen(0.882, 0.913, 0.930, 0.953)
 
         re_match = re.compile(r"开始匹配")
         re_confirm = re.compile(r"确认")
@@ -133,9 +133,9 @@ class AutoBidAuctionTask(BaseNTETask):
         self.sleep(0.5)
 
         # 提前创建后续阶段需要的 Box
-        box_skip_area = self.box_of_screen(0.721, 0.913, to_x=0.794, to_y=0.959)
-        box_exit = self.box_of_screen(0.864, 0.905, to_x=0.945, to_y=0.951)
-        box_bid_confirm = self.box_of_screen(0.649, 0.868, to_x=0.726, to_y=0.911)
+        box_skip_area = self.box_of_screen(0.721, 0.913, 0.794, 0.959)
+        box_exit = self.box_of_screen(0.864, 0.905, 0.945, 0.951)
+        box_bid_confirm = self.box_of_screen(0.649, 0.868, 0.726, 0.911)
 
         stage = self._stage_match(
             box_match, box_confirm, box_bid, box_skip_area, re_match, re_confirm, re_bid, re_skip
@@ -288,9 +288,9 @@ class AutoBidAuctionTask(BaseNTETask):
     def _attempt_bid(self, box_bid, box_bid_confirm, re_bid) -> bool:
         """单次出价尝试：包含出价、面板确认和表情包动作。"""
         # 放弃按钮
-        box_abandon = self.box_of_screen(0.7276, 0.9083, to_x=0.7833, to_y=0.9583)
+        box_abandon = self.box_of_screen(0.7276, 0.9083, 0.7833, 0.9583)
         # 资产值区域（出价面板右上角）
-        box_asset_value = self.box_of_screen(0.8583, 0.0426, to_x=0.9870, to_y=0.0806)
+        box_asset_value = self.box_of_screen(0.8583, 0.0426, 0.9870, 0.0806)
 
         # 出价前资产判断（资产值为0时放弃）
         self.sleep(0.2)  # 等待 UI 渲染稳定，避免因面板刚弹出导致 OCR 读取空白
@@ -312,7 +312,7 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.sleep(0.5)
 
                 # 确认放弃弹窗
-                box_abandon_confirm = self.box_of_screen(0.5474, 0.6389, to_x=0.6714, to_y=0.6861)
+                box_abandon_confirm = self.box_of_screen(0.5474, 0.6389, 0.6714, 0.6861)
                 self.operate_click(box_abandon_confirm, after_sleep=0.5)
 
                 return True
@@ -367,9 +367,9 @@ class AutoBidAuctionTask(BaseNTETask):
         max_loop = 180
 
         # 藏品库存不足提示区域
-        box_collection_insufficient = self.box_of_screen(0.240, 0.467, to_x=0.747, to_y=0.536)
+        box_collection_insufficient = self.box_of_screen(0.240, 0.467, 0.747, 0.536)
         # 主界面资产区域 - 适当扩大，避免资产为 0 时单字符偏移导致漏识别
-        box_main_asset = self.box_of_screen(0.670, 0.025, to_x=0.830, to_y=0.095)
+        box_main_asset = self.box_of_screen(0.670, 0.025, 0.830, 0.095)
 
         while loop_count < max_loop:
             loop_count += 1
@@ -510,7 +510,7 @@ class AutoBidAuctionTask(BaseNTETask):
             self.operate_click(box_last_bid, after_sleep=0.2)
             self.log_info(f"使用上轮出价快捷输入价格 {price}")
         else:
-            box_clear = self.box_of_screen(0.488, 0.859, to_x=0.533, to_y=0.917)
+            box_clear = self.box_of_screen(0.488, 0.859, 0.533, 0.917)
             self.operate_click(box_clear, after_sleep=0.3)
 
             pad_map = {
@@ -533,22 +533,22 @@ class AutoBidAuctionTask(BaseNTETask):
                 remaining = price_str[i:]
                 if remaining == "0000" and len(remaining) >= 4:
                     x, y, to_x, to_y = pad_map["0000"]
-                    box_digit = self.box_of_screen(x, y, to_x=to_x, to_y=to_y)
+                    box_digit = self.box_of_screen(x, y, to_x, to_y)
                     self.operate_click(box_digit, after_sleep=0.2)
                     i += 4
                 elif remaining == "00" and len(remaining) >= 2:
                     x, y, to_x, to_y = pad_map["00"]
-                    box_digit = self.box_of_screen(x, y, to_x=to_x, to_y=to_y)
+                    box_digit = self.box_of_screen(x, y, to_x, to_y)
                     self.operate_click(box_digit, after_sleep=0.2)
                     i += 2
                 else:
                     digit = price_str[i]
                     x, y, to_x, to_y = pad_map[digit]
-                    box_digit = self.box_of_screen(x, y, to_x=to_x, to_y=to_y)
+                    box_digit = self.box_of_screen(x, y, to_x, to_y)
                     self.operate_click(box_digit, after_sleep=0.2)
                     i += 1
 
-        box_bid_confirm = self.box_of_screen(0.649, 0.868, to_x=0.726, to_y=0.911)
+        box_bid_confirm = self.box_of_screen(0.649, 0.868, 0.726, 0.911)
         self.wait_click_ocr(
             box=box_bid_confirm,
             match=re.compile(r"确认出价"),
@@ -557,7 +557,7 @@ class AutoBidAuctionTask(BaseNTETask):
             raise_if_not_found=False,
         )
 
-        box_exception_area = self.box_of_screen(0.579, 0.641, to_x=0.634, to_y=0.681)
+        box_exception_area = self.box_of_screen(0.579, 0.641, 0.634, 0.681)
         if self.wait_click_ocr(
             box=box_exception_area,
             match=re.compile(r"确认"),
@@ -576,9 +576,9 @@ class AutoBidAuctionTask(BaseNTETask):
     def _try_claim_welfare(self) -> bool:
         """尝试领取每日低保金。"""
         # 低保金按钮
-        box_welfare_btn = self.box_of_screen(0.8266, 0.0398, to_x=0.8984, to_y=0.0778)
-        box_claim = self.box_of_screen(0.576, 0.636, to_x=0.632, to_y=0.685)
-        box_cancel = self.box_of_screen(0.370, 0.637, to_x=0.421, to_y=0.684)
+        box_welfare_btn = self.box_of_screen(0.8266, 0.0398, 0.8984, 0.0778)
+        box_claim = self.box_of_screen(0.576, 0.636, 0.632, 0.685)
+        box_cancel = self.box_of_screen(0.370, 0.637, 0.421, 0.684)
 
         try:
             self.log_info("执行低保金领取流程")
@@ -605,25 +605,25 @@ class AutoBidAuctionTask(BaseNTETask):
         """尝试出售藏品仓库中的藏品。"""
         self.log_info("开始执行藏品出售流程")
         # 藏品仓库按钮
-        box_warehouse_btn = self.box_of_screen(0.2109, 0.8583, to_x=0.2740, to_y=0.9713)
+        box_warehouse_btn = self.box_of_screen(0.2109, 0.8583, 0.2740, 0.9713)
 
         try:
             self.wait_click_ocr(
                 box=box_warehouse_btn, match=re.compile(r"藏品仓库"), time_out=10, after_sleep=1
             )
 
-            box_sell = self.box_of_screen(0.931, 0.860, to_x=0.949, to_y=0.900)
-            box_confirm_sell = self.box_of_screen(0.862, 0.863, to_x=0.886, to_y=0.917)
-            box_blank = self.box_of_screen(0.442, 0.851, to_x=0.564, to_y=0.917)
-            box_close = self.box_of_screen(0.950, 0.045, to_x=0.963, to_y=0.073)
+            box_sell = self.box_of_screen(0.931, 0.860, 0.949, 0.900)
+            box_confirm_sell = self.box_of_screen(0.862, 0.863, 0.886, 0.917)
+            box_blank = self.box_of_screen(0.442, 0.851, 0.564, 0.917)
+            box_close = self.box_of_screen(0.950, 0.045, 0.963, 0.073)
 
             quality_boxes = [
-                self.box_of_screen(0.682, 0.799, to_x=0.687, to_y=0.819),
-                self.box_of_screen(0.730, 0.799, to_x=0.735, to_y=0.813),
-                self.box_of_screen(0.779, 0.800, to_x=0.788, to_y=0.816),
-                self.box_of_screen(0.829, 0.801, to_x=0.838, to_y=0.818),
-                self.box_of_screen(0.877, 0.799, to_x=0.886, to_y=0.816),
-                self.box_of_screen(0.927, 0.799, to_x=0.936, to_y=0.819),
+                self.box_of_screen(0.682, 0.799, 0.687, 0.819),
+                self.box_of_screen(0.730, 0.799, 0.735, 0.813),
+                self.box_of_screen(0.779, 0.800, 0.788, 0.816),
+                self.box_of_screen(0.829, 0.801, 0.838, 0.818),
+                self.box_of_screen(0.877, 0.799, 0.886, 0.816),
+                self.box_of_screen(0.927, 0.799, 0.936, 0.819),
             ]
             quality_keys = ["品质白", "品质绿", "品质蓝", "品质紫", "品质橙", "品质红"]
 
@@ -651,8 +651,8 @@ class AutoBidAuctionTask(BaseNTETask):
 
     def _send_emote(self) -> bool:
         """发送表情菜单中的第一个表情。"""
-        box_emote_btn = self.box_of_screen(0.030, 0.900, to_x=0.044, to_y=0.925)
-        box_first_emote = self.box_of_screen(0.123, 0.493, to_x=0.157, to_y=0.544)
+        box_emote_btn = self.box_of_screen(0.030, 0.900, 0.044, 0.925)
+        box_first_emote = self.box_of_screen(0.123, 0.493, 0.157, 0.544)
 
         self.log_info("发送表情包")
         self.operate_click(box_emote_btn, after_sleep=0.8)
