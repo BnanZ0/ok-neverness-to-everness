@@ -107,6 +107,7 @@ class AutoBidAuctionTask(BaseNTETask):
 
         self.last_bid_price = None
         self.current_bid_count = 0
+        self.add_exit_after_config()
 
     def run(self):
         """任务入口, 确保游戏窗口捕获和连接已就绪。"""
