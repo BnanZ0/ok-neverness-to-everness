@@ -18,6 +18,12 @@ class AutoBidAuctionTask(BaseNTETask):
     CONF_SELL_INTERVAL = "出售藏品间隔次数"
     CONF_KEEP_RED = "保留品质红"
 
+    # --- 自动加价配置 ---
+    CONF_AUTO_RAISE = "启用自动加价"
+    CONF_RAISE_MODE = "加价方式"
+    CONF_RAISE_VALUE = "加价数值"
+    CONF_RAISE_ROUND = "加价回合数"
+
     # --- 拍卖辅助功能 ---
     CONF_USE_EMOTE = "启用表情包"
     CONF_USE_WELFARE = "启用低保金"
@@ -35,18 +41,38 @@ class AutoBidAuctionTask(BaseNTETask):
             {
                 self.CONF_FIXED_PRICE: 1,
                 self.CONF_SELL_INTERVAL: 0,
+                self.CONF_KEEP_RED: True,
+                self.CONF_AUTO_RAISE: False,
+                self.CONF_RAISE_MODE: "倍数",
+                self.CONF_RAISE_VALUE: 1.0,
+                self.CONF_RAISE_ROUND: 0,
                 self.CONF_USE_EMOTE: False,
                 self.CONF_USE_WELFARE: False,
                 self.CONF_AUTO_CLEAR_COLLECTIONS: False,
-                self.CONF_KEEP_RED: True,
             }
         )
+
+        # 配置类型定义，用于下拉框和子配置显隐
+        self.config_type = {
+            self.CONF_RAISE_MODE: {
+                "options": ["倍数", "自定义", "百分比"],
+                "sub_configs": {
+                    "倍数": [self.CONF_RAISE_VALUE],
+                    "自定义": [self.CONF_RAISE_VALUE],
+                    "百分比": [self.CONF_RAISE_VALUE],
+                },
+            }
+        }
 
         self.config_description.update(
             {
                 self.CONF_SELL_INTERVAL: "设置为0则不出售",
                 self.CONF_USE_EMOTE: "收藏的第一个表情包",
                 self.CONF_AUTO_CLEAR_COLLECTIONS: "启用会禁用出售间隔",
+                self.CONF_AUTO_RAISE: "在自定义价格基础上自动加价",
+                self.CONF_RAISE_MODE: "倍数: 基础价*倍数, 百分比: 基础价*(1+百分比/100), 自定义: 基础价+自定义值",
+                self.CONF_RAISE_VALUE: "加价数值(支持浮点数)",
+                self.CONF_RAISE_ROUND: "0为每回合都加, N为仅第N回合加",
             }
         )
 
@@ -488,16 +514,61 @@ class AutoBidAuctionTask(BaseNTETask):
         except ValueError:
             return None
 
+    # --- 自动加价计算逻辑 ---
+    def _calculate_auction_price(self) -> int:
+        """计算当前回合应该输入的价格。
+
+        基准价格为自定义价格, 如果启用自动加价, 则根据模式计算加价结果。
+        - 回合数为 0 时, 每回合都加价。
+        - 回合数为 N 时, 仅在第 N 回合加价。
+        - 最终结果四舍五入为整数。
+        """
+        try:
+            base_price = int(self.config.get(self.CONF_FIXED_PRICE, 1))
+        except (TypeError, ValueError):
+            base_price = 1
+
+        if not self.config.get(self.CONF_AUTO_RAISE, False):
+            return base_price
+
+        try:
+            mode = self.config.get(self.CONF_RAISE_MODE, "倍数")
+            value = float(self.config.get(self.CONF_RAISE_VALUE, 0.0))
+        except (TypeError, ValueError):
+            mode = "倍数"
+            value = 0.0
+
+        try:
+            raise_round = int(self.config.get(self.CONF_RAISE_ROUND, 0))
+        except (TypeError, ValueError):
+            raise_round = 0
+
+        # 仅在指定回合加价
+        if raise_round > 0 and self.current_round != raise_round:
+            return base_price
+
+        # 计算加价后的价格
+        if mode == "倍数":
+            result = base_price * value
+        elif mode == "百分比":
+            result = base_price * (1 + value / 100.0)
+        else:  # 自定义
+            result = base_price + value
+
+        # 四舍五入为整数
+        final_price = int(round(result))
+
+        self.log_info(
+            f"自动加价计算: 基础价 {base_price}, 模式 {mode}, 数值 {value}, "
+            f"当前轮次 {self.current_round}, 出价 {final_price}"
+        )
+        return final_price
+
     # --- 具体操作辅助方法 ---
     def _input_fixed_price(self, price: int = None) -> bool:
         """使用游戏内数字键盘输入固定价格。支持快捷按钮: 上轮出价、00、0000。"""
         if price is None:
-            price = self.config.get(self.CONF_FIXED_PRICE, 1)
-
-        try:
-            price = int(price)
-        except Exception:
-            raise ValueError(f"非法价格: {price}")
+            price = self._calculate_auction_price()
 
         price_str = str(price)
         if not price_str.isdigit() or price <= 0:
