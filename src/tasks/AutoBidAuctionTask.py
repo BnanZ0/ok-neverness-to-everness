@@ -14,7 +14,7 @@ class AutoBidAuctionTask(BaseNTETask):
     """
 
     # --- 拍卖核心配置 ---
-    CONF_FIXED_PRICE = "自定义价格"
+    CONF_FIXED_PRICE = "基础价"
     CONF_SELL_INTERVAL = "出售藏品间隔次数"
     CONF_KEEP_RED = "保留品质红"
 
@@ -39,13 +39,13 @@ class AutoBidAuctionTask(BaseNTETask):
 
         self.default_config.update(
             {
-                self.CONF_FIXED_PRICE: 1,
                 self.CONF_SELL_INTERVAL: 0,
                 self.CONF_KEEP_RED: True,
                 self.CONF_AUTO_RAISE: False,
+                self.CONF_FIXED_PRICE: 1,
                 self.CONF_RAISE_MODE: "倍数",
-                self.CONF_RAISE_VALUE: 1.0,
-                self.CONF_RAISE_ROUND: 0,
+                self.CONF_RAISE_VALUE: "1.6",
+                self.CONF_RAISE_ROUND: 2,
                 self.CONF_USE_EMOTE: False,
                 self.CONF_USE_WELFARE: False,
                 self.CONF_AUTO_CLEAR_COLLECTIONS: False,
@@ -70,13 +70,17 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.CONF_USE_EMOTE: "收藏的第一个表情包",
                 self.CONF_AUTO_CLEAR_COLLECTIONS: "启用会禁用出售间隔",
                 self.CONF_AUTO_RAISE: "在自定义价格基础上自动加价",
-                self.CONF_RAISE_MODE: "倍数: 基础价*倍数, 百分比: 基础价*(1+百分比/100), 自定义: 基础价+自定义值",
-                self.CONF_RAISE_VALUE: "加价数值(支持浮点数)",
-                self.CONF_RAISE_ROUND: "0为每回合都加, N为仅第N回合加",
+                self.CONF_RAISE_MODE: "倍数: 基础价*(倍数^出价次数), 百分比: 基础价*(1+百分比/100*"
+                "出价次数), 自定义: 基础价+自定义值*出价次数",
+                self.CONF_RAISE_VALUE: "加价数值(支持小数)",
+                self.CONF_RAISE_ROUND: "0为从第1次出价开始加, N为从第N次出价开始加",
+                self.CONF_FIXED_PRICE: "固定出价（自定义）",
+                self.CONF_USE_WELFARE: "我的资产低于10万领取",
             }
         )
 
         self.last_bid_price = None
+        self.current_bid_count = 0
 
     def run(self):
         """任务入口, 确保游戏窗口捕获和连接已就绪。"""
@@ -270,7 +274,10 @@ class AutoBidAuctionTask(BaseNTETask):
         self, box_bid, box_bid_confirm, re_bid, box_skip_area, box_match, re_skip, re_match
     ) -> bool:
         """出价阶段: 循环出价直到拍卖结束(支持多轮竞拍)。"""
+        # 每轮拍卖开始前重置出价计数和上次价格
+        self.current_bid_count = 0
         self.last_bid_price = None
+
         retry = 0
         max_retry = 3
 
@@ -289,6 +296,10 @@ class AutoBidAuctionTask(BaseNTETask):
                     raise
                 self.sleep(2)
                 continue
+
+            # 出价成功，递增计数
+            self.current_bid_count += 1
+            self.log_info(f"当前拍卖内第 {self.current_bid_count} 次出价成功")
 
             self.log_info("出价成功, 等待拍卖结果或加价信号")
             wait_deadline = time.time() + 60
@@ -516,11 +527,12 @@ class AutoBidAuctionTask(BaseNTETask):
 
     # --- 自动加价计算逻辑 ---
     def _calculate_auction_price(self) -> int:
-        """计算当前回合应该输入的价格。
+        """计算当前出价应该输入的价格。
 
         基准价格为自定义价格, 如果启用自动加价, 则根据模式计算加价结果。
-        - 回合数为 0 时, 每回合都加价。
-        - 回合数为 N 时, 仅在第 N 回合加价。
+        出价序号从1开始计数, 基于成功出价次数+1。
+        - 加价回合数为 0 时, 从第1次出价开始递增。
+        - 加价回合数为 N 时, 从第N次出价开始递增, 之前使用自定义价格。
         - 最终结果四舍五入为整数。
         """
         try:
@@ -543,24 +555,41 @@ class AutoBidAuctionTask(BaseNTETask):
         except (TypeError, ValueError):
             raise_round = 0
 
-        # 仅在指定回合加价
-        if raise_round > 0 and self.current_round != raise_round:
+        # 本次出价序号 = 已成功出价次数 + 1
+        bid_count = self.current_bid_count + 1
+
+        # 如果设置了指定回合，并且当前出价序号还没到该回合，则不启用加价（使用自定义价格）
+        if raise_round > 0 and bid_count < raise_round:
             return base_price
 
-        # 计算加价后的价格
+        # 计算加价偏移次数（从第几次出价开始加价，偏移从1开始）
+        if raise_round == 0:
+            offset = bid_count
+        else:
+            offset = bid_count - raise_round + 1
+
+        # 根据加价方式计算价格
         if mode == "倍数":
-            result = base_price * value
+            # 指数增长: 基础价 * (倍数 ^ offset)
+            result = base_price * (value**offset)
         elif mode == "百分比":
-            result = base_price * (1 + value / 100.0)
+            # 线性: 基础价 * (1 + 百分比/100 * offset)
+            result = base_price * (1 + value / 100 * offset)
         else:  # 自定义
-            result = base_price + value
+            # 线性: 基础价 + 自定义值 * offset
+            result = base_price + value * offset
 
         # 四舍五入为整数
         final_price = int(round(result))
 
+        # 防御: 确保价格为正整数
+        if final_price <= 0:
+            self.log_warning(f"计算出的价格 {final_price} 无效, 回退到基础价 {base_price}")
+            final_price = base_price
+
         self.log_info(
             f"自动加价计算: 基础价 {base_price}, 模式 {mode}, 数值 {value}, "
-            f"当前轮次 {self.current_round}, 出价 {final_price}"
+            f"出价序号 {bid_count}, 加价偏移 {offset}, 出价 {final_price}"
         )
         return final_price
 
@@ -574,7 +603,12 @@ class AutoBidAuctionTask(BaseNTETask):
         if not price_str.isdigit() or price <= 0:
             raise ValueError(f"非法价格 '{price}'")
 
-        if self.last_bid_price is not None and price == self.last_bid_price:
+        # 仅在未启用自动加价时，才使用上轮快捷输入（避免自动加价时快捷输入可能带来的不确定性）
+        if (
+            not self.config.get(self.CONF_AUTO_RAISE, False)
+            and self.last_bid_price is not None
+            and price == self.last_bid_price
+        ):
             box_last_bid = self.box_of_screen(0.473, 0.733, 0.546, 0.807)
             self.operate_click(box_last_bid, after_sleep=0.2)
             self.log_info(f"使用上轮出价快捷输入价格 {price}")
