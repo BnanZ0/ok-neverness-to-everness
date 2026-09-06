@@ -16,7 +16,7 @@ class AutoBidAuctionTask(BaseNTETask):
     # --- 拍卖核心配置 ---
     CONF_FIXED_PRICE = "基础价"
     CONF_SELL_INTERVAL = "出售藏品间隔次数"
-    CONF_KEEP_RED = "保留品质红"
+    CONF_KEEP_QUALITIES = "保留藏品品质"
 
     # --- 自动加价配置 ---
     CONF_AUTO_RAISE = "启用自动加价"
@@ -40,7 +40,7 @@ class AutoBidAuctionTask(BaseNTETask):
         self.default_config.update(
             {
                 self.CONF_SELL_INTERVAL: 0,
-                self.CONF_KEEP_RED: True,
+                self.CONF_KEEP_QUALITIES: ["品质红"],
                 self.CONF_AUTO_RAISE: False,
                 self.CONF_FIXED_PRICE: 1,
                 self.CONF_RAISE_MODE: "倍数",
@@ -61,7 +61,11 @@ class AutoBidAuctionTask(BaseNTETask):
                     "自定义": [self.CONF_RAISE_VALUE],
                     "百分比": [self.CONF_RAISE_VALUE],
                 },
-            }
+            },
+            self.CONF_KEEP_QUALITIES: {
+                "type": "multi_selection",
+                "options": ["品质白", "品质绿", "品质蓝", "品质紫", "品质橙", "品质红"],
+            },
         }
 
         self.config_description.update(
@@ -76,6 +80,7 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.CONF_RAISE_ROUND: "0为从第1次出价开始加, N为从第N次出价开始加",
                 self.CONF_FIXED_PRICE: "固定出价（自定义）",
                 self.CONF_USE_WELFARE: "我的资产低于10万领取",
+                self.CONF_KEEP_QUALITIES: "选中品质不会被出售",
             }
         )
 
@@ -730,11 +735,14 @@ class AutoBidAuctionTask(BaseNTETask):
             ]
             quality_keys = ["品质白", "品质绿", "品质蓝", "品质紫", "品质橙", "品质红"]
 
+            # 获取保留的品质列表
+            keep_qualities = self.config.get(self.CONF_KEEP_QUALITIES, [])
+
             self.operate_click(box_sell, after_sleep=1)
 
             for i, box_quality in enumerate(quality_boxes):
-                if self.config.get(self.CONF_KEEP_RED, True) and quality_keys[i] == "品质红":
-                    self.log_info("保留品质红")
+                if quality_keys[i] in keep_qualities:
+                    self.log_info(f"保留{quality_keys[i]}")
                     continue
                 self.operate_click(box_quality, after_sleep=0.5)
                 self.log_info(f"选择{quality_keys[i]}")
