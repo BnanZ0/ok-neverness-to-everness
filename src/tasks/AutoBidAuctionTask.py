@@ -24,6 +24,11 @@ class AutoBidAuctionTask(BaseNTETask):
     CONF_RAISE_VALUE = "加价数值"
     CONF_RAISE_ROUND = "加价回合数"
 
+    # --- 指定回合单独出价配置 ---
+    CONF_SPECIAL_ROUND = "启用指定回合单独出价"
+    CONF_SPECIAL_ROUNDS = "指定回合(可多选)"
+    CONF_SPECIAL_ROUND_PRICE = "指定回合价格"
+
     # --- 拍卖辅助功能 ---
     CONF_USE_EMOTE = "启用表情包"
     CONF_USE_WELFARE = "启用低保金"
@@ -46,6 +51,9 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.CONF_RAISE_MODE: "倍数",
                 self.CONF_RAISE_VALUE: "1.6",
                 self.CONF_RAISE_ROUND: 2,
+                self.CONF_SPECIAL_ROUND: False,
+                self.CONF_SPECIAL_ROUNDS: ["5"],
+                self.CONF_SPECIAL_ROUND_PRICE: "66666",
                 self.CONF_USE_EMOTE: False,
                 self.CONF_USE_WELFARE: False,
                 self.CONF_AUTO_CLEAR_COLLECTIONS: False,
@@ -66,6 +74,16 @@ class AutoBidAuctionTask(BaseNTETask):
                 "type": "multi_selection",
                 "options": ["品质白", "品质绿", "品质蓝", "品质紫", "品质橙", "品质红"],
             },
+            # 指定回合单独出价：开启开关才显示子配置，回合为多选（1-6）
+            self.CONF_SPECIAL_ROUND: {
+                "sub_configs": {
+                    True: [self.CONF_SPECIAL_ROUNDS, self.CONF_SPECIAL_ROUND_PRICE],
+                }
+            },
+            self.CONF_SPECIAL_ROUNDS: {
+                "type": "multi_selection",
+                "options": ["1", "2", "3", "4", "5", "6"],
+            },
         }
 
         self.config_description.update(
@@ -81,6 +99,9 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.CONF_FIXED_PRICE: "固定出价（自定义）",
                 self.CONF_USE_WELFARE: "我的资产低于10万领取",
                 self.CONF_KEEP_QUALITIES: "选中品质不会被出售",
+                self.CONF_SPECIAL_ROUND: "启用指定回合单独出价",
+                self.CONF_SPECIAL_ROUNDS: "勾选需要使用单独价格的回合(1-6, 可多选)",
+                self.CONF_SPECIAL_ROUND_PRICE: "这些回合使用的价格（整数）",
             }
         )
 
@@ -536,14 +557,27 @@ class AutoBidAuctionTask(BaseNTETask):
 
         基准价格为自定义价格, 如果启用自动加价, 则根据模式计算加价结果。
         出价序号从1开始计数, 基于成功出价次数+1。
-        - 加价回合数为 0 时, 从第1次出价开始递增。
-        - 加价回合数为 N 时, 从第N次出价开始递增, 之前使用自定义价格。
-        - 最终结果四舍五入为整数。
+        如果启用了指定回合单独出价, 且当前序号在勾选的回合列表中, 则直接使用该价格。
         """
         try:
             base_price = int(self.config.get(self.CONF_FIXED_PRICE, 1))
         except (TypeError, ValueError):
             base_price = 1
+
+        # 当前出价序号
+        bid_count = self.current_bid_count + 1
+
+        # 检查指定回合单独出价（支持多选）
+        if self.config.get(self.CONF_SPECIAL_ROUND, False):
+            try:
+                special_rounds = [int(x) for x in self.config.get(self.CONF_SPECIAL_ROUNDS, [])]
+                special_price = int(self.config.get(self.CONF_SPECIAL_ROUND_PRICE, 0))
+            except (TypeError, ValueError):
+                special_rounds = []
+                special_price = 0
+            if special_price > 0 and bid_count in special_rounds:
+                self.log_info(f"指定回合 {bid_count} 使用单独价格 {special_price}")
+                return special_price
 
         if not self.config.get(self.CONF_AUTO_RAISE, False):
             return base_price
@@ -559,9 +593,6 @@ class AutoBidAuctionTask(BaseNTETask):
             raise_round = int(self.config.get(self.CONF_RAISE_ROUND, 0))
         except (TypeError, ValueError):
             raise_round = 0
-
-        # 本次出价序号 = 已成功出价次数 + 1
-        bid_count = self.current_bid_count + 1
 
         # 如果设置了指定回合，并且当前出价序号还没到该回合，则不启用加价（使用自定义价格）
         if raise_round > 0 and bid_count < raise_round:
