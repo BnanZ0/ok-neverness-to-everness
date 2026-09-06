@@ -9,7 +9,7 @@ from src.tasks.BaseNTETask import BaseNTETask
 class AutoBidAuctionTask(BaseNTETask):
     """自动完成游戏内拍卖流程。
 
-    功能包括: 匹配、确认、出价、出价重试、低保金领取、表情包发送、藏品出售。
+    功能包括: 匹配, 确认, 出价, 出价重试, 低保金领取, 表情包发送, 藏品出售。
     需要在拍卖主界面选择低级会场后开始执行。
     """
 
@@ -324,7 +324,7 @@ class AutoBidAuctionTask(BaseNTETask):
                 self.sleep(2)
                 continue
 
-            # 出价成功，递增计数
+            # 出价成功, 递增计数
             self.current_bid_count += 1
             self.log_info(f"当前拍卖内第 {self.current_bid_count} 次出价成功")
 
@@ -523,8 +523,8 @@ class AutoBidAuctionTask(BaseNTETask):
 
         处理流程:
         1. 全角数字转半角
-        2. 提取纯数字
-        3. 常见 OCR 错误纠正(O→0, l/I→1)
+        2. 常见 OCR 错误纠正(O→0, l/I→1)
+        3. 提取纯数字
         4. 转 int, 失败返回 None
         """
         full_to_half_map = {
@@ -540,15 +540,18 @@ class AutoBidAuctionTask(BaseNTETask):
             "\uff19": "9",
         }
         normalized_text = "".join(full_to_half_map.get(c, c) for c in raw_text)
-        digits = re.sub(r"[^\d]", "", normalized_text)
+
+        # 先纠正常见 OCR 错误
+        corrected_text = normalized_text.replace("l", "1").replace("I", "1").replace("O", "0")
+
+        # 再提取纯数字
+        digits = re.sub(r"[^\d]", "", corrected_text)
 
         if not digits:
             return None
 
-        # 常见 OCR 错误纠正
-        corrected = digits.replace("l", "1").replace("I", "1").replace("O", "0")
         try:
-            return int(corrected)
+            return int(digits)
         except ValueError:
             return None
 
