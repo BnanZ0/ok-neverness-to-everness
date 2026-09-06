@@ -1,5 +1,6 @@
 import re
 import time
+from decimal import ROUND_HALF_UP, Decimal
 
 from ok import TaskDisabledException, WaitFailedException
 
@@ -620,7 +621,7 @@ class AutoBidAuctionTask(BaseNTETask):
             result = base_price + value * offset
 
         # 四舍五入为整数
-        final_price = int(round(result))
+        final_price = int(Decimal(str(result)).quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
         # 防御: 确保价格为正整数
         if final_price <= 0:
